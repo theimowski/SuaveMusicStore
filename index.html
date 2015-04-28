@@ -1019,5 +1019,24 @@ body .markdown-body
 <p>This is a tutorial on how to create an application with <a href="http://fsharp.org">F#</a> and <a href="http://suave.io">Suave.IO</a> framework. <br />
 It&rsquo;s inspired by the Music Store tutorial created by the ASP.NET team <a href="http://www.asp.net/mvc/overview/older-versions/mvc-music-store/mvc-music-store-part-1">available here</a>.<br />
 Target audience for this tutorial are mainly C# developers familiar with ASP.NET MVC, who want to learn how to write a real application in F#.<br />
+No prior experience with F# is required - the tutorial will cover primary concepts of the language.<br />
 You can still benefit from the tutorial if you don&rsquo;t have C# / .NET background, however you may find some aspects not clear - From time to time there will be a comparison with how the same functionality could be written in ASP.NET MVC &amp; C#.</p>
-<h2 id="hello-world-from-suave"><a name="user-content-hello-world-from-suave" href="#hello-world-from-suave" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Hello World from Suave</h2></article></body></html>
+<p>Visual Studio 2013 is used throughout the tutorial, but of course you can use IDE of your choice.</p>
+<h2 id="hello-world-from-suave"><a name="user-content-hello-world-from-suave" href="#hello-world-from-suave" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Hello World from Suave</h2>
+<p>Suave application can be hosted as a standalone Console Application. <br />
+Let&rsquo;s start by creating a Console Application Project named <code>SuaveMusicStore</code> (to keep all the files in single folder, uncheck the option to create folder for solution).<br />
+Now we can add NuGet reference to Suave. To do that, in Package Manager Console type: <code>install-package Suave</code>. <br />
+Alternatively, you can use the NuGet GUI to find and install the Suave package.<br />
+Rename the <code>Program.fs</code> file to <code>App.fs</code> to better reflect the purpose of the file, and replace its contents completely with the following code:</p>
+<pre><code>open Suave                 // always open suave
+open Suave.Http.Successful // for OK-result
+open Suave.Web             // for config
+
+startWebServer defaultConfig (OK &quot;Hello World!&quot;)
+</code></pre>
+
+<p>Guess what, if you press F5 to run the project, your application is now up and running!<br />
+By default it should be available under <code>http://localhost:8083</code>.<br />
+If you browse that url, you should be greeted with the classic <code>Hello World!</code>.<br />
+Note there is no <code>Main</code> method defined in <code>App.fs</code> - what happens here is that the <code>startWebServer</code> function is invoked immediately after the program starts and Suave starts listening for incoming request till the process is killed.</p>
+<p><a href="https://github.com/theimowski/SuaveMusicStore/commit/31417324efd11cb01dd56c6f6eeb2f187a7f7a44">Commit - Hello World from Suave</a></p></article></body></html>
