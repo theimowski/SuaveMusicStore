@@ -1062,4 +1062,21 @@ That&rsquo;s where the <code>Option</code> type comes in. Object of type <code>O
 </blockquote>
 <p>In our case, <code>(OK "Hello World!")</code> is the simplest <code>WebPart</code> possible. No matter what comes in the HttpContext, we always return an async of <code>Some</code> <code>HttpContext</code> with response of HTTP Result <code>200 OK</code> and &ldquo;Hello World!&rdquo; in the response body.</p>
 <p>To some extent you could think of the <code>WebPart</code> as a <code>Filter</code> in ASP.NET MVC application, but there&rsquo;s more to it than <code>Filters</code> can do.</p>
-<p>If the above explanation of <code>WebPart</code> doesn&rsquo;t yet make much sense to you, or you don&rsquo;t understand why it has such type signature, bear with me - in next sections we&rsquo;ll try to prove that this type turns out to be really handy when it comes to one of the greatest powers of functional programming paradigm: <strong>composability</strong>.</p></article></body></html>
+<p>If the above explanation of <code>WebPart</code> doesn&rsquo;t yet make much sense to you, or you don&rsquo;t understand why it has such type signature, bear with me - in next sections we&rsquo;ll try to prove that this type turns out to be really handy when it comes to one of the greatest powers of functional programming paradigm: <strong>composability</strong>.</p>
+<h2 id="basic-routing"><a name="user-content-basic-routing" href="#basic-routing" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Basic routing</h2>
+<p>It&rsquo;s time to extend our WebPart to support multiple routes.<br />
+First, let&rsquo;s extract the WebPart and bind it to an identifier. <br />
+We can do that by typing:<br />
+<code>let webPart = OK "Hello World"</code> <br />
+and using the <code>webPart</code> identifier in our call to function <code>startWebServer</code>:<br />
+<code>startWebServer defaultConfig webPart</code>.<br />
+In C#, one would call it &ldquo;assign webPart to a variable&rdquo;, but in functional world there&rsquo;s really no concept of a variable. Instead, we can &ldquo;bind&rdquo; a value to an identifier, which we can reuse later.<br />
+Value, once bound, can&rsquo;t be mutated later during runtime.<br />
+Now, let&rsquo;s restrict our WebPart, so that the &ldquo;Hello World&rdquo; response is sent only at the root path of our application (<code>localhost:8083/</code> but not <code>localhost:8083/anything</code>):<br />
+<code>let webPart = path "/" &gt;&gt;= OK "Hello World"</code><br />
+<code>path</code> function is defined in <code>Suave.Http.Applicatives</code> module, thus we need to open it at the beggining of <code>App.fs</code>. <code>Suave.Http</code> and <code>Suave.Types</code> modules will also be crucial - let&rsquo;s open them as well.</p>
+<p><code>path</code> is a function of type:<br />
+<code>string -&gt; WebPart</code><br />
+It means that if we give it a string it will return WebPart.<br />
+Under the hood, the function looks at the incoming request and returns <code>Some</code> if the paths match, and <code>None</code> otherwise.<br />
+The <code>&gt;&gt;=</code> operator comes also from Suave library. It composes two WebParts into one by first evaluating the WebPart on the left, and applying the WebPart on the right only if the first one returned <code>Some</code>.</p></article></body></html>

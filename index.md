@@ -70,3 +70,24 @@ In our case, `(OK "Hello World!")` is the simplest `WebPart` possible. No matter
 To some extent you could think of the `WebPart` as a `Filter` in ASP.NET MVC application, but there's more to it than `Filters` can do.
 
 If the above explanation of `WebPart` doesn't yet make much sense to you, or you don't understand why it has such type signature, bear with me - in next sections we'll try to prove that this type turns out to be really handy when it comes to one of the greatest powers of functional programming paradigm: **composability**.
+
+Basic routing
+-------------
+
+It's time to extend our WebPart to support multiple routes.
+First, let's extract the WebPart and bind it to an identifier. 
+We can do that by typing:
+`let webPart = OK "Hello World"` 
+and using the `webPart` identifier in our call to function `startWebServer`:
+`startWebServer defaultConfig webPart`.
+In C#, one would call it "assign webPart to a variable", but in functional world there's really no concept of a variable. Instead, we can "bind" a value to an identifier, which we can reuse later.
+Value, once bound, can't be mutated later during runtime.
+Now, let's restrict our WebPart, so that the "Hello World" response is sent only at the root path of our application (`localhost:8083/` but not `localhost:8083/anything`):
+`let webPart = path "/" >>= OK "Hello World"`
+`path` function is defined in `Suave.Http.Applicatives` module, thus we need to open it at the beggining of `App.fs`. `Suave.Http` and `Suave.Types` modules will also be crucial - let's open them as well.
+
+`path` is a function of type:
+`string -> WebPart`
+It means that if we give it a string it will return WebPart.
+Under the hood, the function looks at the incoming request and returns `Some` if the paths match, and `None` otherwise.
+The `>>=` operator comes also from Suave library. It composes two WebParts into one by first evaluating the WebPart on the left, and applying the WebPart on the right only if the first one returned `Some`.
