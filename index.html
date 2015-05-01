@@ -1021,6 +1021,8 @@ It&rsquo;s inspired by the Music Store tutorial created by the ASP.NET team <a h
 Target audience for this tutorial are mainly C# developers familiar with ASP.NET MVC, who want to learn how to write a real application in F#.<br />
 No prior experience with F# is required - the tutorial will cover basic concepts of the language.<br />
 You can still benefit from the tutorial if you don&rsquo;t have C# / .NET background, however you may find some aspects not clear - From time to time there will be a comparison with how the same functionality could be written in ASP.NET MVC &amp; C#.</p>
+<p>For most of the following sections there will be a direct link to a specific commit that contains implementation of the application up to the point.<br />
+This allows you to follow along the process of creating the app, and get back on the track in case of any amibiguity.</p>
 <p>Visual Studio 2013 is used throughout the tutorial, but of course you can use IDE of your choice.</p>
 <h2 id="hello-world-from-suave"><a name="user-content-hello-world-from-suave" href="#hello-world-from-suave" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Hello World from Suave</h2>
 <p>Suave application can be hosted as a standalone Console Application. <br />
@@ -1040,4 +1042,24 @@ By default it should be available under <code>http://localhost:8083</code>.<br /
 If you browse that url, you should be greeted with the classic <code>Hello World!</code>.<br />
 The <code>open</code> statements at the top of the file are the same as <code>using</code> statements in C#.<br />
 Note there is no <code>Main</code> method defined in <code>App.fs</code> - what happens here is that the <code>startWebServer</code> function is invoked immediately after the program is run and Suave starts listening for incoming request till the process is killed.</p>
-<p><a href="https://github.com/theimowski/SuaveMusicStore/commit/31417324efd11cb01dd56c6f6eeb2f187a7f7a44">Commit - Hello World from Suave</a></p></article></body></html>
+<p><a href="https://github.com/theimowski/SuaveMusicStore/commit/31417324efd11cb01dd56c6f6eeb2f187a7f7a44">Commit - Hello World from Suave</a></p>
+<h2 id="webpart"><a name="user-content-webpart" href="#webpart" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>WebPart</h2>
+<p>You may be wondering what the above code actually does. <code>startWebServer</code> is a function from Suave library of type: <code>SuaveConfig -&gt; WebPart -&gt; unit</code>. This basically means that it takes object of type <code>SuaveConfig</code> as first argument, <code>WebPart</code> as second argument, and returns <code>unit</code>.</p>
+<p><code>defaultConfig</code> is a value from the Suave library of type <code>SuaveConfig</code>, and as the name suggest it determines the default configuration of server. For now we only need to know that among other stuff it configures the HTTP binding, meaning that in our case the server is listening on port 8083 on loopback address 127.0.0.1.</p>
+<p><code>unit</code> in F# is a type for which there is only one applicable value, namely <code>()</code>. It is analogous to C# <code>void</code>, with the difference that you cannot return <code>void</code>. If you&rsquo;d like to learn more about the <code>unit</code> type and how it differs from <code>void</code>, <a href="https://msdn.microsoft.com/en-us/library/dd483472.aspx">follow this link</a>.</p>
+<p>The most interesting part is the <code>WebPart</code>. <code>WebPart</code> is a type alias for the following type: <br />
+<code>HttpContext -&gt; Async&lt;HttpContext option&gt;</code><br />
+This means that <code>WebPart</code> is actually a function, which takes objects of type <code>HttpContext</code> as its first argument and returns an &ldquo;asynchronous workflow&rdquo; of <code>HttpContext option</code>.</p>
+<p><code>HttpContext</code> gathers information about the incoming request, outcoming response and other data.<br />
+<code>Async</code>, which is often called &ldquo;asynchronous workflow&rdquo; is a concept like &ldquo;promise&rdquo; or &ldquo;future&rdquo; in some other programming languages. C# 5 introduces the Async / Await feature, which is somewhat similar to F# Async. <a href="http://fsharpforfunandprofit.com/posts/concurrency-async-and-parallel/">Here</a> is a great F# resource on async workflows and asynchronous programming in general. <br />
+One of the biggest advantages F# has over C# is that it doesn&rsquo;t allow nulls. F# compiler prevents you from passing null as an argument, and as a result you will no longer have to deal with the infamous <code>NullReferenceException</code>. <br />
+But what do you do if you want to say that something may have a value or may not have any value at all?<br />
+That&rsquo;s where the <code>Option</code> type comes in. Object of type <code>Option</code> might be: <code>None</code> or <code>Some x</code>.<br />
+<code>None</code> means there&rsquo;s no value, <code>Some x</code> means there is a value <code>x</code> and <code>x</code> is not null.</p>
+<p>To sum up, one could explain <code>WebPart</code> in these words: </p>
+<blockquote>
+<p>Based on the http context, we give you a promise (async) of optional resulting http context, where the resulting context is likely to have its response set with regards to the logic of the WebPart itself</p>
+</blockquote>
+<p>In our case, <code>(OK "Hello World!")</code> is the simplest <code>WebPart</code> possible. No matter what comes in the HttpContext, we always return an async of <code>Some</code> <code>HttpContext</code> with response of HTTP Result <code>200 OK</code> and &ldquo;Hello World!&rdquo; in the response body.</p>
+<p>To some extent you could think of the <code>WebPart</code> as a <code>Filter</code> in ASP.NET MVC application, but there&rsquo;s more to it than <code>Filters</code> can do.</p>
+<p>If the above explanation of <code>WebPart</code> doesn&rsquo;t yet make much sense to you, or you don&rsquo;t understand why it has such type signature, bear with me - in next sections we&rsquo;ll try to prove that this type turns out to be really handy when it comes to one of the greatest powers of functional programming paradigm: <strong>composability</strong>.</p></article></body></html>
