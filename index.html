@@ -1079,4 +1079,18 @@ Now, let&rsquo;s restrict our WebPart, so that the &ldquo;Hello World&rdquo; res
 <code>string -&gt; WebPart</code><br />
 It means that if we give it a string it will return WebPart.<br />
 Under the hood, the function looks at the incoming request and returns <code>Some</code> if the paths match, and <code>None</code> otherwise.<br />
-The <code>&gt;&gt;=</code> operator comes also from Suave library. It composes two WebParts into one by first evaluating the WebPart on the left, and applying the WebPart on the right only if the first one returned <code>Some</code>.</p></article></body></html>
+The <code>&gt;&gt;=</code> operator comes also from Suave library. It composes two WebParts into one by first evaluating the WebPart on the left, and applying the WebPart on the right only if the first one returned <code>Some</code>.</p>
+<p>Let&rsquo;s move on to configuring a few routes in our application. <br />
+To achieve that, we can use the <code>choose</code> function, which takes a list of WebParts, and chooses the first one that applies (returns <code>Some</code>), or if none WebPart applies, then choose will also return <code>None</code>:</p>
+<pre><code>let webPart = 
+    choose [
+        path &quot;/&quot; &gt;&gt;= (OK &quot;Home&quot;)
+        path &quot;/store&quot; &gt;&gt;= (OK &quot;Store&quot;)
+        path &quot;/store/browse&quot; &gt;&gt;= (OK &quot;Store&quot;)
+        path &quot;/store/details&quot; &gt;&gt;= (OK &quot;Details&quot;)
+    ]
+</code></pre>
+
+<p>In addition to that static string path, we can specify route arguments.<br />
+Suave comes with a cool feature called &ldquo;typed routes&rdquo;, which gives you statically typed control over arguments for your route. As example, let&rsquo;s see how we can add <code>id</code> of an album to the details route:</p>
+<p><code>pathScan "/store/details/%d" (fun id -&gt; OK (sprintf "Details: %d" id))</code></p></article></body></html>

@@ -91,3 +91,21 @@ Now, let's restrict our WebPart, so that the "Hello World" response is sent only
 It means that if we give it a string it will return WebPart.
 Under the hood, the function looks at the incoming request and returns `Some` if the paths match, and `None` otherwise.
 The `>>=` operator comes also from Suave library. It composes two WebParts into one by first evaluating the WebPart on the left, and applying the WebPart on the right only if the first one returned `Some`.
+
+Let's move on to configuring a few routes in our application. 
+To achieve that, we can use the `choose` function, which takes a list of WebParts, and chooses the first one that applies (returns `Some`), or if none WebPart applies, then choose will also return `None`:
+
+```
+let webPart = 
+    choose [
+        path "/" >>= (OK "Home")
+        path "/store" >>= (OK "Store")
+        path "/store/browse" >>= (OK "Store")
+        path "/store/details" >>= (OK "Details")
+    ]
+```
+
+In addition to that static string path, we can specify route arguments.
+Suave comes with a cool feature called "typed routes", which gives you statically typed control over arguments for your route. As example, let's see how we can add `id` of an album to the details route:
+
+`pathScan "/store/details/%d" (fun id -> OK (sprintf "Details: %d" id))`
