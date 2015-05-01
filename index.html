@@ -1021,7 +1021,7 @@ It&rsquo;s inspired by the Music Store tutorial created by the ASP.NET team <a h
 Target audience for this tutorial are mainly C# developers familiar with ASP.NET MVC, who want to learn how to write a real application in F#.<br />
 No prior experience with F# is required - the tutorial will cover basic concepts of the language.<br />
 You can still benefit from the tutorial if you don&rsquo;t have C# / .NET background, however you may find some aspects not clear - From time to time there will be a comparison with how the same functionality could be written in ASP.NET MVC &amp; C#.</p>
-<p>For most of the following sections there will be a direct link to a specific commit that contains implementation of the application up to the point.<br />
+<p>For most of the following sections there will be a direct link to a specific tagged commit that contains implementation of the application up to the point.<br />
 This allows you to follow along the process of creating the app, and get back on the track in case of any amibiguity.</p>
 <p>Visual Studio 2013 is used throughout the tutorial, but of course you can use IDE of your choice.</p>
 <h2 id="hello-world-from-suave"><a name="user-content-hello-world-from-suave" href="#hello-world-from-suave" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Hello World from Suave</h2>
@@ -1042,7 +1042,7 @@ By default it should be available under <code>http://localhost:8083</code>.<br /
 If you browse that url, you should be greeted with the classic <code>Hello World!</code>.<br />
 The <code>open</code> statements at the top of the file are the same as <code>using</code> statements in C#.<br />
 Note there is no <code>Main</code> method defined in <code>App.fs</code> - what happens here is that the <code>startWebServer</code> function is invoked immediately after the program is run and Suave starts listening for incoming request till the process is killed.</p>
-<p><a href="https://github.com/theimowski/SuaveMusicStore/commit/31417324efd11cb01dd56c6f6eeb2f187a7f7a44">Commit - Hello World from Suave</a></p>
+<p><a href="https://github.com/theimowski/SuaveMusicStore/tree/hello_world">Tag - hello_world</a></p>
 <h2 id="webpart"><a name="user-content-webpart" href="#webpart" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>WebPart</h2>
 <p>You may be wondering what the above code actually does. <code>startWebServer</code> is a function from Suave library of type: <code>SuaveConfig -&gt; WebPart -&gt; unit</code>. This basically means that it takes object of type <code>SuaveConfig</code> as first argument, <code>WebPart</code> as second argument, and returns <code>unit</code>.</p>
 <p><code>defaultConfig</code> is a value from the Suave library of type <code>SuaveConfig</code>, and as the name suggest it determines the default configuration of server. For now we only need to know that among other stuff it configures the HTTP binding, meaning that in our case the server is listening on port 8083 on loopback address 127.0.0.1.</p>

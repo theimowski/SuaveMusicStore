@@ -10,7 +10,7 @@ Target audience for this tutorial are mainly C# developers familiar with ASP.NET
 No prior experience with F# is required - the tutorial will cover basic concepts of the language.
 You can still benefit from the tutorial if you don't have C# / .NET background, however you may find some aspects not clear - From time to time there will be a comparison with how the same functionality could be written in ASP.NET MVC & C#.
 
-For most of the following sections there will be a direct link to a specific commit that contains implementation of the application up to the point.
+For most of the following sections there will be a direct link to a specific tagged commit that contains implementation of the application up to the point.
 This allows you to follow along the process of creating the app, and get back on the track in case of any amibiguity.
 
 Visual Studio 2013 is used throughout the tutorial, but of course you can use IDE of your choice.
@@ -39,7 +39,7 @@ If you browse that url, you should be greeted with the classic `Hello World!`.
 The `open` statements at the top of the file are the same as `using` statements in C#.
 Note there is no `Main` method defined in `App.fs` - what happens here is that the `startWebServer` function is invoked immediately after the program is run and Suave starts listening for incoming request till the process is killed.
 
-[Commit - Hello World from Suave](https://github.com/theimowski/SuaveMusicStore/commit/31417324efd11cb01dd56c6f6eeb2f187a7f7a44)
+[Tag - hello_world](https://github.com/theimowski/SuaveMusicStore/tree/hello_world)
 
 WebPart
 -------
