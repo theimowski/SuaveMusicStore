@@ -1018,7 +1018,8 @@ body .markdown-body
 <h2 id="introduction"><a name="user-content-introduction" href="#introduction" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Introduction</h2>
 <p>This is a tutorial on how to create an application with <a href="http://fsharp.org">F#</a> and <a href="http://suave.io">Suave.IO</a> framework. <br />
 It&rsquo;s inspired by the Music Store tutorial created by the ASP.NET team <a href="http://www.asp.net/mvc/overview/older-versions/mvc-music-store/mvc-music-store-part-1">available here</a>.<br />
-Target audience for this tutorial are mainly C# developers familiar with ASP.NET MVC, who want to learn how to write a real application in F#.<br />
+Check out this link if you want to find out what the application is going to offer.</p>
+<p>Target audience for this tutorial are mainly C# developers familiar with ASP.NET MVC, who want to learn how to write a real application in F#.<br />
 No prior experience with F# is required - the tutorial will cover basic concepts of the language.<br />
 You can still benefit from the tutorial if you don&rsquo;t have C# / .NET background, however you may find some aspects not clear - From time to time there will be a comparison with how the same functionality could be written in ASP.NET MVC &amp; C#.</p>
 <p>For most of the following sections there will be a direct link to a specific tagged commit that contains implementation of the application up to the point.<br />
@@ -1071,7 +1072,7 @@ We can do that by typing:<br />
 and using the <code>webPart</code> identifier in our call to function <code>startWebServer</code>:<br />
 <code>startWebServer defaultConfig webPart</code>.<br />
 In C#, one would call it &ldquo;assign webPart to a variable&rdquo;, but in functional world there&rsquo;s really no concept of a variable. Instead, we can &ldquo;bind&rdquo; a value to an identifier, which we can reuse later.<br />
-Value, once bound, can&rsquo;t be mutated later during runtime.<br />
+Value, once bound, can&rsquo;t be mutated during runtime.<br />
 Now, let&rsquo;s restrict our WebPart, so that the &ldquo;Hello World&rdquo; response is sent only at the root path of our application (<code>localhost:8083/</code> but not <code>localhost:8083/anything</code>):<br />
 <code>let webPart = path "/" &gt;&gt;= OK "Hello World"</code><br />
 <code>path</code> function is defined in <code>Suave.Http.Applicatives</code> module, thus we need to open it at the beggining of <code>App.fs</code>. <code>Suave.Http</code> and <code>Suave.Types</code> modules will also be crucial - let&rsquo;s open them as well.</p>
@@ -1092,5 +1093,42 @@ To achieve that, we can use the <code>choose</code> function, which takes a list
 </code></pre>
 
 <p>In addition to that static string path, we can specify route arguments.<br />
-Suave comes with a cool feature called &ldquo;typed routes&rdquo;, which gives you statically typed control over arguments for your route. As example, let&rsquo;s see how we can add <code>id</code> of an album to the details route:</p>
-<p><code>pathScan "/store/details/%d" (fun id -&gt; OK (sprintf "Details: %d" id))</code></p></article></body></html>
+Suave comes with a cool feature called &ldquo;typed routes&rdquo;, which gives you statically typed control over arguments for your route. As an example, let&rsquo;s see how we can add <code>id</code> of an album to the details route:</p>
+<p><code>pathScan "/store/details/%d" (fun id -&gt; OK (sprintf "Details: %d" id))</code></p>
+<p>This might look familiar to print formatting from C++, but it&rsquo;s more powerful.<br />
+What happens here is that the compiler checks the type for the <code>%d</code> argument and complains if you pass it a value which is not an integer.<br />
+The WebPart will apply for requests like <code>http://localhost:8083/store/details/28</code><br />
+In the above example, there are a few important aspects:<br />
+- <code>sprintf "Details: %d" id</code> is statically typed string formatting function, expecting the id as an integer <br />
+- <code>(fun id -&gt; OK ...)</code> is an anonymous function or lambda expression if you like, of type <code>int -&gt; WebPart</code><br />
+- the lambda expression is passed as the second parameter to <code>pathScan</code> function<br />
+- first argument of <code>pathScan</code> function also works as a statically typed format<br />
+- type inference mechanism built into F# glues everything together, so that you do not have to mark any type signatures</p>
+<p>To clear things up, here is another example of how one could use typed routes in Suave:</p>
+<p><code>pathScan "/store/details/%s/%d" (fun a id -&gt; OK (sprintf "Artist: %s; Id: %d" a id))</code></p>
+<p>for request <code>http://localhost:8083/store/details/abba/1</code></p>
+<p>For more information on working with strings in a statically typed way, visit <a href="http://fsharpforfunandprofit.com/posts/printf/">this site</a></p>
+<p>Apart from passing arguments in the route itself, we can use the query part of url:<br />
+<code>localhost:8083/store/browse?genre=Disco</code><br />
+To do this, let&rsquo;s create a separate WebPart:</p>
+<pre><code>let browse =
+    request (fun r -&gt; 
+        match r.queryParam &quot;genre&quot; with
+        | Some genre -&gt; OK (sprintf &quot;Genre: %s&quot; genre)
+        | None -&gt; never)
+</code></pre>
+
+<p><code>request</code> is a function that takes as parameter a function of type <code>HttpRequest -&gt; WebPart</code>.<br />
+A function which takes as an argument another function is often called &ldquo;Higher order function&rdquo;.<br />
+<code>r</code> in our lambda represents the <code>HttpRequest</code>. It has a <code>queryParam</code> member function of type <br />
+<code>string -&gt; string option</code>. This member is almost identical to how one would do <code>Dictionary.TryGetValue</code> in C#, except that we don&rsquo;t have to deal with <code>out</code> parameters. Instead, the function returns <code>string option</code> on which we can apply pattern matching.<br />
+Pattern matching is yet another really powerful feature, implemented in variety of modern languages. <br />
+For now we can think of it as a switch statement with binding value to an identifier in one go.<br />
+In addition to that, F# compiler will issue an warning in case we don&rsquo;t provide all possible cases (<code>None</code> and <code>Some x</code> here).<br />
+There&rsquo;s actually much more for pattern matching than that, as we&rsquo;ll discover later.<br />
+<code>never</code> is a function from Suave library, which returns WebPart with <code>None</code>.<br />
+We can summarize the <code>browse</code> WebPart as following:<br />
+If there is a &ldquo;genre&rdquo; parameter in the url query, return 200 OK with the value of the &ldquo;genre&rdquo;, otherwise don&rsquo;t bother.</p>
+<p>Now we can compose the <code>browse</code> WebPart with routing WebPart like this:</p>
+<p><code>path "/store/browse" &gt;&gt;= browse</code></p>
+<p>Eventually we should end up with something similar to: <a href="https://github.com/theimowski/SuaveMusicStore/tree/basic_routing">Tag - basic_routing</a></p></article></body></html>
