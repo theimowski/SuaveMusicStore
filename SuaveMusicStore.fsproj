@@ -57,6 +57,7 @@
     <Compile Include="Path.fs" />
     <Compile Include="View.fs" />
     <Compile Include="App.fs" />
+    <Content Include="Site.css" />
     <None Include="App.config" />
     <Content Include="packages.config" />
     <Compile Include="App.fs" />
