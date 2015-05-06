@@ -21,7 +21,7 @@ let webPart =
         path Path.Store.browse >>= browse
         pathScan Path.Store.details (fun id -> OK (sprintf "Details %d" id))
 
-        pathRegex "(.*)\.css" >>= Files.browseHome
+        pathRegex "(.*)\.(css|png)" >>= Files.browseHome
     ]
 
 startWebServer defaultConfig webPart
