@@ -1,4 +1,6 @@
-﻿open Suave
+﻿module SuaveMusicStore.App
+
+open Suave
 open Suave.Http
 open Suave.Http.Successful
 open Suave.Http.Applicatives
