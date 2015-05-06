@@ -5,11 +5,13 @@ open Suave.Html
 let divId id = divAttr ["id", id]
 let h1 xml = tag "h1" [] xml
 let aHref href = tag "a" ["href", href]
+let cssLink href = linkAttr [ "href", href; " rel", "stylesheet"; " type", "text/css" ]
 
 let index = 
     html [
         head [
             title "Suave Music Store"
+            cssLink "/Site.css"
         ]
 
         body [
