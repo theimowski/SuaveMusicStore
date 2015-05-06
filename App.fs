@@ -1,4 +1,6 @@
-﻿open Suave
+module SuaveMusicStore.App
+
+open Suave
 open Suave.Successful
 open Suave.Filters
 open Suave.Operators
