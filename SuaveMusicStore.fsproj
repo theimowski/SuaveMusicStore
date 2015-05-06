@@ -68,6 +68,10 @@
       <HintPath>packages\Suave.1.0.0\lib\net40\Suave.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Suave.Experimental">
+      <HintPath>packages\Suave.Experimental.1.0.0\lib\net40\Suave.Experimental.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
