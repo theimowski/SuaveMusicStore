@@ -57,7 +57,9 @@
     <Compile Include="Path.fs" />
     <Compile Include="View.fs" />
     <Compile Include="App.fs" />
-    <Content Include="Site.css" />
+    <Content Include="Site.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="App.config" />
     <Content Include="packages.config" />
   </ItemGroup>
