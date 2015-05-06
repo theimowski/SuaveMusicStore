@@ -14,7 +14,7 @@ let index =
 
         body [
             divId "header" [
-                h1 (aHref "/" (text "F# Suave Music Store"))
+                h1 (aHref Path.home (text "F# Suave Music Store"))
             ]
 
             divId "footer" [
