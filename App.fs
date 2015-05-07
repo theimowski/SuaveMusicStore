@@ -8,6 +8,9 @@ open Suave.Http.RequestErrors
 open Suave.Types
 open Suave.Web
 
+let html container =
+    OK (View.index container)
+
 let browse =
     request (fun r ->
         match r.queryParam "genre" with
@@ -16,7 +19,7 @@ let browse =
 
 let webPart = 
     choose [
-        path Path.home >>= (OK View.index)
+        path Path.home >>= html View.home
         path Path.Store.overview >>= (OK "Store")
         path Path.Store.browse >>= browse
         pathScan Path.Store.details (fun id -> OK (sprintf "Details %d" id))
