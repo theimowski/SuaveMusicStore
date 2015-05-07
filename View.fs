@@ -4,23 +4,24 @@ open Suave.Html
 
 let divId id = divAttr ["id", id]
 let h1 xml = tag "h1" [] xml
+let h2 s = tag "h2" [] (text s)
 let aHref href = tag "a" ["href", href]
 let cssLink href = linkAttr [ "href", href; " rel", "stylesheet"; " type", "text/css" ]
 
 let home = [
-    text "Home"
+    h2 "Home"
 ]
 
 let store = [
-    text "Store"
+    h2 "Store"
 ]
 
 let browse genre = [
-    text (sprintf "Genre: %s" genre)
+    h2 (sprintf "Genre: %s" genre)
 ]
 
 let details id = [
-    text (sprintf "Details %d" id)
+    h2 (sprintf "Details %d" id)
 ]
 
 let index container = 
