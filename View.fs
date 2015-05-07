@@ -11,6 +11,18 @@ let home = [
     text "Home"
 ]
 
+let store = [
+    text "Store"
+]
+
+let browse genre = [
+    text (sprintf "Genre: %s" genre)
+]
+
+let details id = [
+    text (sprintf "Details %d" id)
+]
+
 let index container = 
     html [
         head [
