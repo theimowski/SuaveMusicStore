@@ -247,3 +247,29 @@ Let's test the `index` view in our `App.fs`:
 ```
 
 If you navigate to the root url of the application, you should see that proper HTML has been returned.
+
+Before we move on to defining views for the rest of the application, let's introduce one more file - `Path.fs` and insert it **before** `View.fs`:
+
+```
+module SuaveMusicStore.Path
+
+type IntPath = PrintfFormat<(int -> string),unit,string,string,int>
+
+let home = "/"
+
+module Store =
+    let overview = "/store"
+    let browse = "/store/browse"
+    let details : IntPath = "/store/details/%d"
+```
+
+The module will contain all valid routes in our application.
+We'll keep them here in one place, in order to be able to reuse both in `App` and `View` modules.
+Thanks to that, we will minimize the risk of a typo in our `View` module.
+We defined a submodule called `Store` in order to group routes related to themselves - later in the tutorial we'll have more submodules, each of them reflecting a specific set of functionality of the application.
+
+The `IntPath` type alias that we declared will let use our routes in conjunction with strongly-typed routes with `pathScan` (`App.fs`). 
+We don't need to fully understand the signature of this type, for now we can think of it as a route parametrized with integer value.
+And indeed, we annotated the `details` route with this type, so that the compiler treats this value *specially*. 
+We'll see in a moment how we can use `details` in `App` and `View` modules, with the advantage of static typing.
+
