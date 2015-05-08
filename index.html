@@ -1028,7 +1028,8 @@ This allows you to follow along the process of creating the app, and get back on
 <h2 id="hello-world-from-suave"><a name="user-content-hello-world-from-suave" href="#hello-world-from-suave" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Hello World from Suave</h2>
 <p>Suave application can be hosted as a standalone Console Application. <br />
 Let&rsquo;s start by creating a Console Application Project named <code>SuaveMusicStore</code> (to keep all the files in single folder, uncheck the option to create folder for solution).<br />
-Now we can add NuGet reference to Suave. To do that, in Package Manager Console type: <code>install-package Suave</code>. <br />
+Now we can add NuGet reference to Suave. To do that, in Package Manager Console type: <br />
+<code>install-package Suave -version 0.26.2</code>. <br />
 Alternatively, you can use the NuGet GUI to find and install the Suave package.<br />
 Rename the <code>Program.fs</code> file to <code>App.fs</code> to better reflect the purpose of the file, and replace its contents completely with the following code:</p>
 <pre><code>open Suave                 // always open suave
@@ -1143,4 +1144,20 @@ In this application we&rsquo;ll use server-side HTML templating with help of a s
 <p>Note: As of the time of writing, Suave.Experimental is a separate package. It&rsquo;s likely that the public interface of the package will change in a breaking way in next releases. It&rsquo;s also possible the modules that we&rsquo;re going to use will be extracted to the core Suave package.</p>
 </blockquote>
 <p>To use the package, we need to take the dependency on the following NuGet:<br />
-<code>install-package Suave.Experimental</code></p></article></body></html>
+<code>install-package Suave.Experimental -version 0.26.2</code></p>
+<p>Before we start defining views, let&rsquo;s organize our <code>App.fs</code> source file by adding following line at the beginning of the file:</p>
+<pre><code>module SuaveMusicStore.App
+
+open Suave
+...
+</code></pre>
+
+<p>The line means that whatever we define in the file, it will be placed in <code>SuaveMusicStore.App</code>. <br />
+Now let&rsquo;s add a new file <code>View.fs</code> to the project just before the <code>App.fs</code> file and place the following module definition at the very top:</p>
+<pre><code>module SuaveMusicStore.View
+</code></pre>
+
+<p>We&rsquo;ll follow such convention throughout the tutorial to have a clear understanding of the project structure.</p>
+<blockquote>
+<p>Note: It&rsquo;s very important that the <code>View.fs</code> file comes before <code>App.fs</code>. F# compiler requires the referenced items to be defined before their usage. At first glance, that might seem like a big drawback, however after a while you start realizing that you have better control of your dependencies. Read the <a href="http://fsharpforfunandprofit.com/posts/cyclic-dependencies/">following</a> for further explanation.</p>
+</blockquote></article></body></html>

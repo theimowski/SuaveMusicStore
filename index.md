@@ -22,7 +22,8 @@ Hello World from Suave
 
 Suave application can be hosted as a standalone Console Application. 
 Let's start by creating a Console Application Project named `SuaveMusicStore` (to keep all the files in single folder, uncheck the option to create folder for solution).
-Now we can add NuGet reference to Suave. To do that, in Package Manager Console type: `install-package Suave`. 
+Now we can add NuGet reference to Suave. To do that, in Package Manager Console type: 
+```install-package Suave -version 0.26.2```. 
 Alternatively, you can use the NuGet GUI to find and install the Suave package.
 Rename the `Program.fs` file to `App.fs` to better reflect the purpose of the file, and replace its contents completely with the following code:
 
@@ -173,4 +174,25 @@ In this application we'll use server-side HTML templating with help of a seperat
 > Note: As of the time of writing, Suave.Experimental is a separate package. It's likely that the public interface of the package will change in a breaking way in next releases. It's also possible the modules that we're going to use will be extracted to the core Suave package.
 
 To use the package, we need to take the dependency on the following NuGet:
-```install-package Suave.Experimental```
+```install-package Suave.Experimental -version 0.26.2```
+
+Before we start defining views, let's organize our `App.fs` source file by adding following line at the beginning of the file:
+
+```
+module SuaveMusicStore.App
+
+open Suave
+...
+```
+
+The line means that whatever we define in the file, it will be placed in `SuaveMusicStore.App`. 
+Now let's add a new file `View.fs` to the project just before the `App.fs` file and place the following module definition at the very top:
+
+```
+module SuaveMusicStore.View
+```
+
+We'll follow such convention throughout the tutorial to have a clear understanding of the project structure.
+
+> Note: It's very important that the `View.fs` file comes before `App.fs`. F# compiler requires the referenced items to be defined before their usage. At first glance, that might seem like a big drawback, however after a while you start realizing that you have better control of your dependencies. Read the [following](http://fsharpforfunandprofit.com/posts/cyclic-dependencies/) for further explanation.
+
