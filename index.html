@@ -1131,4 +1131,16 @@ We can summarize the <code>browse</code> WebPart as following:<br />
 If there is a &ldquo;genre&rdquo; parameter in the url query, return 200 OK with the value of the &ldquo;genre&rdquo;, otherwise don&rsquo;t bother.</p>
 <p>Now we can compose the <code>browse</code> WebPart with routing WebPart like this:</p>
 <p><code>path "/store/browse" &gt;&gt;= browse</code></p>
-<p>Eventually we should end up with something similar to: <a href="https://github.com/theimowski/SuaveMusicStore/tree/basic_routing">Tag - basic_routing</a></p></article></body></html>
+<p>Eventually we should end up with something similar to: <a href="https://github.com/theimowski/SuaveMusicStore/tree/basic_routing">Tag - basic_routing</a></p>
+<h2 id="views"><a name="user-content-views" href="#views" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Views</h2>
+<p>We&rsquo;ve seen how to define basic routing in a Suave application. <br />
+In this section we&rsquo;ll see how we can deal with returning good looking HTML markup in a HTTP response.<br />
+Templating HTML views is quite a big topic itself, that we don&rsquo;t want to go into much details about.<br />
+Keep in mind that the concept can be approached in many different ways, and the way presented here is not the only proper way of rendering HTML views.<br />
+Having said that, I hope you&rsquo;ll still find the following implementation concise and easy to understand.<br />
+In this application we&rsquo;ll use server-side HTML templating with help of a seperate Suave package called <code>Suave.Experimental</code>.</p>
+<blockquote>
+<p>Note: As of the time of writing, Suave.Experimental is a separate package. It&rsquo;s likely that the public interface of the package will change in a breaking way in next releases. It&rsquo;s also possible the modules that we&rsquo;re going to use will be extracted to the core Suave package.</p>
+</blockquote>
+<p>To use the package, we need to take the dependency on the following NuGet:<br />
+<code>install-package Suave.Experimental</code></p></article></body></html>

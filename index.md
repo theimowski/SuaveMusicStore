@@ -159,3 +159,18 @@ Now we can compose the `browse` WebPart with routing WebPart like this:
 `path "/store/browse" >>= browse`
 
 Eventually we should end up with something similar to: [Tag - basic_routing](https://github.com/theimowski/SuaveMusicStore/tree/basic_routing)
+
+Views
+-----
+
+We've seen how to define basic routing in a Suave application. 
+In this section we'll see how we can deal with returning good looking HTML markup in a HTTP response.
+Templating HTML views is quite a big topic itself, that we don't want to go into much details about.
+Keep in mind that the concept can be approached in many different ways, and the way presented here is not the only proper way of rendering HTML views.
+Having said that, I hope you'll still find the following implementation concise and easy to understand.
+In this application we'll use server-side HTML templating with help of a seperate Suave package called `Suave.Experimental`.
+
+> Note: As of the time of writing, Suave.Experimental is a separate package. It's likely that the public interface of the package will change in a breaking way in next releases. It's also possible the modules that we're going to use will be extracted to the core Suave package.
+
+To use the package, we need to take the dependency on the following NuGet:
+```install-package Suave.Experimental```
