@@ -1243,4 +1243,35 @@ We&rsquo;ll see in a moment how we can use <code>details</code> in <code>App</co
     ]
 </code></pre>
 
-<p>Note, that in <code>App</code> module we still benefit from the static typed routes feature that Suave gives us - the <code>id</code> parameter is inferred by the compiler to be of integer type.</p></article></body></html>
+<p>Note, that in <code>App</code> module we still benefit from the static typed routes feature that Suave gives us - the <code>id</code> parameter is inferred by the compiler to be of integer type.</p>
+<p>It&rsquo;s time to add some CSS styles to our HTML markup.<br />
+We&rsquo;ll not go into much details about the styles itself, as this is not a tutorial on Web Design.<br />
+The stylesheet can be downloaded <a href="https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/Site.css">from here</a> in its final shape.<br />
+Add the <code>Site.css</code> stylesheet to the project, and don&rsquo;t forget to set the <code>Copy To Output Directory</code> property to <code>Copy If Newer</code>.</p>
+<p>In order to include the stylesheet in our HTML markup, let&rsquo;s add the following to our <code>View</code>:</p>
+<pre><code>let cssLink href = linkAttr [ &quot;href&quot;, href; &quot; rel&quot;, &quot;stylesheet&quot;; &quot; type&quot;, &quot;text/css&quot; ]
+
+let index = 
+    html [
+        head [
+            title &quot;Suave Music Store&quot;
+            cssLink &quot;/Site.css&quot;
+        ]
+...
+</code></pre>
+
+<p>This enables us to output the link HTML element with <code>href</code> attribute pointing to the CSS stylesheet.</p>
+<p>There&rsquo;s two more things before we can see the styles applied on our site.</p>
+<p>A browser, when asked to include a CSS file, sends back a request to the server with the given url.<br />
+If we have a look at our main <code>WebPart</code> we&rsquo;ll notice that there&rsquo;s really no handler capable of serving this very static file.<br />
+That&rsquo;s why we need to add another alternative to our <code>WebPart</code>:</p>
+<pre><code>    pathRegex &quot;(.*)\.css&quot; &gt;&gt;= Files.browseHome
+</code></pre>
+
+<p>The <code>pathRegex</code> <code>WebPart</code> returns <code>Some</code> if a incoming request concerns path that matches the regular expression pattern. <br />
+If that&rsquo;s the case, the <code>Files.browseHome</code> WebPart will be applied.<br />
+<code>(.*)\.css</code> pattern matches every file with <code>.css</code> extension.<br />
+<code>Files.browseHome</code> is a <code>WebPart</code> from Suave that serves static files from the root application directory.</p>
+<p>The CSS depends on <code>logo.png</code> asset, which can be downloaded from <a href="https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/logo.png">here</a>.</p>
+<p>Add <code>logo.png</code> to the project, and again don&rsquo;t forget to select <code>Copy If Newer</code> for <code>Copy To Output Directory</code> property for the asset.</p>
+<p>Now you should be able to see the styles applied to our HTML markup.</p></article></body></html>
