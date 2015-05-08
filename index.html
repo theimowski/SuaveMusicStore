@@ -1160,4 +1160,49 @@ Now let&rsquo;s add a new file <code>View.fs</code> to the project just before t
 <p>We&rsquo;ll follow such convention throughout the tutorial to have a clear understanding of the project structure.</p>
 <blockquote>
 <p>Note: It&rsquo;s very important that the <code>View.fs</code> file comes before <code>App.fs</code>. F# compiler requires the referenced items to be defined before their usage. At first glance, that might seem like a big drawback, however after a while you start realizing that you have better control of your dependencies. Read the <a href="http://fsharpforfunandprofit.com/posts/cyclic-dependencies/">following</a> for further explanation.</p>
-</blockquote></article></body></html>
+</blockquote>
+<p>With the <code>View.fs</code> file in place, let&rsquo;s add first view:</p>
+<pre><code>module SuaveMusicStore.View
+
+open Suave.Html
+
+let divId id = divAttr [&quot;id&quot;, id]
+let h1 xml = tag &quot;h1&quot; [] xml
+let aHref href = tag &quot;a&quot; [&quot;href&quot;, href]
+
+let index = 
+    html [
+        head [
+            title &quot;Suave Music Store&quot;
+        ]
+
+        body [
+            divId &quot;header&quot; [
+                h1 (aHref &quot;/&quot; (text &quot;F# Suave Music Store&quot;))
+            ]
+
+            divId &quot;footer&quot; [
+                text &quot;built with &quot;
+                aHref &quot;http://fsharp.org&quot; (text &quot;F#&quot;)
+                text &quot; and &quot;
+                aHref &quot;http://suave.io&quot; (text &quot;Suave.IO&quot;)
+            ]
+        ]
+    ]
+    |&gt; xmlToString
+</code></pre>
+
+<p><code>Suave.Html</code> is a module which contains functions to generate HTML markup.<br />
+Next, we defined 3 helper functions for our purpose.<br />
+In the <code>index</code> value we can see the actual usage of those functions. <br />
+<code>html</code> is a function that takes a list of other tags as its argument as well as <code>head</code> and <code>body</code>.<br />
+<strong>// TODO: Describe the functions </strong></p>
+<p><code>xmlToString</code> transformates the object model into the resulting raw HTML string.<br />
+We can see usage of the &ldquo;pipe&rdquo; operator <code>|&gt;</code> here. <br />
+The operator might look familiar if you have some UNIX background.<br />
+In F#, the <code>|&gt;</code> operator basically means: take the value on the left side and apply it to the function on the right side of the operator.<br />
+In our case it simply means: invoke the <code>xmlToString</code> function on the HTML object model.</p>
+<p>Let&rsquo;s test the <code>index</code> view in our <code>App.fs</code>:<br />
+<pre><code>    path &quot;/&quot; &gt;&gt;= (OK View.index)
+</code></pre></p>
+<p>If you navigate to the root url of the application, you should see that proper HTML has been returned.</p></article></body></html>

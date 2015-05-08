@@ -196,3 +196,54 @@ We'll follow such convention throughout the tutorial to have a clear understandi
 
 > Note: It's very important that the `View.fs` file comes before `App.fs`. F# compiler requires the referenced items to be defined before their usage. At first glance, that might seem like a big drawback, however after a while you start realizing that you have better control of your dependencies. Read the [following](http://fsharpforfunandprofit.com/posts/cyclic-dependencies/) for further explanation.
 
+With the `View.fs` file in place, let's add first view:
+
+```
+module SuaveMusicStore.View
+
+open Suave.Html
+
+let divId id = divAttr ["id", id]
+let h1 xml = tag "h1" [] xml
+let aHref href = tag "a" ["href", href]
+
+let index = 
+    html [
+        head [
+            title "Suave Music Store"
+        ]
+
+        body [
+            divId "header" [
+                h1 (aHref "/" (text "F# Suave Music Store"))
+            ]
+
+            divId "footer" [
+                text "built with "
+                aHref "http://fsharp.org" (text "F#")
+                text " and "
+                aHref "http://suave.io" (text "Suave.IO")
+            ]
+        ]
+    ]
+    |> xmlToString
+```
+
+`Suave.Html` is a module which contains functions to generate HTML markup.
+Next, we defined 3 helper functions for our purpose.
+In the `index` value we can see the actual usage of those functions. 
+`html` is a function that takes a list of other tags as its argument as well as `head` and `body`.
+**// TODO: Describe the functions **
+
+`xmlToString` transformates the object model into the resulting raw HTML string.
+We can see usage of the "pipe" operator `|>` here. 
+The operator might look familiar if you have some UNIX background.
+In F#, the `|>` operator basically means: take the value on the left side and apply it to the function on the right side of the operator.
+In our case it simply means: invoke the `xmlToString` function on the HTML object model.
+
+Let's test the `index` view in our `App.fs`:
+```
+    path "/" >>= (OK View.index)
+```
+
+If you navigate to the root url of the application, you should see that proper HTML has been returned.
