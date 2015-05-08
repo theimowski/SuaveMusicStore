@@ -273,3 +273,24 @@ We don't need to fully understand the signature of this type, for now we can thi
 And indeed, we annotated the `details` route with this type, so that the compiler treats this value *specially*. 
 We'll see in a moment how we can use `details` in `App` and `View` modules, with the advantage of static typing.
 
+Let's use the routes from `Path` module in our `App`:
+
+```
+let webPart = 
+    choose [
+        path Path.home >>= (OK View.index)
+        path Path.Store.overview >>= (OK "Store")
+        path Path.Store.browse >>= browse
+        pathScan Path.Store.details (fun id -> OK (sprintf "Details %d" id))
+    ]
+```
+
+as well as in our `View`:
+
+```
+    divId "header" [
+        h1 (aHref Path.home (text "F# Suave Music Store"))
+    ]
+```
+
+Note, that in `App` module we still benefit from the static typed routes feature that Suave gives us - the `id` parameter is inferred by the compiler to be of integer type.
