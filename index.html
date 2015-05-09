@@ -1020,8 +1020,9 @@ body .markdown-body
 It&rsquo;s inspired by the Music Store tutorial created by the ASP.NET team <a href="http://www.asp.net/mvc/overview/older-versions/mvc-music-store/mvc-music-store-part-1">available here</a>.<br />
 Check out this link if you want to find out what the application is going to offer.</p>
 <p>Target audience for this tutorial are mainly C# developers familiar with ASP.NET MVC, who want to learn how to write a real application in F#.<br />
+You can still benefit from the tutorial if you don&rsquo;t have C# / .NET background, however you may find some aspects not clear - From time to time there will be a comparison with how the same functionality could be written in ASP.NET MVC &amp; C#.<br />
 No prior experience with F# is required - the tutorial will cover basic concepts of the language.<br />
-You can still benefit from the tutorial if you don&rsquo;t have C# / .NET background, however you may find some aspects not clear - From time to time there will be a comparison with how the same functionality could be written in ASP.NET MVC &amp; C#.</p>
+The tutorial is going to have plenty of references to the awesome <a href="http://fsharpforfunandprofit.com">fsharpforfunandprofit.com</a> WebSite, which includes plenty of articles about F# written by Scott Wlaschin.</p>
 <p>For most of the following sections there will be a direct link to a specific tagged commit that contains implementation of the application up to the point.<br />
 This allows you to follow along the process of creating the app, and get back on the track in case of any amibiguity.</p>
 <p>Visual Studio 2013 is used throughout the tutorial, but of course you can use IDE of your choice.</p>
@@ -1139,11 +1140,11 @@ In this section we&rsquo;ll see how we can deal with returning good looking HTML
 Templating HTML views is quite a big topic itself, that we don&rsquo;t want to go into much details about.<br />
 Keep in mind that the concept can be approached in many different ways, and the way presented here is not the only proper way of rendering HTML views.<br />
 Having said that, I hope you&rsquo;ll still find the following implementation concise and easy to understand.<br />
-In this application we&rsquo;ll use server-side HTML templating with help of a seperate Suave package called <code>Suave.Experimental</code>.</p>
+In this application we&rsquo;ll use server-side HTML templating with the help of a seperate Suave package called <code>Suave.Experimental</code>.</p>
 <blockquote>
-<p>Note: As of the time of writing, Suave.Experimental is a separate package. It&rsquo;s likely that the public interface of the package will change in a breaking way in next releases. It&rsquo;s also possible the modules that we&rsquo;re going to use will be extracted to the core Suave package.</p>
+<p>Note: As of the time of writing, <code>Suave.Experimental</code> is a separate package. It&rsquo;s likely that next releases of the package will include breaking changes. It&rsquo;s also possible that the modules we&rsquo;re going to use from within the package will be extracted to the core Suave package.</p>
 </blockquote>
-<p>To use the package, we need to take the dependency on the following NuGet:<br />
+<p>To use the package, we need to take a dependency on the following NuGet:<br />
 <code>install-package Suave.Experimental -version 0.26.2</code></p>
 <p>Before we start defining views, let&rsquo;s organize our <code>App.fs</code> source file by adding following line at the beginning of the file:</p>
 <pre><code>module SuaveMusicStore.App
@@ -1152,16 +1153,17 @@ open Suave
 ...
 </code></pre>
 
-<p>The line means that whatever we define in the file, it will be placed in <code>SuaveMusicStore.App</code>. <br />
+<p>The line means that whatever we define in the file will be placed in <code>SuaveMusicStore.App</code> module.<br />
+Read <a href="http://fsharpforfunandprofit.com/posts/recipe-part3/">here</a> for more info about organizing and structuring F# code.<br />
 Now let&rsquo;s add a new file <code>View.fs</code> to the project just before the <code>App.fs</code> file and place the following module definition at the very top:</p>
 <pre><code>module SuaveMusicStore.View
 </code></pre>
 
-<p>We&rsquo;ll follow such convention throughout the tutorial to have a clear understanding of the project structure.</p>
+<p>We&rsquo;ll follow this convention throughout the tutorial to have a clear understanding of the project structure.</p>
 <blockquote>
-<p>Note: It&rsquo;s very important that the <code>View.fs</code> file comes before <code>App.fs</code>. F# compiler requires the referenced items to be defined before their usage. At first glance, that might seem like a big drawback, however after a while you start realizing that you have better control of your dependencies. Read the <a href="http://fsharpforfunandprofit.com/posts/cyclic-dependencies/">following</a> for further explanation.</p>
+<p>Note: It&rsquo;s very important that the <code>View.fs</code> file comes before <code>App.fs</code>. F# compiler requires the referenced items to be defined before their usage. At first glance, that might seem like a big drawback, however after a while you start realizing that you can have much better control of your dependencies. Read the <a href="http://fsharpforfunandprofit.com/posts/cyclic-dependencies/">following</a> for further benefits of lack of cyclic dependencies in F# project.</p>
 </blockquote>
-<p>With the <code>View.fs</code> file in place, let&rsquo;s add first view:</p>
+<p>With the <code>View.fs</code> file in place, let&rsquo;s add our first view:</p>
 <pre><code>module SuaveMusicStore.View
 
 open Suave.Html
@@ -1192,16 +1194,35 @@ let index =
     |&gt; xmlToString
 </code></pre>
 
-<p><code>Suave.Html</code> is a module which contains functions to generate HTML markup.<br />
-Next, we defined 3 helper functions for our purpose.<br />
-In the <code>index</code> value we can see the actual usage of those functions. <br />
-<code>html</code> is a function that takes a list of other tags as its argument as well as <code>head</code> and <code>body</code>.<br />
-<strong>// TODO: Describe the functions </strong></p>
-<p><code>xmlToString</code> transformates the object model into the resulting raw HTML string.<br />
-We can see usage of the &ldquo;pipe&rdquo; operator <code>|&gt;</code> here. <br />
+<p>This will serve as a common layout in our application.<br />
+A few remarks about the above snippet:</p>
+<ul>
+<li>open <code>Suave.Html</code> module, for functions to generate HTML markup.</li>
+<li>3 helper functions come next:<ul>
+<li><code>divId</code> which appends &ldquo;div&rdquo; element with a string attribute <code>id</code></li>
+<li><code>h1</code> which takes inner markup to generate HTML header level 1.</li>
+<li><code>aHref</code> which takes string attribute <code>href</code> and inner HTML markup to output &ldquo;a&rdquo; element.</li>
+</ul>
+</li>
+<li><code>tag</code> function comes from Suave. It&rsquo;s of type <code>string -&gt; Attribute list -&gt; Xml -&gt; Xml</code>. First arg is name of the HTML element, second - a list of attributes, and third - inner markup</li>
+<li><code>Xml</code> is an internal Suave type holding object model for the HTML markup</li>
+<li><code>index</code> is our representation of HTML markup. </li>
+<li><code>html</code> is a function that takes a list of other tags as its argument. So do <code>head</code> and <code>body</code>.</li>
+<li><code>text</code> serves outputing plain text into an HTML element.</li>
+<li><code>xmlToString</code> transformates the object model into the resulting raw HTML string.</li>
+</ul>
+<blockquote>
+<p>Note: <code>tag</code> function from Suave takes 3 arguments ().<br />
+We&rsquo;ve defined the <code>aHref</code> function by invoking <code>tag</code> with only 2 arguments, and the compilator is perfectly happy with that - Why?<br />
+This concept is called &ldquo;partial application&rdquo;, and allows us to invoke a function by passing only a subset of arguments.<br />
+When we invoke a function with only a subset of arguments, the function will return another function that will expect the rest of arguments.<br />
+In our case this means <code>aHref</code> is of type <code>string -&gt; Xml -&gt; Xml</code>, so the second &ldquo;hidden&rdquo; argument to <code>aHref</code> is of type <code>Xml</code>.<br />
+Read <a href="http://fsharpforfunandprofit.com/posts/partial-application/">here</a> for more info about partial application.</p>
+</blockquote>
+<p>We can see usage of the &ldquo;pipe&rdquo; operator <code>|&gt;</code> in the above code. <br />
 The operator might look familiar if you have some UNIX background.<br />
 In F#, the <code>|&gt;</code> operator basically means: take the value on the left side and apply it to the function on the right side of the operator.<br />
-In our case it simply means: invoke the <code>xmlToString</code> function on the HTML object model.</p>
+In this very case it simply means: invoke the <code>xmlToString</code> function on the HTML object model.</p>
 <p>Let&rsquo;s test the <code>index</code> view in our <code>App.fs</code>:<br />
 <pre><code>    path &quot;/&quot; &gt;&gt;= (OK View.index)
 </code></pre></p>
@@ -1222,8 +1243,8 @@ module Store =
 <p>The module will contain all valid routes in our application.<br />
 We&rsquo;ll keep them here in one place, in order to be able to reuse both in <code>App</code> and <code>View</code> modules.<br />
 Thanks to that, we will minimize the risk of a typo in our <code>View</code> module.<br />
-We defined a submodule called <code>Store</code> in order to group routes related to themselves - later in the tutorial we&rsquo;ll have more submodules, each of them reflecting a specific set of functionality of the application.</p>
-<p>The <code>IntPath</code> type alias that we declared will let use our routes in conjunction with strongly-typed routes with <code>pathScan</code> (<code>App.fs</code>). <br />
+We defined a submodule called <code>Store</code> in order to group routes related to one functionality - later in the tutorial we&rsquo;ll have a few more submodules, each of them reflecting a specific set of functionality of the application.</p>
+<p>The <code>IntPath</code> type alias that we declared will let use our routes in conjunction with static-typed Suave routes (<code>pathScan</code> in <code>App</code> module). <br />
 We don&rsquo;t need to fully understand the signature of this type, for now we can think of it as a route parametrized with integer value.<br />
 And indeed, we annotated the <code>details</code> route with this type, so that the compiler treats this value <em>specially</em>. <br />
 We&rsquo;ll see in a moment how we can use <code>details</code> in <code>App</code> and <code>View</code> modules, with the advantage of static typing.</p>
@@ -1237,15 +1258,16 @@ We&rsquo;ll see in a moment how we can use <code>details</code> in <code>App</co
     ]
 </code></pre>
 
-<p>as well as in our <code>View</code>:</p>
+<p>as well as in our <code>View</code> for <code>aHref</code> to <code>home</code>:</p>
 <pre><code>    divId &quot;header&quot; [
         h1 (aHref Path.home (text &quot;F# Suave Music Store&quot;))
     ]
 </code></pre>
 
-<p>Note, that in <code>App</code> module we still benefit from the static typed routes feature that Suave gives us - the <code>id</code> parameter is inferred by the compiler to be of integer type.</p>
-<p>It&rsquo;s time to add some CSS styles to our HTML markup.<br />
-We&rsquo;ll not go into much details about the styles itself, as this is not a tutorial on Web Design.<br />
+<p>Note, that in <code>App</code> module we still benefit from the static typed routes feature that Suave gives us - the <code>id</code> parameter is inferred by the compiler to be of integer type.<br />
+If you&rsquo;re not familiar with type inference mechanism, you can follow up <a href="http://fsharpforfunandprofit.com/posts/type-inference/">this link</a>.</p>
+<p>It&rsquo;s high time we added some CSS styles to our HTML markup.<br />
+We&rsquo;ll not deepdive into the details about the styles itself, as this is not a tutorial on Web Design.<br />
 The stylesheet can be downloaded <a href="https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/Site.css">from here</a> in its final shape.<br />
 Add the <code>Site.css</code> stylesheet to the project, and don&rsquo;t forget to set the <code>Copy To Output Directory</code> property to <code>Copy If Newer</code>.</p>
 <p>In order to include the stylesheet in our HTML markup, let&rsquo;s add the following to our <code>View</code>:</p>
@@ -1263,26 +1285,30 @@ let index =
 <p>This enables us to output the link HTML element with <code>href</code> attribute pointing to the CSS stylesheet.</p>
 <p>There&rsquo;s two more things before we can see the styles applied on our site.</p>
 <p>A browser, when asked to include a CSS file, sends back a request to the server with the given url.<br />
-If we have a look at our main <code>WebPart</code> we&rsquo;ll notice that there&rsquo;s really no handler capable of serving this very static file.<br />
-That&rsquo;s why we need to add another alternative to our <code>WebPart</code>:</p>
+If we have a look at our main <code>WebPart</code> we&rsquo;ll notice that there&rsquo;s really no handler capable of serving this file.<br />
+That&rsquo;s why we need to add another alternative to our <code>choose</code> <code>WebPart</code>:</p>
 <pre><code>    pathRegex &quot;(.*)\.css&quot; &gt;&gt;= Files.browseHome
 </code></pre>
 
-<p>The <code>pathRegex</code> <code>WebPart</code> returns <code>Some</code> if a incoming request concerns path that matches the regular expression pattern. <br />
+<p>The <code>pathRegex</code> <code>WebPart</code> returns <code>Some</code> if an incoming request concerns path that matches the regular expression pattern. <br />
 If that&rsquo;s the case, the <code>Files.browseHome</code> WebPart will be applied.<br />
 <code>(.*)\.css</code> pattern matches every file with <code>.css</code> extension.<br />
 <code>Files.browseHome</code> is a <code>WebPart</code> from Suave that serves static files from the root application directory.</p>
 <p>The CSS depends on <code>logo.png</code> asset, which can be downloaded from <a href="https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/logo.png">here</a>.</p>
-<p>Add <code>logo.png</code> to the project, and again don&rsquo;t forget to select <code>Copy If Newer</code> for <code>Copy To Output Directory</code> property for the asset.</p>
+<p>Add <code>logo.png</code> to the project, and again don&rsquo;t forget to select <code>Copy If Newer</code> for <code>Copy To Output Directory</code> property for the asset.<br />
+Again, when browser wants to render an image asset, it needs to GET it from the server, so we need to extend our regular expression to allow browsing of <code>.png</code> files as well:</p>
+<pre><code>    pathRegex &quot;(.*)\.(css|png)&quot; &gt;&gt;= Files.browseHome
+</code></pre>
+
 <p>Now you should be able to see the styles applied to our HTML markup.</p>
-<p>With our styles in place, let&rsquo;s get our hands on extracting a shared layout for all future views.<br />
+<p>With styles in place, let&rsquo;s get our hands on extracting a shared layout for all future views to come.<br />
 Start by adding <code>container</code> parameter to <code>index</code> in <code>View</code>:</p>
 <pre><code>let index container = 
     html [
 ...
 </code></pre>
 
-<p>and div &ldquo;container&rdquo; just after the div &ldquo;header&rdquo;:</p>
+<p>and div with id &ldquo;container&rdquo; just after the div &ldquo;header&rdquo;:</p>
 <pre><code>    divId &quot;header&quot; [
         h1 (aHref Path.home (text &quot;F# Suave Music Store&quot;))
     ]
@@ -1290,7 +1316,7 @@ Start by adding <code>container</code> parameter to <code>index</code> in <code>
     divId &quot;container&quot; container
 </code></pre>
 
-<p><code>index</code> previosly was a constant value, but now becomes a function taking <code>container</code> as parameter.</p>
+<p><code>index</code> previosly was a constant value, but now became a function taking <code>container</code> as parameter.</p>
 <p>We can now define actual container for the &ldquo;home&rdquo; page:</p>
 <pre><code>let home = [
     text &quot;Home&quot;
@@ -1328,8 +1354,7 @@ let details id = [
 ]
 </code></pre>
 
-<p>Note that both <code>home</code> and <code>store</code> are constant values, while <code>browse</code> and <code>details</code> are parametrized with<br />
-<code>genre</code> and <code>id</code> respectively.</p>
+<p>Note that both <code>home</code> and <code>store</code> are constant values, while <code>browse</code> and <code>details</code> are parametrized with <code>genre</code> and <code>id</code> respectively.</p>
 <p><code>html</code> can be now reused for all 4 views:</p>
 <pre><code>let browse =
     request (fun r -&gt; 
@@ -1348,13 +1373,13 @@ let webPart =
     ]
 </code></pre>
 
-<p>It&rsquo;s time to replace plain text in containers with meaningful content.<br />
+<p>It&rsquo;s time to replace plain text placeholders in containers with meaningful content.<br />
 First, define <code>h2</code> in <code>View</code> module to output HTML header of level 2:</p>
 <pre><code>let h2 s = tag &quot;h2&quot; [] (text s)
 </code></pre>
 
 <p>and replace <code>text</code> with new <code>h2</code> in each of 4 containers.</p>
-<p>We want the &ldquo;/store&rdquo; route to output hyperlinks to all genres in our Music Store.<br />
+<p>We&rsquo;d like the &ldquo;/store&rdquo; route to output hyperlinks to all genres in our Music Store.<br />
 Let&rsquo;s add a helper function in <code>Path</code> module, that will be responsible for formatting HTTP url with a key-value parameter:</p>
 <pre><code>let withParam (key,value) path = sprintf &quot;%s?%s=%s&quot; path key value
 </code></pre>
@@ -1372,12 +1397,13 @@ Follow <a href="http://fsharpforfunandprofit.com/posts/tuples/">this link</a> to
     ...
 </code></pre>
 
-<p>Now, add the following for working with <code>ul</code> unordered list and <code>li</code> list item elements in HTML:</p>
+<p>Now, add the following for working with unordered list (<code>ul</code>) and list item (<code>li</code>) elements in HTML:</p>
 <pre><code>let ul xml = tag &quot;ul&quot; [] (flatten xml)
 let li = tag &quot;li&quot; []
 </code></pre>
 
-<p>The actual container for <code>store</code> can now look something like this:</p>
+<p><code>flatten</code> takes a list of <code>Xml</code> and &ldquo;flattens&rdquo; it into a single <code>Xml</code> object model.<br />
+The actual container for <code>store</code> can now look like following:</p>
 <pre><code>let store genres = [
     h2 &quot;Browse Genres&quot;
     p [
@@ -1390,7 +1416,13 @@ let li = tag &quot;li&quot; []
 ]
 </code></pre>
 
-<p>To use it from <code>App</code> module, let&rsquo;s simply pass a hardcoded list value for <code>genres</code> like following:</p>
+<p>Things worth commenting in above snippet:</p>
+<ul>
+<li><code>store</code> now takes a list of genres (again the type is inferred by the compiler)</li>
+<li>the <code>[ for g in genres -&gt; ... ]</code> syntax is known as &ldquo;list comprehension&rdquo;. Here we map every genre string from <code>genres</code> to a list item</li>
+<li><code>aHref</code> inside list item points to the <code>Path.Store.browse</code> url with &ldquo;genre&rdquo; parameter - we use the <code>Path.withParam</code> function defined earlier</li>
+</ul>
+<p>To use <code>View.store</code> from <code>App</code> module, let&rsquo;s simply pass a hardcoded list for <code>genres</code> like following:</p>
 <pre><code>    path Path.Store.overview &gt;&gt;= html (View.store [&quot;Rock&quot;; &quot;Disco&quot;; &quot;Pop&quot;])
 </code></pre>
 
