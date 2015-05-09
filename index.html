@@ -1274,4 +1274,76 @@ If that&rsquo;s the case, the <code>Files.browseHome</code> WebPart will be appl
 <code>Files.browseHome</code> is a <code>WebPart</code> from Suave that serves static files from the root application directory.</p>
 <p>The CSS depends on <code>logo.png</code> asset, which can be downloaded from <a href="https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/logo.png">here</a>.</p>
 <p>Add <code>logo.png</code> to the project, and again don&rsquo;t forget to select <code>Copy If Newer</code> for <code>Copy To Output Directory</code> property for the asset.</p>
-<p>Now you should be able to see the styles applied to our HTML markup.</p></article></body></html>
+<p>Now you should be able to see the styles applied to our HTML markup.</p>
+<p>With our styles in place, let&rsquo;s get our hands on extracting a shared layout for all future views.<br />
+Start by adding <code>container</code> parameter to <code>index</code> in <code>View</code>:</p>
+<pre><code>let index container = 
+    html [
+...
+</code></pre>
+
+<p>and div &ldquo;container&rdquo; just after the div &ldquo;header&rdquo;:</p>
+<pre><code>    divId &quot;header&quot; [
+        h1 (aHref Path.home (text &quot;F# Suave Music Store&quot;))
+    ]
+
+    divId &quot;container&quot; container
+</code></pre>
+
+<p><code>index</code> previosly was a constant value, but now becomes a function taking <code>container</code> as parameter.</p>
+<p>We can now define actual container for the &ldquo;home&rdquo; page:</p>
+<pre><code>let home = [
+    text &quot;Home&quot;
+]
+</code></pre>
+
+<p>For now it will only contain plain &ldquo;Home&rdquo; text.<br />
+Let&rsquo;s also extract a common function for creating WebPart, parametrized with the container itself.<br />
+Add to <code>App</code> module, just before the <code>browse</code> WebPart the following:</p>
+<pre><code>
+let html container =
+    OK (View.index container)
+
+</code></pre>
+
+<p>Usage for the home page looks like this:</p>
+<pre><code>    path Path.home &gt;&gt;= html View.home
+</code></pre>
+
+<p>Next, containers for each valid route in our application can be defined in <code>View</code> module:</p>
+<pre><code>let home = [
+    text &quot;Home&quot;
+]
+
+let store = [
+    text &quot;Store&quot;
+]
+
+let browse genre = [
+    text (sprintf &quot;Genre: %s&quot; genre)
+]
+
+let details id = [
+    text (sprintf &quot;Details %d&quot; id)
+]
+</code></pre>
+
+<p>Note that both <code>home</code> and <code>store</code> are constant values, while <code>browse</code> and <code>details</code> are parametrized with<br />
+<code>genre</code> and <code>id</code> respectively.</p>
+<p><code>html</code> can be now reused for all 4 views:</p>
+<pre><code>let browse =
+    request (fun r -&gt; 
+        match r.queryParam &quot;genre&quot; with
+        | Some genre -&gt; html (View.browse genre)
+        | None -&gt; never)
+
+let webPart = 
+    choose [
+        path Path.home &gt;&gt;= html View.home
+        path Path.Store.overview &gt;&gt;= html View.store
+        path Path.Store.browse &gt;&gt;= browse
+        pathScan Path.Store.details (fun id -&gt; html (View.details id))
+
+        pathRegex &quot;(.*)\.(css|png)&quot; &gt;&gt;= Files.browseHome
+    ]
+</code></pre></article></body></html>

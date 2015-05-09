@@ -336,3 +336,93 @@ The CSS depends on `logo.png` asset, which can be downloaded from [here](https:/
 Add `logo.png` to the project, and again don't forget to select `Copy If Newer` for `Copy To Output Directory` property for the asset.
 
 Now you should be able to see the styles applied to our HTML markup.
+
+With our styles in place, let's get our hands on extracting a shared layout for all future views.
+Start by adding `container` parameter to `index` in `View`:
+
+```
+let index container = 
+    html [
+...
+```
+
+and div "container" just after the div "header":
+
+```
+    divId "header" [
+        h1 (aHref Path.home (text "F# Suave Music Store"))
+    ]
+
+    divId "container" container
+```
+
+`index` previosly was a constant value, but now becomes a function taking `container` as parameter.
+
+We can now define actual container for the "home" page:
+
+```
+let home = [
+    text "Home"
+]
+```
+
+For now it will only contain plain "Home" text.
+Let's also extract a common function for creating WebPart, parametrized with the container itself.
+Add to `App` module, just before the `browse` WebPart the following:
+
+```
+
+let html container =
+    OK (View.index container)
+
+```
+
+Usage for the home page looks like this:
+
+```
+    path Path.home >>= html View.home
+```
+
+Next, containers for each valid route in our application can be defined in `View` module:
+
+```
+let home = [
+    text "Home"
+]
+
+let store = [
+    text "Store"
+]
+
+let browse genre = [
+    text (sprintf "Genre: %s" genre)
+]
+
+let details id = [
+    text (sprintf "Details %d" id)
+]
+```
+
+Note that both `home` and `store` are constant values, while `browse` and `details` are parametrized with
+`genre` and `id` respectively.
+
+`html` can be now reused for all 4 views:
+
+```
+let browse =
+    request (fun r -> 
+        match r.queryParam "genre" with
+        | Some genre -> html (View.browse genre)
+        | None -> never)
+
+let webPart = 
+    choose [
+        path Path.home >>= html View.home
+        path Path.Store.overview >>= html View.store
+        path Path.Store.browse >>= browse
+        pathScan Path.Store.details (fun id -> html (View.details id))
+
+        pathRegex "(.*)\.(css|png)" >>= Files.browseHome
+    ]
+```
+
