@@ -1346,4 +1346,52 @@ let webPart =
 
         pathRegex &quot;(.*)\.(css|png)&quot; &gt;&gt;= Files.browseHome
     ]
-</code></pre></article></body></html>
+</code></pre>
+
+<p>It&rsquo;s time to replace plain text in containers with meaningful content.<br />
+First, define <code>h2</code> in <code>View</code> module to output HTML header of level 2:</p>
+<pre><code>let h2 s = tag &quot;h2&quot; [] (text s)
+</code></pre>
+
+<p>and replace <code>text</code> with new <code>h2</code> in each of 4 containers.</p>
+<p>We want the &ldquo;/store&rdquo; route to output hyperlinks to all genres in our Music Store.<br />
+Let&rsquo;s add a helper function in <code>Path</code> module, that will be responsible for formatting HTTP url with a key-value parameter:</p>
+<pre><code>let withParam (key,value) path = sprintf &quot;%s?%s=%s&quot; path key value
+</code></pre>
+
+<p>The <code>withParam</code> function takes a tuple <code>(key,value)</code> as its first argument, <code>path</code> as the second and returns properly formatted url.<br />
+A tuple (or a pair) is a widely used structure in F#. It allows us to group two values into one in an easy manner. <br />
+Syntax for creating a tuple is following: <code>(item1, item2)</code> - this might look like a standard parameter passing in many other languages including C#.<br />
+Follow <a href="http://fsharpforfunandprofit.com/posts/tuples/">this link</a> to learn more about tuples.</p>
+<p>Add also a string key for the url parameter &ldquo;/store/browse&rdquo; in <code>Path.Store</code> module:</p>
+<pre><code>    let browseKey = &quot;genre&quot;
+</code></pre>
+
+<p>We&rsquo;ll use it in <code>App</code> module:</p>
+<pre><code>    match r.queryParam Path.Store.browseKey with
+    ...
+</code></pre>
+
+<p>Now, add the following for working with <code>ul</code> unordered list and <code>li</code> list item elements in HTML:</p>
+<pre><code>let ul xml = tag &quot;ul&quot; [] (flatten xml)
+let li = tag &quot;li&quot; []
+</code></pre>
+
+<p>The actual container for <code>store</code> can now look something like this:</p>
+<pre><code>let store genres = [
+    h2 &quot;Browse Genres&quot;
+    p [
+        text (sprintf &quot;Select from %d genres:&quot; (List.length genres))
+    ]
+    ul [
+        for g in genres -&gt; 
+            li (aHref (Path.Store.browse |&gt; Path.withParam (Path.Store.browseKey, g)) (text g))
+    ]
+]
+</code></pre>
+
+<p>To use it from <code>App</code> module, let&rsquo;s simply pass a hardcoded list value for <code>genres</code> like following:</p>
+<pre><code>    path Path.Store.overview &gt;&gt;= html (View.store [&quot;Rock&quot;; &quot;Disco&quot;; &quot;Pop&quot;])
+</code></pre>
+
+<p>Here is what the solution looks like up to this point: <a href="https://github.com/theimowski/SuaveMusicStore/tree/view">Tag - View</a></p></article></body></html>
