@@ -1,5 +1,7 @@
 ﻿module SuaveMusicStore.View
 
+open System
+
 open Suave.Html
 
 let divId id = divAttr ["id", id]
@@ -9,6 +11,10 @@ let aHref href = tag "a" ["href", href]
 let cssLink href = linkAttr [ "href", href; " rel", "stylesheet"; " type", "text/css" ]
 let ul xml = tag "ul" [] (flatten xml)
 let li = tag "li" []
+let imgSrc src = imgAttr [ "src", src ]
+let em s = tag "em" [] (text s)
+
+let formatDec (d : Decimal) = d.ToString(Globalization.CultureInfo.InvariantCulture)
 
 let home = [
     h2 "Home"
@@ -33,8 +39,16 @@ let browse genre (albums : Db.Album list) = [
     ]
 ]
 
-let details id = [
-    h2 (sprintf "Details %d" id)
+let details (album : Db.AlbumDetails) = [
+    h2 album.Title
+    p [ imgSrc album.AlbumArtUrl ]
+    divId "album-details" [
+        for (caption,t) in ["Genre:",album.Genre;"Artist:",album.Artist;"Price:",formatDec album.Price] ->
+            p [
+                em caption
+                text t
+            ]
+    ]
 ]
 
 let index container = 
