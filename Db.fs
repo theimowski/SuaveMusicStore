@@ -12,6 +12,8 @@ type Album = DbContext.``[dbo].[Albums]Entity``
 type Genre = DbContext.``[dbo].[Genres]Entity``
 type AlbumDetails = DbContext.``[dbo].[AlbumDetails]Entity``
 
+let getContext() = Sql.GetDataContext()
+
 let firstOrNone s = s |> Seq.tryFind (fun _ -> true)
 
 let getGenres (ctx : DbContext) : Genre list = 
