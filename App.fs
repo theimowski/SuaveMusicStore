@@ -15,10 +15,17 @@ let browse =
         | Choice1Of2 genre -> html (View.browse genre)
         | Choice2Of2 msg -> BAD_REQUEST msg)
 
+let overview = warbler (fun _ ->
+    Db.getContext() 
+    |> Db.getGenres 
+    |> List.map (fun g -> g.Name) 
+    |> View.store 
+    |> html)
+
 let webPart = 
     choose [
         path Path.home >=> html View.home
-        path Path.Store.overview >=> html (View.store ["Rock"; "Disco"; "Pop"])
+        path Path.Store.overview >=> overview
         path Path.Store.browse >=> browse
         pathScan Path.Store.details (fun id -> html (View.details id))
 
