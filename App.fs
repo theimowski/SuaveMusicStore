@@ -43,7 +43,7 @@ let webPart =
         path Path.Store.browse >>= browse
         pathScan Path.Store.details details
 
-        pathRegex "(.*)\.(css|png)" >>= Files.browseHome
+        pathRegex "(.*)\.(css|png|gif)" >>= Files.browseHome
     ]
 
 startWebServer defaultConfig webPart
