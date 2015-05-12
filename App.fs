@@ -8,6 +8,7 @@ open Suave.RequestErrors
 
 let html container =
     OK (View.index container)
+    >>= Writers.setMimeType "text/html; charset=utf-8"
 
 let browse =
     request (fun r -> 
