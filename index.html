@@ -1426,4 +1426,19 @@ The actual container for <code>store</code> can now look like following:</p>
 <pre><code>    path Path.Store.overview &gt;&gt;= html (View.store [&quot;Rock&quot;; &quot;Disco&quot;; &quot;Pop&quot;])
 </code></pre>
 
-<p>Here is what the solution looks like up to this point: <a href="https://github.com/theimowski/SuaveMusicStore/tree/view">Tag - View</a></p></article></body></html>
+<p>Here is what the solution looks like up to this point: <a href="https://github.com/theimowski/SuaveMusicStore/tree/view">Tag - View</a></p>
+<h2 id="database"><a name="user-content-database" href="#database" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Database</h2>
+<p>In this section we&rsquo;ll see how to add data access to our application.<br />
+We&rsquo;ll use SQL Server for the database - you can use the Express version bundled with Visual Studio.<br />
+Download the <a href="https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/create.sql"><code>create.sql</code> script</a> and run - it should create <code>SuaveMusicStore</code> database.</p>
+<p>There are many ways to talk with a database from .NET code including ADO.NET, light-weight libraries like Dapper, ORMs like Entity Framework or NHibernate.<br />
+To have more fun, we&rsquo;ll do something completely different, namely try out an awesome F# feature called Type Providers.<br />
+In short, Type Providers in F# is a feature, that is capable of automatic generation of types based on some type of schema.<br />
+// TODO: Link<br />
+To learn more about Type Providers, check out <a href="">this resource</a>.</p>
+<p>SQLProvider is example of a Type Provider library, which gives ability to cooperate with a relational database.<br />
+We can install SQLProvider from NuGet:<br />
+<code>install-package SQLProvider -includeprerelease</code></p>
+<blockquote>
+<p>Note: SQLProvider resists on NuGet as a &ldquo;prerelease&rdquo;. In its documentation it&rsquo;s described &ldquo;as not production ready&rdquo;, however we are perfectly fine to use it in our case, as it fullfills all basic data access requirements we need.</p>
+</blockquote></article></body></html>

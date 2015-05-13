@@ -518,3 +518,22 @@ To use `View.store` from `App` module, let's simply pass a hardcoded list for `g
 ```
 
 Here is what the solution looks like up to this point: [Tag - View](https://github.com/theimowski/SuaveMusicStore/tree/view)
+
+Database
+--------
+
+In this section we'll see how to add data access to our application.
+We'll use SQL Server for the database - you can use the Express version bundled with Visual Studio.
+Download the [`create.sql` script](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/create.sql) and run - it should create `SuaveMusicStore` database.
+
+There are many ways to talk with a database from .NET code including ADO.NET, light-weight libraries like Dapper, ORMs like Entity Framework or NHibernate.
+To have more fun, we'll do something completely different, namely try out an awesome F# feature called Type Providers.
+In short, Type Providers in F# is a feature, that is capable of automatic generation of types based on some type of schema.
+// TODO: Link
+To learn more about Type Providers, check out [this resource]().
+
+SQLProvider is example of a Type Provider library, which gives ability to cooperate with a relational database.
+We can install SQLProvider from NuGet:
+```install-package SQLProvider -includeprerelease```
+
+> Note: SQLProvider resists on NuGet as a "prerelease". In its documentation it's described "as not production ready", however we are perfectly fine to use it in our case, as it fullfills all basic data access requirements we need.
