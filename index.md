@@ -524,16 +524,159 @@ Database
 
 In this section we'll see how to add data access to our application.
 We'll use SQL Server for the database - you can use the Express version bundled with Visual Studio.
-Download the [`create.sql` script](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/create.sql) and run - it should create `SuaveMusicStore` database.
+Download the [`create.sql` script](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/create.sql) to create `SuaveMusicStore` database.
 
 There are many ways to talk with a database from .NET code including ADO.NET, light-weight libraries like Dapper, ORMs like Entity Framework or NHibernate.
 To have more fun, we'll do something completely different, namely try out an awesome F# feature called Type Providers.
-In short, Type Providers in F# is a feature, that is capable of automatic generation of types based on some type of schema.
-// TODO: Link
-To learn more about Type Providers, check out [this resource]().
+In short, Type Providers allows to automatically generate a set of types based on some type of schema.
+To learn more about Type Providers, check out [this resource](https://msdn.microsoft.com/en-us/library/hh156509.aspx).
 
 SQLProvider is example of a Type Provider library, which gives ability to cooperate with a relational database.
 We can install SQLProvider from NuGet:
 ```install-package SQLProvider -includeprerelease```
 
-> Note: SQLProvider resists on NuGet as a "prerelease". In its documentation it's described "as not production ready", however we are perfectly fine to use it in our case, as it fullfills all basic data access requirements we need.
+> Note: SQLProvider is marked on NuGet as a "prerelease". While it could be risky for more sophisticated queries, we are perfectly fine to use it in our case, as it fullfills all of our data access requirements.
+
+If you're using Visual Studio, a dialog window can pop asking to confirm enabling the Type Provider. 
+This is just to notify about capability of the Type Provider to execute its custom code while in design time.
+
+Let's also add reference to `System.Data` assembly.
+
+Having installed the SQLProvider, let's add `Db.fs` file to the beginning of our project - before any other `*.fs` file.
+
+In the newly created file, open following module:
+
+```
+module SuaveMusicStore.Db
+
+open FSharp.Data.Sql
+```
+
+Next, comes the most interesting part:
+
+```
+type Sql = 
+    SqlDataProvider< 
+        "Server=(LocalDb)\\v11.0;Database=SuaveMusicStore;Trusted_Connection=True;MultipleActiveResultSets=true", 
+        DatabaseVendor=Common.DatabaseProviderTypes.MSSQLSERVER >
+```
+
+You'll need to adjust the above connection string, so that it can access the `SuaveMusicStore` database.
+After the SQLProvider can access the database, it will generate a set of types in background - each for single database table, as well as each for single database view.
+This might be similar to how Entity Framework generates models for your tables, except there's no explicit code generation involved - all of the types reside under the defined `Sql` type.
+
+The generated types have cumbersome names, but we can define type aliases as needed:
+
+```
+type DbContext = Sql.dataContext
+type Album = DbContext.``[dbo].[Albums]Entity``
+type Genre = DbContext.``[dbo].[Genres]Entity``
+type AlbumDetails = DbContext.``[dbo].[AlbumDetails]Entity``
+```
+
+`DbContext` is our data context.
+`Album` and `Genre` reflect database tables.
+`AlbumDetails` reflects database view - it will prove useful when we'll need to display names for the album's genre and artist.
+
+With the type aliases set up, we can move forward to creating our first queries:
+
+```
+let firstOrNone s = s |> Seq.tryFind (fun _ -> true)
+
+let getGenres (ctx : DbContext) : Genre list = 
+    ctx.``[dbo].[Genres]`` |> Seq.toList
+
+let getAlbumsForGenre genreName (ctx : DbContext) : Album list = 
+    query { 
+        for album in ctx.``[dbo].[Albums]`` do
+            join genre in ctx.``[dbo].[Genres]`` on (album.GenreId = genre.GenreId)
+            where (genre.Name = genreName)
+            select album
+    }
+    |> Seq.toList
+
+let getAlbumDetails id (ctx : DbContext) : AlbumDetails option = 
+    query { 
+        for album in ctx.``[dbo].[AlbumDetails]`` do
+            where (album.AlbumId = id)
+            select album
+    } |> firstOrNone
+```
+
+`getGenres` is a function for finding all genres. 
+The function, as well as all functions we'll define in `Db` module, takes the `DbContext` as a parameter.
+The `: Genre list` part is a type annotation making sure the function returns a list of `Genre`s.
+Implementation is straight forward:  ```ctx.``[dbo].[Genres]`` ``` queries all genres, so we just need to pipe it to the `Seq.toList`.
+
+`getAlbumsForGenre` takes `genreName` as argument (infered to be of type string) and returns a list of `Album`s.
+It makes use of "query builder" (`query { }`) which is very similar to C# Linq query.
+Inside the query builder, we're performing an inner join of `Albums` and `Genres` with the `GenreId` foreign key, and then we apply a predicate on `genre.Name` to match the input `genreName`.
+The result of the query is piped to `Seq.toList`.
+
+`getAlbumDetails` takes `id` as argument (infered to be of type int) and returns `AlbumDetails option` because there might be no Album with the given id.
+Here, the result of the query is piped to the `firstOrNone` function, which takes care to transform the result to `option` type.
+`firstOrNone` verifies if a query returned any result.
+In case of any result, `firstOrNone` will return `Some x`, otherwise `None`.
+
+For more convenient instantiation of `DbContext`, let's introduce a small helper function in `Db` module:
+
+```
+let getContext() = Sql.GetDataContext()
+```
+
+Now we're ready to finally read real data in the `App` module:
+
+```
+let overview =
+    Db.getContext() 
+    |> Db.getGenres 
+    |> List.map (fun g -> g.Name) 
+    |> View.store 
+    |> html
+
+...
+
+    path Path.Store.overview >>= overview
+```
+
+`overview` is a WebPart that... 
+Hold on, do I really need to explain it?
+The usage of pipe operator here makes the flow rather obvious - each line defines next step.
+The return value is passed from one function to another, starting with DbContext and ending with the WebPart.
+This is just a single example of how composability in functional programming leads to thinking of your functions as building blocks "glued" together.
+
+Moving to our next WebPart "browse", let's first adjust it in `View` module:
+
+```
+let browse genre (albums : Db.Album list) = [
+    h2 (sprintf "Genre: %s" genre)
+    ul [
+        for a in albums ->
+            li (aHref (sprintf Path.Store.details a.AlbumId) (text a.Title))
+    ]
+]
+```
+
+so that it takes two arguments: name of the genre (string) and a list of albums for that genre.
+For each album we'll display a listitem with a direct link to album details.
+
+> Note: Here we used the `Path.Store.details` of type `IntPath` in conjunction with `sprintf` function to format the direct link. Again this gives us safety in regards to static typing.
+
+Now, we can modify the `browse` WebPart itself:
+
+```
+let browse =
+    request (fun r -> 
+        match r.queryParam Path.Store.browseKey with
+        | Some genre -> 
+            Db.getContext()
+            |> Db.getAlbumsForGenre genre
+            |> View.browse genre
+            |> html
+        | None -> never)
+```
+
+Again, usage of pipe operator makes it clear what happens in case the `genre` is resolved from the query parameter.
+
+> Note: in the example above we did "partial application", both for `Db.getAlbumsForGenre` and `View.browse`. This could be achieved because the return type between those pipes comes as the last argument to those functions.
+
