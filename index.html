@@ -1432,7 +1432,7 @@ The actual container for <code>store</code> can now look like following:</p>
 We&rsquo;ll use SQL Server for the database - you can use the Express version bundled with Visual Studio.<br />
 Download the <a href="https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/create.sql"><code>create.sql</code> script</a> to create <code>SuaveMusicStore</code> database.</p>
 <p>There are many ways to talk with a database from .NET code including ADO.NET, light-weight libraries like Dapper, ORMs like Entity Framework or NHibernate.<br />
-To have more fun, we&rsquo;ll do something completely different, namely try out an awesome F# feature called Type Providers.<br />
+To have more fun, we&rsquo;ll do something completely different, namely try an awesome F# feature called Type Providers.<br />
 In short, Type Providers allows to automatically generate a set of types based on some type of schema.<br />
 To learn more about Type Providers, check out <a href="https://msdn.microsoft.com/en-us/library/hh156509.aspx">this resource</a>.</p>
 <p>SQLProvider is example of a Type Provider library, which gives ability to cooperate with a relational database.<br />
@@ -1442,10 +1442,11 @@ We can install SQLProvider from NuGet:<br />
 <p>Note: SQLProvider is marked on NuGet as a &ldquo;prerelease&rdquo;. While it could be risky for more sophisticated queries, we are perfectly fine to use it in our case, as it fullfills all of our data access requirements.</p>
 </blockquote>
 <p>If you&rsquo;re using Visual Studio, a dialog window can pop asking to confirm enabling the Type Provider. <br />
-This is just to notify about capability of the Type Provider to execute its custom code while in design time.</p>
+This is just to notify about capability of the Type Provider to execute its custom code in design time.<br />
+To be sure the SQLProvider is referenced correctly, select &ldquo;enable&rdquo;.</p>
 <p>Let&rsquo;s also add reference to <code>System.Data</code> assembly.</p>
 <p>Having installed the SQLProvider, let&rsquo;s add <code>Db.fs</code> file to the beginning of our project - before any other <code>*.fs</code> file.</p>
-<p>In the newly created file, open following module:</p>
+<p>In the newly created file, open <code>FSharp.Data.Sql</code> module:</p>
 <pre><code>module SuaveMusicStore.Db
 
 open FSharp.Data.Sql
@@ -1460,8 +1461,8 @@ open FSharp.Data.Sql
 
 <p>You&rsquo;ll need to adjust the above connection string, so that it can access the <code>SuaveMusicStore</code> database.<br />
 After the SQLProvider can access the database, it will generate a set of types in background - each for single database table, as well as each for single database view.<br />
-This might be similar to how Entity Framework generates models for your tables, except there&rsquo;s no explicit code generation involved - all of the types reside under the defined <code>Sql</code> type.</p>
-<p>The generated types have cumbersome names, but we can define type aliases as needed:</p>
+This might be similar to how Entity Framework generates models for your tables, except there&rsquo;s no explicit code generation involved - all of the types reside under the <code>Sql</code> type defined.</p>
+<p>The generated types have a bit cumbersome names, but we can define type aliases to keep things simpler:</p>
 <pre><code>type DbContext = Sql.dataContext
 type Album = DbContext.``[dbo].[Albums]Entity``
 type Genre = DbContext.``[dbo].[Genres]Entity``
@@ -1496,11 +1497,12 @@ let getAlbumDetails id (ctx : DbContext) : AlbumDetails option =
 
 <p><code>getGenres</code> is a function for finding all genres. <br />
 The function, as well as all functions we&rsquo;ll define in <code>Db</code> module, takes the <code>DbContext</code> as a parameter.<br />
-The <code>: Genre list</code> part is a type annotation making sure the function returns a list of <code>Genre</code>s.<br />
+The <code>: Genre list</code> part is a type annotation, which makes sure the function returns a list of <code>Genre</code>s.<br />
 Implementation is straight forward:  <code>ctx.``[dbo].[Genres]``</code> queries all genres, so we just need to pipe it to the <code>Seq.toList</code>.</p>
 <p><code>getAlbumsForGenre</code> takes <code>genreName</code> as argument (infered to be of type string) and returns a list of <code>Album</code>s.<br />
-It makes use of &ldquo;query builder&rdquo; (<code>query { }</code>) which is very similar to C# Linq query.<br />
-Inside the query builder, we&rsquo;re performing an inner join of <code>Albums</code> and <code>Genres</code> with the <code>GenreId</code> foreign key, and then we apply a predicate on <code>genre.Name</code> to match the input <code>genreName</code>.<br />
+It makes use of &ldquo;query expression&rdquo; (<code>query { }</code>) which is very similar to C# Linq query.<br />
+Read <a href="https://msdn.microsoft.com/en-us/library/hh225374.aspx">here</a> for more info about query expressions.<br />
+Inside the query expression, we&rsquo;re performing an inner join of <code>Albums</code> and <code>Genres</code> with the <code>GenreId</code> foreign key, and then we apply a predicate on <code>genre.Name</code> to match the input <code>genreName</code>.<br />
 The result of the query is piped to <code>Seq.toList</code>.</p>
 <p><code>getAlbumDetails</code> takes <code>id</code> as argument (infered to be of type int) and returns <code>AlbumDetails option</code> because there might be no Album with the given id.<br />
 Here, the result of the query is piped to the <code>firstOrNone</code> function, which takes care to transform the result to <code>option</code> type.<br />
@@ -1525,9 +1527,9 @@ In case of any result, <code>firstOrNone</code> will return <code>Some x</code>,
 
 <p><code>overview</code> is a WebPart that&hellip; <br />
 Hold on, do I really need to explain it?<br />
-The usage of pipe operator here makes the flow rather obvious - each line defines next step.<br />
+The usage of pipe operator here makes the flow rather obvious - each line defines each step.<br />
 The return value is passed from one function to another, starting with DbContext and ending with the WebPart.<br />
-This is just a single example of how composability in functional programming leads to thinking of your functions as building blocks &ldquo;glued&rdquo; together.</p>
+This is just a single example of how composition in functional programming makes functions look like building blocks &ldquo;glued&rdquo; together.</p>
 <p>Moving to our next WebPart &ldquo;browse&rdquo;, let&rsquo;s first adjust it in <code>View</code> module:</p>
 <pre><code>let browse genre (albums : Db.Album list) = [
     h2 (sprintf &quot;Genre: %s&quot; genre)
@@ -1539,7 +1541,7 @@ This is just a single example of how composability in functional programming lea
 </code></pre>
 
 <p>so that it takes two arguments: name of the genre (string) and a list of albums for that genre.<br />
-For each album we&rsquo;ll display a listitem with a direct link to album details.</p>
+For each album we&rsquo;ll display a list item with a direct link to album&rsquo;s details.</p>
 <blockquote>
 <p>Note: Here we used the <code>Path.Store.details</code> of type <code>IntPath</code> in conjunction with <code>sprintf</code> function to format the direct link. Again this gives us safety in regards to static typing.</p>
 </blockquote>
@@ -1557,5 +1559,92 @@ For each album we&rsquo;ll display a listitem with a direct link to album detail
 
 <p>Again, usage of pipe operator makes it clear what happens in case the <code>genre</code> is resolved from the query parameter.</p>
 <blockquote>
-<p>Note: in the example above we did &ldquo;partial application&rdquo;, both for <code>Db.getAlbumsForGenre</code> and <code>View.browse</code>. This could be achieved because the return type between those pipes comes as the last argument to those functions.</p>
-</blockquote></article></body></html>
+<p>Note: in the example above we adopted &ldquo;partial application&rdquo;, both for <code>Db.getAlbumsForGenre</code> and <code>View.browse</code>. <br />
+This could be achieved because the return type between the pipes is the last argument for these functions.</p>
+</blockquote>
+<p>If you navigate to &ldquo;/store/browse?genre=Latin&rdquo;, you may notice there are some characters displayed incorrectly.<br />
+Let&rsquo;s fix this by setting the &ldquo;Content-Type&rdquo; header with correct charset for each HTTP response:</p>
+<pre><code>let html container =
+    OK (View.index container)
+    &gt;&gt;= Writers.setMimeType &quot;text/html; charset=utf-8&quot;
+</code></pre>
+
+<p>It&rsquo;s time to read album&rsquo;s details from the database. <br />
+Start by adjusting the <code>details</code> in <code>View</code> module:</p>
+<pre><code>let details (album : Db.AlbumDetails) = [
+    h2 album.Title
+    p [ imgSrc album.AlbumArtUrl ]
+    divId &quot;album-details&quot; [
+        for (caption,t) in [&quot;Genre:&quot;,album.Genre;&quot;Artist:&quot;,album.Artist;&quot;Price:&quot;,formatDec album.Price] -&gt;
+            p [
+                em caption
+                text t
+            ]
+    ]
+]
+</code></pre>
+
+<p>Above snippet requires defining a few more helper functions in <code>View</code>:</p>
+<pre><code>let imgSrc src = imgAttr [ &quot;src&quot;, src ]
+let em s = tag &quot;em&quot; [] (text s)
+
+let formatDec (d : Decimal) = d.ToString(Globalization.CultureInfo.InvariantCulture)
+</code></pre>
+
+<p>as well as opening the <code>System</code> namespace at the top of the file.</p>
+<blockquote>
+<p>Note: It&rsquo;s a good habit to open the <code>System</code> namespace every single time - in practice it usually turns out to be helpful.</p>
+</blockquote>
+<p>In the <code>details</code> function we used list comprehension syntax with an inline list of tuples (<code>["Genre:",album.Genre;...</code>).<br />
+This is just to save us some time from typing the <code>p</code> element three times for all those properties.<br />
+You&rsquo;re welcome to change the implementation so that it doesn&rsquo;t use this shortcut if you like.</p>
+<p>The <code>AlbumDetails</code> database view turns out to be handy now, because we can use all the attributes we need in a single step (no explicit joins required).</p>
+<p>To read the album&rsquo;s details in <code>App</code> module we can do following:</p>
+<pre><code>let details id =
+    match Db.getAlbumDetails id (Db.getContext()) with
+    | Some album -&gt;
+        html (View.details album)
+    | None -&gt;
+        never
+
+...
+
+pathScan Path.Store.details details
+</code></pre>
+
+<p>A few remarks regarding above snippet:</p>
+<ul>
+<li><code>details</code> takes <code>id</code> as parameter and returns WebPart</li>
+<li><code>Path.Store.details</code> of type IntPath guarantees type safety</li>
+<li><code>Db.getAlbumDetails</code> can return <code>None</code> if no album with given id is found</li>
+<li>If an album is found, html WebPart with the <code>View.details</code> container is returned</li>
+<li>If no album is found, <code>None</code> WebPart is returned with help of <code>never</code>.</li>
+</ul>
+<p>No pipe operator was used this time, but as an exercise you can think of how you could apply it to the <code>details</code> WebPart.</p>
+<p>Before testing the app, add the &ldquo;placeholder.gif&rdquo; image asset. <br />
+You can download it from <a href="https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/placeholder.gif">here</a>.<br />
+Don&rsquo;t forget to set &ldquo;Copy To Output Directory&rdquo;, as well as add new file extension to the <code>pathRegex</code> in <code>App</code> module.</p>
+<p>You might have noticed, that when you try to access a missing resource (for example entering album details url with arbitrary album id) then no response is sent.<br />
+In order to fix that, let&rsquo;s add a &ldquo;Page Not Found&rdquo; handler to our main <code>choose</code> WebPart as a last resort:</p>
+<pre><code>let webPart = 
+    choose [
+        ...
+
+        html View.notFound
+    ]
+</code></pre>
+
+<p>the <code>View.notFound</code> can then look like:</p>
+<pre><code>let notFound = [
+    h2 &quot;Page not found&quot;
+    p [
+        text &quot;Could not find the requested resource&quot;
+    ]
+    p [
+        text &quot;Back to &quot;
+        aHref Path.home (text &quot;Home&quot;)
+    ]
+]
+</code></pre>
+
+<p>Results of the section can be seen here: <a href="https://github.com/theimowski/SuaveMusicStore/tree/database">Tag - Database</a></p></article></body></html>
