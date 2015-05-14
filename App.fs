@@ -44,6 +44,8 @@ let webPart =
         pathScan Path.Store.details details
 
         pathRegex "(.*)\.(css|png|gif)" >>= Files.browseHome
+
+        html View.notFound
     ]
 
 startWebServer defaultConfig webPart
