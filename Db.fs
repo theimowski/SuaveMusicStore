@@ -20,6 +20,9 @@ let firstOrNone s = s |> Seq.tryFind (fun _ -> true)
 let getGenres (ctx : DbContext) : Genre list = 
     ctx.``[dbo].[Genres]`` |> Seq.toList
 
+let getArtists (ctx : DbContext) : Artist list = 
+    ctx.``[dbo].[Artists]`` |> Seq.toList
+
 let getAlbumsForGenre genreName (ctx : DbContext) : Album list = 
     query { 
         for album in ctx.``[dbo].[Albums]`` do
