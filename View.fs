@@ -171,6 +171,31 @@ let createAlbum genres artists = [
     ]
 ]
 
+let editAlbum (album : Db.Album) genres artists = [ 
+    h2 "Edit"
+        
+    renderForm
+        { Form = Form.album
+          Fieldsets = 
+              [ { Legend = "Album"
+                  Fields = 
+                      [ { Label = "Genre"
+                          Xml = selectInput (fun f -> <@ f.GenreId @>) genres (Some (decimal album.GenreId)) }
+                        { Label = "Artist"
+                          Xml = selectInput (fun f -> <@ f.ArtistId @>) artists (Some (decimal album.ArtistId))}
+                        { Label = "Title"
+                          Xml = input (fun f -> <@ f.Title @>) ["value", album.Title] }
+                        { Label = "Price"
+                          Xml = input (fun f -> <@ f.Price @>) ["value", formatDec album.Price] }
+                        { Label = "Album Art Url"
+                          Xml = input (fun f -> <@ f.ArtUrl @>) ["value", "/placeholder.gif"] } ] } ]
+          SubmitText = "Save Changes" }
+
+    div [
+        aHref Path.Admin.manage (text "Back to list")
+    ]
+]
+
 let notFound = [
     h2 "Page not found"
     p [
