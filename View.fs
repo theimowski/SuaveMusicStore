@@ -69,13 +69,17 @@ let manage (albums : Db.AlbumDetails list) = [
     h2 "Index"
     table [
         yield tr [
-            for t in ["Artist";"Title";"Genre";"Price"] -> th [ text t ]
+            for t in ["Artist";"Title";"Genre";"Price";""] -> th [ text t ]
         ]
 
         for album in albums -> 
         tr [
             for t in [ truncate 25 album.Artist; truncate 25 album.Title; album.Genre; formatDec album.Price ] ->
                 td [ text t ]
+
+            yield td [
+                aHref (sprintf Path.Admin.deleteAlbum album.AlbumId) (text "Delete")
+            ]
         ]
     ]
 ]
