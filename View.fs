@@ -108,6 +108,9 @@ let details (album : Db.AlbumDetails) = [
 
 let manage (albums : Db.AlbumDetails list) = [ 
     h2 "Index"
+    p [
+        aHref Path.Admin.createAlbum (text "Create New")
+    ]
     table [
         yield tr [
             for t in ["Artist";"Title";"Genre";"Price";""] -> th [ text t ]
