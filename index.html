@@ -1530,6 +1530,24 @@ Hold on, do I really need to explain it?<br />
 The usage of pipe operator here makes the flow rather obvious - each line defines each step.<br />
 The return value is passed from one function to another, starting with DbContext and ending with the WebPart.<br />
 This is just a single example of how composition in functional programming makes functions look like building blocks &ldquo;glued&rdquo; together.</p>
+<p>We also need to wrap the <code>overview</code> WebPart in a <code>warbler</code>:</p>
+<pre><code>let overview = warbler (fun _ -&gt;
+    Db.getContext() 
+    |&gt; Db.getGenres 
+    |&gt; List.map (fun g -&gt; g.Name) 
+    |&gt; View.store 
+    |&gt; html)
+</code></pre>
+
+<p>That&rsquo;s because our <code>overview</code> WebPart is in some sense static - there is no parameter for it that could influence the outcome.<br />
+<code>warbler</code> ensures that genres will be fetched from the database whenever a new request comes.<br />
+Otherwise, without the <code>warbler</code> in place, the genres would be fetched only at the start of the application - resulting in stale genres in case the list changes.<br />
+How about the rest of WebParts?</p>
+<ul>
+<li><code>browse</code> is parametrized with the genre name - each request will result in a database query.</li>
+<li><code>details</code> is parametrized with the id - the same as above applies.</li>
+<li><code>home</code> is just fine - for the moment it&rsquo;s completely static and doesn&rsquo;t need to touch the database.</li>
+</ul>
 <p>Moving to our next WebPart &ldquo;browse&rdquo;, let&rsquo;s first adjust it in <code>View</code> module:</p>
 <pre><code>let browse genre (albums : Db.Album list) = [
     h2 (sprintf &quot;Genre: %s&quot; genre)
