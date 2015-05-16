@@ -1,10 +1,12 @@
 ﻿module SuaveMusicStore.App
 
 open Suave
+open Suave.Form
 open Suave.Http
 open Suave.Http.Successful
-open Suave.Http.Applicatives
 open Suave.Http.RequestErrors
+open Suave.Http.Applicatives
+open Suave.Model.Binding
 open Suave.Types
 open Suave.Web
 
@@ -41,6 +43,9 @@ let manage = warbler (fun _ ->
     |> Db.getAlbumsDetails
     |> View.manage
     |> html)
+
+let bindToForm form handler =
+    bindReq (bindForm form) handler BAD_REQUEST
 
 let createAlbum =
     let ctx = Db.getContext()
