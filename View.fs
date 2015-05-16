@@ -122,6 +122,8 @@ let manage (albums : Db.AlbumDetails list) = [
                 td [ text t ]
 
             yield td [
+                aHref (sprintf Path.Admin.editAlbum album.AlbumId) (text "Edit")
+                text " | "
                 aHref (sprintf Path.Admin.deleteAlbum album.AlbumId) (text "Delete")
             ]
         ]
