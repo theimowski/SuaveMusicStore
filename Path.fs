@@ -15,3 +15,4 @@ module Store =
 
 module Admin =
     let manage = "/admin/manage"
+    let deleteAlbum : IntPath = "/admin/delete/%d"
