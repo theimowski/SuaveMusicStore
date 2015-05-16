@@ -13,6 +13,10 @@ let ul xml = tag "ul" [] (flatten xml)
 let li = tag "li" []
 let imgSrc src = imgAttr [ "src", src ]
 let em s = tag "em" [] (text s)
+let strong s = tag "strong" [] (text s)
+
+let form x = tag "form" ["method", "POST"] (flatten x)
+let submitInput value = inputAttr ["type", "submit"; "value", value]
 
 let table x = tag "table" [] (flatten x)
 let th x = tag "th" [] (flatten x)
@@ -73,6 +77,24 @@ let manage (albums : Db.AlbumDetails list) = [
             for t in [ truncate 25 album.Artist; truncate 25 album.Title; album.Genre; formatDec album.Price ] ->
                 td [ text t ]
         ]
+    ]
+]
+
+let deleteAlbum albumTitle = [
+    h2 "Delete Confirmation"
+    p [ 
+        text "Are you sure you want to delete the album titled"
+        br
+        strong albumTitle
+        text "?"
+    ]
+    
+    form [
+        submitInput "Delete"
+    ]
+
+    div [
+        aHref Path.Admin.manage (text "Back to list")
     ]
 ]
 
