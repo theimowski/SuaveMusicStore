@@ -56,6 +56,9 @@ let createAlbum =
                 Db.getArtists ctx
                 |> List.map (fun g -> decimal g.ArtistId, g.Name)
             html (View.createAlbum genres artists))
+        POST >=> bindToForm Form.album (fun form ->
+            Db.createAlbum (int form.ArtistId, int form.GenreId, form.Price, form.Title) ctx
+            Redirection.FOUND Path.Admin.manage)
     ]
 
 let deleteAlbum id =

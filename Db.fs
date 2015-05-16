@@ -49,6 +49,10 @@ let getAlbum id (ctx : DbContext) : Album option =
             select album
     } |> firstOrNone
 
+let createAlbum (artistId, genreId, price, title) (ctx : DbContext) =
+    ctx.``[dbo].[Albums]``.Create(artistId, genreId, price, title) |> ignore
+    ctx.SubmitUpdates()
+
 let deleteAlbum (album : Album) (ctx : DbContext) = 
     album.Delete()
     ctx.SubmitUpdates()
