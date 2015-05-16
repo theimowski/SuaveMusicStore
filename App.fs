@@ -61,6 +61,23 @@ let createAlbum =
             Redirection.FOUND Path.Admin.manage)
     ]
 
+let editAlbum id =
+    let ctx = Db.getContext()
+    match Db.getAlbum id ctx with
+    | Some album ->
+        choose [
+            GET >=> warbler (fun _ ->
+                let genres = 
+                    Db.getGenres ctx 
+                    |> List.map (fun g -> decimal g.GenreId, g.Name)
+                let artists = 
+                    Db.getArtists ctx
+                    |> List.map (fun g -> decimal g.ArtistId, g.Name)
+                html (View.editAlbum album genres artists))
+        ]
+    | None -> 
+        never
+
 let deleteAlbum id =
     let ctx = Db.getContext()
     match Db.getAlbum id ctx with
@@ -84,6 +101,7 @@ let webPart =
 
         path Path.Admin.manage >=> manage
         path Path.Admin.createAlbum >=> createAlbum
+        pathScan Path.Admin.editAlbum editAlbum
         pathScan Path.Admin.deleteAlbum deleteAlbum
 
         pathRegex "(.*)\.(css|png|gif)" >=> Files.browseHome
