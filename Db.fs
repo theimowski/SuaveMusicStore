@@ -45,7 +45,6 @@ let getAlbum id (ctx : DbContext) : Album option =
             select album
     } |> firstOrNone
 
-
 let deleteAlbum (album : Album) (ctx : DbContext) = 
     album.Delete()
     ctx.SubmitUpdates()
