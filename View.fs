@@ -143,6 +143,31 @@ let deleteAlbum albumTitle = [
     ]
 ]
 
+let createAlbum genres artists = [ 
+    h2 "Create"
+        
+    renderForm
+        { Form = Form.album
+          Fieldsets = 
+              [ { Legend = "Album"
+                  Fields = 
+                      [ { Label = "Genre"
+                          Xml = selectInput (fun f -> <@ f.GenreId @>) genres None }
+                        { Label = "Artist"
+                          Xml = selectInput (fun f -> <@ f.ArtistId @>) artists None }
+                        { Label = "Title"
+                          Xml = input (fun f -> <@ f.Title @>) [] }
+                        { Label = "Price"
+                          Xml = input (fun f -> <@ f.Price @>) [] }
+                        { Label = "Album Art Url"
+                          Xml = input (fun f -> <@ f.ArtUrl @>) ["value", "/placeholder.gif"] } ] } ]
+          SubmitText = "Create" }
+
+    div [
+        aHref Path.Admin.manage (text "Back to list")
+    ]
+]
+
 let notFound = [
     h2 "Page not found"
     p [

@@ -9,6 +9,7 @@ type Sql =
 
 type DbContext = Sql.dataContext
 type Album = DbContext.``[dbo].[Albums]Entity``
+type Artist = DbContext.``[dbo].[Artists]Entity``
 type Genre = DbContext.``[dbo].[Genres]Entity``
 type AlbumDetails = DbContext.``[dbo].[AlbumDetails]Entity``
 
