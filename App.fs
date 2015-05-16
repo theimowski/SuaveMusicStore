@@ -40,6 +40,19 @@ let manage = warbler (fun _ ->
     |> View.manage
     |> html)
 
+let createAlbum =
+    let ctx = Db.getContext()
+    choose [
+        GET >=> warbler (fun _ -> 
+            let genres = 
+                Db.getGenres ctx 
+                |> List.map (fun g -> decimal g.GenreId, g.Name)
+            let artists = 
+                Db.getArtists ctx
+                |> List.map (fun g -> decimal g.ArtistId, g.Name)
+            html (View.createAlbum genres artists))
+    ]
+
 let deleteAlbum id =
     let ctx = Db.getContext()
     match Db.getAlbum id ctx with
@@ -62,6 +75,7 @@ let webPart =
         pathScan Path.Store.details details
 
         path Path.Admin.manage >=> manage
+        path Path.Admin.createAlbum >=> createAlbum
         pathScan Path.Admin.deleteAlbum deleteAlbum
 
         pathRegex "(.*)\.(css|png|gif)" >=> Files.browseHome
