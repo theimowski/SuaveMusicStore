@@ -3,8 +3,10 @@
 open System
 
 open Suave.Html
+open Suave.Form
 
 let divId id = divAttr ["id", id]
+let divClass c = divAttr ["class", c]
 let h1 xml = tag "h1" [] xml
 let h2 s = tag "h2" [] (text s)
 let aHref href = tag "a" ["href", href]
@@ -16,6 +18,8 @@ let em s = tag "em" [] (text s)
 let strong s = tag "strong" [] (text s)
 
 let form x = tag "form" ["method", "POST"] (flatten x)
+let fieldset x = tag "fieldset" [] (flatten x)
+let legend txt = tag "legend" [] (text txt)
 let submitInput value = inputAttr ["type", "submit"; "value", value]
 
 let table x = tag "table" [] (flatten x)
@@ -29,6 +33,43 @@ let truncate k (s : string) =
     if s.Length > k then
         s.Substring(0, k - 3) + "..."
     else s
+
+type Field<'a> = {
+    Label : string
+    Xml : Form<'a> -> Suave.Html.Xml
+}
+
+type Fieldset<'a> = {
+    Legend : string
+    Fields : Field<'a> list
+}
+
+type FormLayout<'a> = {
+    Fieldsets : Fieldset<'a> list
+    SubmitText : string
+    Form : Form<'a>
+}
+
+let renderForm (layout : FormLayout<_>) =    
+    
+    form [
+        for set in layout.Fieldsets -> 
+            fieldset [
+                yield legend set.Legend
+
+                for field in set.Fields do
+                    yield divClass "editor-label" [
+                        text field.Label
+                    ]
+                    yield divClass "editor-field" [
+                        field.Xml layout.Form
+                    ]
+            ]
+
+        yield submitInput layout.SubmitText
+    ]
+
+
 
 let home = [
     h2 "Home"
