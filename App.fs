@@ -42,6 +42,13 @@ let manage = warbler (fun _ ->
     |> View.manage
     |> html)
 
+let deleteAlbum id =
+    match Db.getAlbumDetails id (Db.getContext()) with
+    | Some album ->
+        html (View.deleteAlbum album.Title)
+    | None ->
+        never
+
 let webPart = 
     choose [
         path Path.home >>= html View.home
@@ -50,6 +57,7 @@ let webPart =
         pathScan Path.Store.details details
 
         path Path.Admin.manage >>= manage
+        pathScan Path.Admin.deleteAlbum deleteAlbum
 
         pathRegex "(.*)\.(css|png|gif)" >>= Files.browseHome
 
