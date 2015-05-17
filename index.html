@@ -1665,4 +1665,70 @@ In order to fix that, let&rsquo;s add a &ldquo;Page Not Found&rdquo; handler to 
 ]
 </code></pre>
 
-<p>Results of the section can be seen here: <a href="https://github.com/theimowski/SuaveMusicStore/tree/database">Tag - Database</a></p></article></body></html>
+<p>Results of the section can be seen here: <a href="https://github.com/theimowski/SuaveMusicStore/tree/database">Tag - Database</a></p>
+<h2 id="crud-and-forms"><a name="user-content-crud-and-forms" href="#crud-and-forms" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>CRUD and Forms</h2>
+<p>With the database in place, we can now move to implementing a management module.<br />
+This will be a simple Create, Update, Delete functionality with a grid to display all albums in the store.</p>
+<p>Let&rsquo;s start by adding <code>manage</code> to our <code>View</code> module:</p>
+<pre><code>let manage (albums : Db.AlbumDetails list) = [ 
+    h2 &quot;Index&quot;
+    table [
+        yield tr [
+            for t in [&quot;Artist&quot;;&quot;Title&quot;;&quot;Genre&quot;;&quot;Price&quot;] -&gt; th [ text t ]
+        ]
+
+        for album in albums -&gt; 
+        tr [
+            for t in [ truncate 25 album.Artist; truncate 25 album.Title; album.Genre; formatDec album.Price ] -&gt;
+                td [ text t ]
+        ]
+    ]
+]
+</code></pre>
+
+<p>The view requires a few of new helper functions for table HTML markup:</p>
+<pre><code>let table x = tag &quot;table&quot; [] (flatten x)
+let th x = tag &quot;th&quot; [] (flatten x)
+let tr x = tag &quot;tr&quot; [] (flatten x)
+let td x = tag &quot;td&quot; [] (flatten x)
+</code></pre>
+
+<p>as well as a <code>truncate</code> function that will ensure our cell content doesn&rsquo;t span over a maximum number of characters:</p>
+<pre><code>let truncate k (s : string) =
+    if s.Length &gt; k then
+        s.Substring(0, k - 3) + &quot;...&quot;
+    else s
+</code></pre>
+
+<p>Remarks:</p>
+<ul>
+<li>our HTML table consists of first row (<code>tr</code>) containing column headers (<code>th</code>) and a set of rows for each album with cells (<code>td</code>) to display specific values.</li>
+<li>we used the <code>yield</code> keyword for the first time. It is required here because we&rsquo;re using it in conjuction with the <code>for album in albums -&gt;</code> list comprehension syntax inside the same list. The rule of thumb is that whenever you use the list comprehension syntax, then you need the <code>yield</code> keyword for any other item not contained in the comprehension syntax. This might seem hard to remember, but don&rsquo;t worry - the compiler is helpful here and will issue a warning if you forget the <code>yield</code> keyword.</li>
+<li>for the sake of saving a few keystrokes we used a nested list comprehension syntax to output <code>th</code>s and <code>td</code>s. Again, it&rsquo;s just a matter of taste, and could be also solved by enumerating each element separately</li>
+</ul>
+<p>We are going to need to fetch the list of all <code>AlbumDetail</code>s from the database. <br />
+For this reason, let&rsquo;s create following query in <code>Db</code> module:</p>
+<pre><code>let getAlbumsDetails (ctx : DbContext) : AlbumDetails list = 
+    ctx.``[dbo].[AlbumDetails]`` |&gt; Seq.toList
+</code></pre>
+
+<p>Now we&rsquo;re ready to define an actual handler to display the list of albums.<br />
+Let&rsquo;s add a new sub-module to <code>Path</code>:</p>
+<pre><code>module Admin =
+    let manage = &quot;/admin/manage&quot;
+</code></pre>
+
+<p>The <code>Admin</code> sub-module will contain all album management paths or routes if you will.</p>
+<p><code>manage</code> WebPart in <code>App</code> module can be implemented in following way:</p>
+<pre><code>let manage = warbler (fun _ -&gt;
+    Db.getContext()
+    |&gt; Db.getAlbumsDetails
+    |&gt; View.manage
+    |&gt; html)
+</code></pre>
+
+<p>and used in the main <code>choose</code> WebPart:</p>
+<pre><code>    path Path.Admin.manage &gt;&gt;= manage
+</code></pre>
+
+<p>Don&rsquo;t forget about the <code>warbler</code> for <code>manage</code> WebPart - we don&rsquo;t use an parameters for this WebPart, so we need to prevent it&rsquo;s eager evaluation.</p></article></body></html>
