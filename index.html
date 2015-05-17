@@ -1026,6 +1026,7 @@ The tutorial is going to have plenty of references to the awesome <a href="http:
 <p>For most of the following sections there will be a direct link to a specific tagged commit that contains implementation of the application up to the point.<br />
 This allows you to follow along the process of creating the app, and get back on the track in case of any amibiguity.</p>
 <p>Visual Studio 2013 is used throughout the tutorial, but of course you can use IDE of your choice.</p>
+<p>You&rsquo;re more than welcome to create issues or pull requests for this tutorial <a href="https://github.com/theimowski/SuaveMusicStore">here</a>.</p>
 <h2 id="hello-world-from-suave"><a name="user-content-hello-world-from-suave" href="#hello-world-from-suave" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Hello World from Suave</h2>
 <p>Suave application can be hosted as a standalone Console Application. <br />
 Let&rsquo;s start by creating a Console Application Project named <code>SuaveMusicStore</code> (to keep all the files in single folder, uncheck the option to create folder for solution).<br />
@@ -1994,4 +1995,220 @@ The <code>FormLayout</code> types defines a layout for a form and consists of:</
 </ul>
 </li>
 <li>the form ends with a submit button</li>
-</ul></article></body></html>
+</ul>
+<p><code>renderForm</code> ca be invoked like this:</p>
+<pre><code>let createAlbum genres artists = [ 
+    h2 &quot;Create&quot;
+
+    renderForm
+        { Form = Form.album
+          Fieldsets = 
+              [ { Legend = &quot;Album&quot;
+                  Fields = 
+                      [ { Label = &quot;Genre&quot;
+                          Xml = selectInput (fun f -&gt; &lt;@ f.GenreId @&gt;) genres None }
+                        { Label = &quot;Artist&quot;
+                          Xml = selectInput (fun f -&gt; &lt;@ f.ArtistId @&gt;) artists None }
+                        { Label = &quot;Title&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.Title @&gt;) [] }
+                        { Label = &quot;Price&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.Price @&gt;) [] }
+                        { Label = &quot;Album Art Url&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.ArtUrl @&gt;) [&quot;value&quot;, &quot;/placeholder.gif&quot;] } ] } ]
+          SubmitText = &quot;Create&quot; }
+
+    div [
+        aHref Path.Admin.manage (text &quot;Back to list&quot;)
+    ]
+]
+</code></pre>
+
+<p>We can see that for the <code>Xml</code> values we can invoke <code>selectInput</code> or <code>input</code> functions.<br />
+Both of them take as first argument function which directs to field for which the input should be generated.<br />
+<code>input</code> takes as second argument a list of optional attributes (of type <code>string * string</code> - key and value).<br />
+<code>selectInput</code> takes as second argument list of options (of type <code>decimal * string</code> - value and display name).<br />
+As third argument, <code>selectInput</code> takes an optional selected value - in case of <code>None</code>, the first one will be selected initially.</p>
+<blockquote>
+<p>Note: We are hardcoding the album&rsquo;s <code>ArtUrl</code> property with &ldquo;/placeholder.gif&rdquo; - we won&rsquo;t implement uploading images, so we&rsquo;ll have to stick with a placeholder image.</p>
+</blockquote>
+<p>Now that we have the <code>createAlbum</code> view, we can write the appropriate WebPart handler.<br />
+Start by adding <code>getArtists</code> to <code>Db</code>:</p>
+<pre><code>type Artist = DbContext.``[dbo].[Artists]Entity``
+
+...
+
+let getArtists (ctx : DbContext) : Artist list = 
+    ctx.``[dbo].[Artists]`` |&gt; Seq.toList
+</code></pre>
+
+<p>Then proper entry in <code>Path</code> module:</p>
+<pre><code>    let createAlbum = &quot;/admin/create&quot;
+</code></pre>
+
+<p>and WebPart in <code>App</code> module:</p>
+<pre><code>let createAlbum =
+    let ctx = Db.getContext()
+    choose [
+        GET &gt;&gt;= warbler (fun _ -&gt; 
+            let genres = 
+                Db.getGenres ctx 
+                |&gt; List.map (fun g -&gt; decimal g.GenreId, g.Name)
+            let artists = 
+                Db.getArtists ctx
+                |&gt; List.map (fun g -&gt; decimal g.ArtistId, g.Name)
+            html (View.createAlbum genres artists))
+    ]
+
+...
+
+    path Path.Admin.createAlbum &gt;&gt;= createAlbum
+</code></pre>
+
+<p>Once again, <code>warbler</code> will prevent from eager evaluation of the WebPart - it&rsquo;s vital here.<br />
+To our <code>View.manage</code> we can add a link to <code>createAlbum</code>:</p>
+<pre><code>let manage (albums : Db.AlbumDetails list) = [ 
+    h2 &quot;Index&quot;
+    p [
+        aHref Path.Admin.createAlbum (text &quot;Create New&quot;)
+    ]
+...
+</code></pre>
+
+<p>This allows us to navigate to &ldquo;/admin/create&rdquo;, however we&rsquo;re still lacking the actual POST handler.</p>
+<p>Before we define the handler, let&rsquo;s add another helper function to <code>App</code> module:</p>
+<pre><code>let bindToForm form handler =
+    bindReq (bindForm form) handler BAD_REQUEST
+</code></pre>
+
+<p>It requires a few modules to be open, namely:</p>
+<ul>
+<li><code>Suave.Form</code></li>
+<li><code>Suave.Http.RequestErrors</code></li>
+<li><code>Suave.Model.Binding</code></li>
+</ul>
+<p>What <code>bindToForm</code> does is:</p>
+<ul>
+<li>it takes as first argument a form of type <code>Form&lt;'a&gt;</code></li>
+<li>it takes as second argument a handler of type <code>'a -&gt; WebPart</code></li>
+<li>if the incoming request contains form fields filled correctly, meaning they can be parsed to corresponding types, and hold all <code>Prop</code>s defined in <code>Form</code> module, then the <code>handler</code> argument is applied with the values of <code>'a</code> filled in</li>
+<li>otherwise the 400 HTTP Status Code &ldquo;Bad Request&rdquo; is returned with information about what was mailformed.</li>
+</ul>
+<p>There are just 2 more things before we&rsquo;re good to go with creating album functionality.</p>
+<p>We need <code>createAlbum</code> for the <code>Db</code> module (the created album is piped to <code>ignore</code> function, because we don&rsquo;t need it afterwards):</p>
+<pre><code>let createAlbum (artistId, genreId, price, title) (ctx : DbContext) =
+    ctx.``[dbo].[Albums]``.Create(artistId, genreId, price, title) |&gt; ignore
+    ctx.SubmitUpdates()
+</code></pre>
+
+<p>as well as POST handler inside the <code>createAlbum</code> WebPart:</p>
+<pre><code>choose [
+        GET &gt;&gt;= ...
+
+        POST &gt;&gt;= bindToForm Form.album (fun form -&gt;
+            Db.createAlbum (int form.ArtistId, int form.GenreId, form.Price, form.Title) ctx
+            Redirection.FOUND Path.Admin.manage)
+    ]
+</code></pre>
+
+<p>We have delete, we have create, so we&rsquo;re left with the update part only.<br />
+This one will be fairly easy, as it&rsquo;s gonna be very similar to create (we can reuse the album form we declared in <code>Form</code> module).</p>
+<p><code>editAlbum</code> in <code>View</code>:</p>
+<pre><code>let editAlbum (album : Db.Album) genres artists = [ 
+    h2 &quot;Edit&quot;
+
+    renderForm
+        { Form = Form.album
+          Fieldsets = 
+              [ { Legend = &quot;Album&quot;
+                  Fields = 
+                      [ { Label = &quot;Genre&quot;
+                          Xml = selectInput (fun f -&gt; &lt;@ f.GenreId @&gt;) genres (Some (decimal album.GenreId)) }
+                        { Label = &quot;Artist&quot;
+                          Xml = selectInput (fun f -&gt; &lt;@ f.ArtistId @&gt;) artists (Some (decimal album.ArtistId))}
+                        { Label = &quot;Title&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.Title @&gt;) [&quot;value&quot;, album.Title] }
+                        { Label = &quot;Price&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.Price @&gt;) [&quot;value&quot;, formatDec album.Price] }
+                        { Label = &quot;Album Art Url&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.ArtUrl @&gt;) [&quot;value&quot;, &quot;/placeholder.gif&quot;] } ] } ]
+          SubmitText = &quot;Save Changes&quot; }
+
+    div [
+        aHref Path.Admin.manage (text &quot;Back to list&quot;)
+    ]
+]
+</code></pre>
+
+<p>Path:</p>
+<pre><code>    let editAlbum : IntPath = &quot;/admin/edit/%d&quot;    
+</code></pre>
+
+<p>Link in <code>manage</code> in <code>View</code>:</p>
+<pre><code>for album in albums -&gt; 
+        tr [
+            ...
+
+            yield td [
+                aHref (sprintf Path.Admin.editAlbum album.AlbumId) (text &quot;Edit&quot;)
+                text &quot; | &quot;
+                aHref (sprintf Path.Admin.deleteAlbum album.AlbumId) (text &quot;Delete&quot;)
+            ]
+        ]
+</code></pre>
+
+<p><code>updateAlbum</code> in <code>Db</code> module:</p>
+<pre><code>let updateAlbum (album : Album) (artistId, genreId, price, title) (ctx : DbContext) =
+    album.ArtistId &lt;- artistId
+    album.GenreId &lt;- genreId
+    album.Price &lt;- price
+    album.Title &lt;- title
+    ctx.SubmitUpdates()
+</code></pre>
+
+<p><code>editAlbum</code> WebPart in <code>App</code> module:</p>
+<pre><code>let editAlbum id =
+    let ctx = Db.getContext()
+    match Db.getAlbum id ctx with
+    | Some album -&gt;
+        choose [
+            GET &gt;&gt;= warbler (fun _ -&gt;
+                let genres = 
+                    Db.getGenres ctx 
+                    |&gt; List.map (fun g -&gt; decimal g.GenreId, g.Name)
+                let artists = 
+                    Db.getArtists ctx
+                    |&gt; List.map (fun g -&gt; decimal g.ArtistId, g.Name)
+                html (View.editAlbum album genres artists))
+            POST &gt;&gt;= bindToForm Form.album (fun form -&gt;
+                Db.updateAlbum album (int form.ArtistId, int form.GenreId, form.Price, form.Title) ctx
+                Redirection.FOUND Path.Admin.manage)
+        ]
+    | None -&gt; 
+        never
+</code></pre>
+
+<p>and finally <code>pathScan</code> in main <code>choose</code> WebPart:</p>
+<pre><code>    pathScan Path.Admin.editAlbum editAlbum
+</code></pre>
+
+<p>Comments to above snippets:</p>
+<ul>
+<li><code>editAlbum</code> View looks very much the same as the <code>createAlbum</code>. The only significant difference is that it has all the filed values pre-filled. </li>
+<li>in <code>Db.updateAlbum</code> we can see examples of property setters. This is the way SQLProvider mutates our <code>Album</code> value, while keeping track on what has changed before <code>SubmitUpdates()</code></li>
+<li><code>warbler</code> is needed in <code>editAlbum</code> GET handler to prevent eager evaluation</li>
+<li>but it&rsquo;s not necessary for POST, because POST needs to parse the incoming request, thus the evaluation is postponed upon the successfull parsing.</li>
+<li>after the album is updated, a redirection to <code>manage</code> is applied</li>
+</ul>
+<blockquote>
+<p>Note: SQLProvider allows to change <code>Album</code> properties after the object has been instantiated - that&rsquo;s generally against the immutability concept that&rsquo;s propageted in the functional programming paradigm. We need to remember however, that F# is not pure functional programming language, but rather &ldquo;functional first&rdquo;. This means that while it encourages to write in functional style, it still allows to use Object Oriented constructs. This often turns out to be usefull, for example when we need to improve performance.</p>
+</blockquote>
+<p>As the icing on the cake, let&rsquo;s also add link to details for each of the albums in <code>View.manage</code>:</p>
+<pre><code>aHref (sprintf Path.Admin.editAlbum album.AlbumId) (text &quot;Edit&quot;)
+text &quot; | &quot;
+aHref (sprintf Path.Store.details album.AlbumId) (text &quot;Details&quot;)
+text &quot; | &quot;
+aHref (sprintf Path.Admin.deleteAlbum album.AlbumId) (text &quot;Delete&quot;)
+</code></pre>
+
+<p>Pheeew, this section was long, but also very productive. Looks like we can already do some serious interaction with the application!<br />
+Results can be seen here: <a href="https://github.com/theimowski/SuaveMusicStore/tree/crud_and_forms">Tag - crud_and_forms</a></p></article></body></html>
