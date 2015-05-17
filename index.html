@@ -1850,4 +1850,148 @@ For the moment both GET and POST requests will do the same, which is return HTML
 <li>there&rsquo;s a new empty column header in the first row</li>
 <li>in the last column of each album row comes a cell with link to delete the album</li>
 <li>note, we had to use the <code>yield</code> keyword again</li>
+</ul>
+<p>We can delete an album, so why don&rsquo;t we proceed to add album functionality now.<br />
+It will require a bit more effort, because we actually need some kind of a form with fields to create a new album.<br />
+Fortunately, there&rsquo;s a helper module in Suave library exactly for this purpose.</p>
+<blockquote>
+<p>Note: <code>Suave.Form</code> module at the time of writing is still in <code>Experimental</code> package - just as <code>Suave.Html</code> which we&rsquo;re already using.</p>
+</blockquote>
+<p>First, let&rsquo;s create a separate module <code>Form</code> to keep all of our forms in there (yes there will be more soon).<br />
+Add the <code>Form.fs</code> file just before <code>View.fs</code> - both <code>View</code> and <code>App</code> module will depend on <code>Form</code>.<br />
+As with the rest of modules, don&rsquo;t forget to follow our modules naming convention.</p>
+<p>Now declare the first <code>Album</code> form:</p>
+<pre><code>module SuaveMusicStore.Form
+
+open Suave.Form
+
+type Album = {
+    ArtistId : decimal
+    GenreId : decimal
+    Title : string
+    Price : decimal
+    ArtUrl : string
+}
+
+let album : Form&lt;Album&gt; = 
+    Form ([ TextProp ((fun f -&gt; &lt;@ f.Title @&gt;), [ maxLength 100 ])
+            TextProp ((fun f -&gt; &lt;@ f.ArtUrl @&gt;), [ maxLength 100 ])
+            DecimalProp ((fun f -&gt; &lt;@ f.Price @&gt;), [ min 0.01M; max 100.0M; step 0.01M ])
+            ],
+          [])
+</code></pre>
+
+<p><code>Album</code> type contains all fields needed for the form.<br />
+For the moment, <code>Suave.Form</code> supports following types of fields:</p>
+<ul>
+<li>decimal</li>
+<li>string</li>
+<li>System.Net.Mail.MailAddress</li>
+<li>Suave.Form.Password</li>
+</ul>
+<blockquote>
+<p>Note: the int type is not supported yet, however we can easily convert from decimal to int and vice versa</p>
+</blockquote>
+<p>Afterwards comes a declaration of the album form (let album : <code>Form&lt;Album&gt;</code> =).<br />
+It consists of list of &ldquo;Props&rdquo; (Properties), of which we can think as of validations:</p>
+<ul>
+<li>First, we declared that the <code>Title</code> must be of max length 100</li>
+<li>Second, we declared the same for <code>ArtUrl</code></li>
+<li>Third, we declared that the <code>Price</code> must be between 0.01 and 100.0 with a step of 0.01 (this means that for example 1.001 is invalid)</li>
+</ul>
+<p>Those properties can be now used as both client and server side.<br />
+For client side we will the <code>album</code> declaration in our <code>View</code> module in order to output HTML5 input validation attributes.<br />
+For server side we will use an utitlity WebPart that will parse the form field values from a request.</p>
+<blockquote>
+<p>Note: the above snippet uses F# Quotations - a feature that you can read more about <a href="https://msdn.microsoft.com/en-us/library/dd233212.aspx">here</a>.<br />
+For the sake of tutorial, you only need to know that they allow Suave to lookup the name of a Field from a property getter.</p>
+</blockquote>
+<p>To see how we can use the form in <code>View</code> module, add <code>open Suave.Form</code> to the beginning:</p>
+<pre><code>module SuaveMusicStore.View
+
+open System
+
+open Suave.Html
+open Suave.Form
+</code></pre>
+
+<p>Next, add a couple of helper functions:</p>
+<pre><code>let divClass c = divAttr [&quot;class&quot;, c]
+
+...
+
+let fieldset x = tag &quot;fieldset&quot; [] (flatten x)
+let legend txt = tag &quot;legend&quot; [] (text txt)
+</code></pre>
+
+<p>And finally this block of code:</p>
+<pre><code>type Field&lt;'a&gt; = {
+    Label : string
+    Xml : Form&lt;'a&gt; -&gt; Suave.Html.Xml
+}
+
+type Fieldset&lt;'a&gt; = {
+    Legend : string
+    Fields : Field&lt;'a&gt; list
+}
+
+type FormLayout&lt;'a&gt; = {
+    Fieldsets : Fieldset&lt;'a&gt; list
+    SubmitText : string
+    Form : Form&lt;'a&gt;
+}
+
+let renderForm (layout : FormLayout&lt;_&gt;) =    
+
+    form [
+        for set in layout.Fieldsets -&gt; 
+            fieldset [
+                yield legend set.Legend
+
+                for field in set.Fields do
+                    yield divClass &quot;editor-label&quot; [
+                        text field.Label
+                    ]
+                    yield divClass &quot;editor-field&quot; [
+                        field.Xml layout.Form
+                    ]
+            ]
+
+        yield submitInput layout.SubmitText
+    ]
+</code></pre>
+
+<p>Above snippet is quite long but, as we&rsquo;ll soon see, we&rsquo;ll be able to reuse it a few times.<br />
+The <code>FormLayout</code> types defines a layout for a form and consists of:</p>
+<ul>
+<li><code>SubmitText</code> that will be used for the string value of submit button</li>
+<li><code>Fieldsets</code> - a list of <code>Fieldset</code> values</li>
+<li><code>Form</code> - instance of the form to render</li>
+</ul>
+<p>The <code>Fieldset</code> type defines a layout for a fieldset:</p>
+<ul>
+<li><code>Legend</code> is a string value for a set of fields</li>
+<li><code>Fields</code> is a list of <code>Field</code> values</li>
+</ul>
+<p>The <code>Field</code> type has:</p>
+<ul>
+<li>a <code>Label</code> string</li>
+<li><code>Xml</code> - function which takes <code>Form</code> and returns <code>Xml</code> (object model for HTML markup). It might seem cumbersome, but the signature is deliberate in order to make use of partial application</li>
+</ul>
+<blockquote>
+<p>Note: all of above types are generic, meaning they can accept any type of form, but the form&rsquo;s type must be consistent in the <code>FormLayout</code> hierarchy.</p>
+</blockquote>
+<p><code>renderForm</code> is a reusable function that takes an instance of <code>FormLayout</code> and returns HTML object model:</p>
+<ul>
+<li>it creates a form element</li>
+<li>the form contains a list of fieldsets, each of which:<ul>
+<li>outputs its legend first</li>
+<li>iterates over its <code>Fields</code> and<ul>
+<li>outputs div element with label element for the field</li>
+<li>outputs div element with target input element for the field</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>the form ends with a submit button</li>
 </ul></article></body></html>
