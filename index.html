@@ -1731,4 +1731,123 @@ Let&rsquo;s add a new sub-module to <code>Path</code>:</p>
 <pre><code>    path Path.Admin.manage &gt;&gt;= manage
 </code></pre>
 
-<p>Don&rsquo;t forget about the <code>warbler</code> for <code>manage</code> WebPart - we don&rsquo;t use an parameters for this WebPart, so we need to prevent it&rsquo;s eager evaluation.</p></article></body></html>
+<p>Don&rsquo;t forget about the <code>warbler</code> for <code>manage</code> WebPart - we don&rsquo;t use an parameters for this WebPart, so we need to prevent it&rsquo;s eager evaluation.</p>
+<p>If you navigate to the &ldquo;/admin/manage&rdquo; url in the application now, you should be presented the grid with every album in the store.<br />
+We can&rsquo;t make any operation on an album yet.<br />
+To fix this, let&rsquo;s first add the delete functionality:</p>
+<pre><code>let deleteAlbum albumTitle = [
+    h2 &quot;Delete Confirmation&quot;
+    p [ 
+        text &quot;Are you sure you want to delete the album titled&quot;
+        br
+        strong albumTitle
+        text &quot;?&quot;
+    ]
+
+    form [
+        submitInput &quot;Delete&quot;
+    ]
+
+    div [
+        aHref Path.Admin.manage (text &quot;Back to list&quot;)
+    ]
+]
+</code></pre>
+
+<p><code>deleteAlbum</code> is to be placed in the <code>View</code> module. It requires new markup functions:</p>
+<pre><code>let strong s = tag &quot;strong&quot; [] (text s)
+
+let form x = tag &quot;form&quot; [&quot;method&quot;, &quot;POST&quot;] (flatten x)
+let submitInput value = inputAttr [&quot;type&quot;, &quot;submit&quot;; &quot;value&quot;, value]
+</code></pre>
+
+<ul>
+<li><code>strong</code> is just an emphasis</li>
+<li><code>form</code> is HTML element for a form with it&rsquo;s &ldquo;method&rdquo; attribute set to &ldquo;POST&rdquo;</li>
+<li><code>submitInput</code> is button to submit a form</li>
+</ul>
+<p>A couple of snippets to handle <code>deleteAlbum</code> are still needed, starting with <code>Db</code>:</p>
+<pre><code>let getAlbum id (ctx : DbContext) : Album option = 
+    query { 
+        for album in ctx.``[dbo].[Albums]`` do
+            where (album.AlbumId = id)
+            select album
+    } |&gt; firstOrNone
+</code></pre>
+
+<p>for getting <code>Album option</code> (not <code>AlbumDetails</code>). <br />
+New route in <code>Path</code>:</p>
+<pre><code>module Admin =
+    let manage = &quot;/admin/manage&quot;
+    let deleteAlbum : IntPath = &quot;/admin/delete/%d&quot;
+</code></pre>
+
+<p>Finally we can put following in the <code>App</code> module:</p>
+<pre><code>let deleteAlbum id =
+    match Db.getAlbum id (Db.getContext()) with
+    | Some album -&gt;
+        html (View.deleteAlbum album.Title)
+    | None -&gt;
+        never
+</code></pre>
+
+<pre><code>    pathScan Path.Admin.deleteAlbum deleteAlbum
+</code></pre>
+
+<p>Note that the code above allows us to navigate to to &ldquo;/admin/delete/%d&rdquo;, but we still are not able to actually delete an album.<br />
+That&rsquo;s because there&rsquo;s no handler in our app to delete the album from database.<br />
+For the moment both GET and POST requests will do the same, which is return HTML page asking whether to delete the album.</p>
+<p>In order to implement the deletion, add <code>deleteAlbum</code> to <code>Db</code> module:</p>
+<pre><code>let deleteAlbum (album : Album) (ctx : DbContext) = 
+    album.Delete()
+    ctx.SubmitUpdates()
+</code></pre>
+
+<p>The snippet takes an <code>Album</code> as a parameter - instance of this type comes from database, and we can invoke <code>Delete()</code> member on it - SQLProvider keeps track of such changes, and upon <code>ctx.SubmitUpdates()</code> executes necessary SQL commands. This is somewhat similar to the &ldquo;Active Record&rdquo; concept.</p>
+<p>Now, in <code>App</code> module we can distinguish between GET and POST requests:</p>
+<pre><code>let deleteAlbum id =
+    let ctx = Db.getContext()
+    match Db.getAlbum id ctx with
+    | Some album -&gt;
+        choose [ 
+            GET &gt;&gt;= warbler (fun _ -&gt; 
+                html (View.deleteAlbum album.Title))
+            POST &gt;&gt;= warbler (fun _ -&gt; 
+                Db.deleteAlbum album ctx; 
+                Redirection.FOUND Path.Admin.manage)
+        ]
+    | None -&gt;
+        never
+</code></pre>
+
+<ul>
+<li><code>deleteAlbum</code> WebPart gets passed the <code>choose</code> with two possibilities. </li>
+<li><code>GET</code> and <code>POST</code> are WebParts that succeed (return <code>Some x</code>) only if the incoming HTTP request is of GET or POST verb respectively.</li>
+<li>after succesfull deletion of album, the <code>POST</code> case redirects us to the <code>Path.Admin.manage</code> page</li>
+</ul>
+<blockquote>
+<p>Important: We have to wrap both GET and POST handlers with a <code>warbler</code> - otherwise they would be evaluated just after <code>Some album</code> match, resulting in invoking <code>Db.deleteAlbum</code> even if POST does not apply.</p>
+</blockquote>
+<p>The grid can now contain a column with link to delete the album in question:</p>
+<pre><code>table [
+        yield tr [
+            for t in [&quot;Artist&quot;;&quot;Title&quot;;&quot;Genre&quot;;&quot;Price&quot;;&quot;&quot;] -&gt; th [ text t ]
+        ]
+
+        for album in albums -&gt; 
+        tr [
+            for t in [ truncate 25 album.Artist; truncate 25 album.Title; album.Genre; formatDec album.Price ] -&gt;
+                td [ text t ]
+
+            yield td [
+                aHref (sprintf Path.Admin.deleteAlbum album.AlbumId) (text &quot;Delete&quot;)
+            ]
+        ]
+    ]
+</code></pre>
+
+<ul>
+<li>there&rsquo;s a new empty column header in the first row</li>
+<li>in the last column of each album row comes a cell with link to delete the album</li>
+<li>note, we had to use the <code>yield</code> keyword again</li>
+</ul></article></body></html>
