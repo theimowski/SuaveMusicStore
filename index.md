@@ -890,3 +890,41 @@ and used in the main `choose` WebPart:
 ```
 
 Don't forget about the `warbler` for `manage` WebPart - we don't use an parameters for this WebPart, so we need to prevent it's eager evaluation.
+
+If you navigate to the "/admin/manage" url in the application now, you should be presented the grid with every album in the store.
+We can't make any operation on an album yet.
+To fix this, let's first add the delete functionality:
+
+```
+let deleteAlbum albumTitle = [
+    h2 "Delete Confirmation"
+    p [ 
+        text "Are you sure you want to delete the album titled"
+        br
+        strong albumTitle
+        text "?"
+    ]
+    
+    form [
+        submitInput "Delete"
+    ]
+
+    div [
+        aHref Path.Admin.manage (text "Back to list")
+    ]
+]
+```
+
+`deleteAlbum` is to be placed in the `View` module. It requires new markup functions:
+
+```
+let strong s = tag "strong" [] (text s)
+
+let form x = tag "form" ["method", "POST"] (flatten x)
+let submitInput value = inputAttr ["type", "submit"; "value", value]
+```
+
+- `strong` is just an emphasis
+- `form` is HTML element for a form with it's "method" attribute set to "POST"
+- `submitInput` is a button for submitting the form
+
