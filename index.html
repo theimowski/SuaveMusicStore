@@ -1031,7 +1031,7 @@ This allows you to follow along the process of creating the app, and get back on
 <p>Suave application can be hosted as a standalone Console Application. <br />
 Let&rsquo;s start by creating a Console Application Project named <code>SuaveMusicStore</code> (to keep all the files in single folder, uncheck the option to create folder for solution).<br />
 Now we can add NuGet reference to Suave. To do that, in Package Manager Console type: <br />
-<code>install-package Suave -version 0.26.2</code>. <br />
+<code>install-package Suave -version 0.28.1</code>. <br />
 Alternatively, you can use the NuGet GUI to find and install the Suave package.<br />
 Rename the <code>Program.fs</code> file to <code>App.fs</code> to better reflect the purpose of the file, and replace its contents completely with the following code:</p>
 <pre><code>open Suave                 // always open suave
@@ -1115,23 +1115,26 @@ In the above example, there are a few important aspects:<br />
 <code>localhost:8083/store/browse?genre=Disco</code><br />
 To do this, let&rsquo;s create a separate WebPart:</p>
 <pre><code>let browse =
-    request (fun r -&gt; 
+    request (fun r -&gt;
         match r.queryParam &quot;genre&quot; with
-        | Some genre -&gt; OK (sprintf &quot;Genre: %s&quot; genre)
-        | None -&gt; never)
+        | Choice1Of2 genre -&gt; OK (sprintf &quot;Genre: %s&quot; genre)
+        | Choice2Of2 msg -&gt; BAD_REQUEST msg)
 </code></pre>
 
 <p><code>request</code> is a function that takes as parameter a function of type <code>HttpRequest -&gt; WebPart</code>.<br />
 A function which takes as an argument another function is often called &ldquo;Higher order function&rdquo;.<br />
 <code>r</code> in our lambda represents the <code>HttpRequest</code>. It has a <code>queryParam</code> member function of type <br />
-<code>string -&gt; string option</code>. This member is almost identical to how one would do <code>Dictionary.TryGetValue</code> in C#, except that we don&rsquo;t have to deal with <code>out</code> parameters. Instead, the function returns <code>string option</code> on which we can apply pattern matching.<br />
-Pattern matching is yet another really powerful feature, implemented in variety of modern languages. <br />
+<code>string -&gt; Choice&lt;string,string&gt;</code>. <code>Choice</code> is a type that represents a choice between two types.<br />
+Usually you&rsquo;ll find that the first type of <code>Choice</code> is for happy paths, while second means something went wrong.<br />
+In our case first string stands for a value of the query parameter, and the second string stands for error message (paramater with given key was not found in query).<br />
+We can make use of pattern matching to distinguish between two possible choices.<br />
+Pattern matching is yet another really powerful feature, implemented in variety of modern programming languages. <br />
 For now we can think of it as a switch statement with binding value to an identifier in one go.<br />
-In addition to that, F# compiler will issue an warning in case we don&rsquo;t provide all possible cases (<code>None</code> and <code>Some x</code> here).<br />
+In addition to that, F# compiler will issue an warning in case we don&rsquo;t provide all possible cases (<code>Choice1Of2 x</code> and <code>Choice2Of2 x</code> here).<br />
 There&rsquo;s actually much more for pattern matching than that, as we&rsquo;ll discover later.<br />
-<code>never</code> is a function from Suave library, which returns WebPart with <code>None</code>.<br />
+<code>BAS_REQUEST</code> is a function from Suave library, and it returns WebPart with 400 Bad Request status code response with given message in its body.<br />
 We can summarize the <code>browse</code> WebPart as following:<br />
-If there is a &ldquo;genre&rdquo; parameter in the url query, return 200 OK with the value of the &ldquo;genre&rdquo;, otherwise don&rsquo;t bother.</p>
+If there is a &ldquo;genre&rdquo; parameter in the url query, return 200 OK with the value of the &ldquo;genre&rdquo;, otherwise return 400 Bad Request with error message.</p>
 <p>Now we can compose the <code>browse</code> WebPart with routing WebPart like this:</p>
 <p><code>path "/store/browse" &gt;&gt;= browse</code></p>
 <p>Eventually we should end up with something similar to: <a href="https://github.com/theimowski/SuaveMusicStore/tree/basic_routing">Tag - basic_routing</a></p>
@@ -1146,7 +1149,7 @@ In this application we&rsquo;ll use server-side HTML templating with the help of
 <p>Note: As of the time of writing, <code>Suave.Experimental</code> is a separate package. It&rsquo;s likely that next releases of the package will include breaking changes. It&rsquo;s also possible that the modules we&rsquo;re going to use from within the package will be extracted to the core Suave package.</p>
 </blockquote>
 <p>To use the package, we need to take a dependency on the following NuGet:<br />
-<code>install-package Suave.Experimental -version 0.26.2</code></p>
+<code>install-package Suave.Experimental -version 0.28.1</code></p>
 <p>Before we start defining views, let&rsquo;s organize our <code>App.fs</code> source file by adding following line at the beginning of the file:</p>
 <pre><code>module SuaveMusicStore.App
 
@@ -1358,10 +1361,10 @@ let details id = [
 <p>Note that both <code>home</code> and <code>store</code> are constant values, while <code>browse</code> and <code>details</code> are parametrized with <code>genre</code> and <code>id</code> respectively.</p>
 <p><code>html</code> can be now reused for all 4 views:</p>
 <pre><code>let browse =
-    request (fun r -&gt; 
+    request (fun r -&gt;
         match r.queryParam &quot;genre&quot; with
-        | Some genre -&gt; html (View.browse genre)
-        | None -&gt; never)
+        | Choice1Of2 genre -&gt; html (View.browse genre)
+        | Choice2Of2 msg -&gt; BAD_REQUEST msg)
 
 let webPart = 
     choose [
@@ -1566,14 +1569,14 @@ For each album we&rsquo;ll display a list item with a direct link to album&rsquo
 </blockquote>
 <p>Now, we can modify the <code>browse</code> WebPart itself:</p>
 <pre><code>let browse =
-    request (fun r -&gt; 
+    request (fun r -&gt;
         match r.queryParam Path.Store.browseKey with
-        | Some genre -&gt; 
+        | Choice1Of2 genre -&gt; 
             Db.getContext()
             |&gt; Db.getAlbumsForGenre genre
             |&gt; View.browse genre
             |&gt; html
-        | None -&gt; never)
+        | Choice2Of2 msg -&gt; BAD_REQUEST msg)
 </code></pre>
 
 <p>Again, usage of pipe operator makes it clear what happens in case the <code>genre</code> is resolved from the query parameter.</p>

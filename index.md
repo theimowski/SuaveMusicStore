@@ -26,7 +26,7 @@ Hello World from Suave
 Suave application can be hosted as a standalone Console Application. 
 Let's start by creating a Console Application Project named `SuaveMusicStore` (to keep all the files in single folder, uncheck the option to create folder for solution).
 Now we can add NuGet reference to Suave. To do that, in Package Manager Console type: 
-```install-package Suave -version 0.26.2```. 
+```install-package Suave -version 0.28.1```. 
 Alternatively, you can use the NuGet GUI to find and install the Suave package.
 Rename the `Program.fs` file to `App.fs` to better reflect the purpose of the file, and replace its contents completely with the following code:
 
@@ -140,23 +140,26 @@ To do this, let's create a separate WebPart:
 
 ```
 let browse =
-    request (fun r -> 
+    request (fun r ->
         match r.queryParam "genre" with
-        | Some genre -> OK (sprintf "Genre: %s" genre)
-        | None -> never)
+        | Choice1Of2 genre -> OK (sprintf "Genre: %s" genre)
+        | Choice2Of2 msg -> BAD_REQUEST msg)
 ```
 
 `request` is a function that takes as parameter a function of type `HttpRequest -> WebPart`.
 A function which takes as an argument another function is often called "Higher order function".
 `r` in our lambda represents the `HttpRequest`. It has a `queryParam` member function of type 
-`string -> string option`. This member is almost identical to how one would do `Dictionary.TryGetValue` in C#, except that we don't have to deal with `out` parameters. Instead, the function returns `string option` on which we can apply pattern matching.
-Pattern matching is yet another really powerful feature, implemented in variety of modern languages. 
+`string -> Choice<string,string>`. `Choice` is a type that represents a choice between two types.
+Usually you'll find that the first type of `Choice` is for happy paths, while second means something went wrong.
+In our case first string stands for a value of the query parameter, and the second string stands for error message (paramater with given key was not found in query).
+We can make use of pattern matching to distinguish between two possible choices.
+Pattern matching is yet another really powerful feature, implemented in variety of modern programming languages. 
 For now we can think of it as a switch statement with binding value to an identifier in one go.
-In addition to that, F# compiler will issue an warning in case we don't provide all possible cases (`None` and `Some x` here).
+In addition to that, F# compiler will issue an warning in case we don't provide all possible cases (`Choice1Of2 x` and `Choice2Of2 x` here).
 There's actually much more for pattern matching than that, as we'll discover later.
-`never` is a function from Suave library, which returns WebPart with `None`.
+`BAS_REQUEST` is a function from Suave library, and it returns WebPart with 400 Bad Request status code response with given message in its body.
 We can summarize the `browse` WebPart as following:
-If there is a "genre" parameter in the url query, return 200 OK with the value of the "genre", otherwise don't bother.
+If there is a "genre" parameter in the url query, return 200 OK with the value of the "genre", otherwise return 400 Bad Request with error message.
 
 Now we can compose the `browse` WebPart with routing WebPart like this:
 
@@ -177,7 +180,7 @@ In this application we'll use server-side HTML templating with the help of a sep
 > Note: As of the time of writing, `Suave.Experimental` is a separate package. It's likely that next releases of the package will include breaking changes. It's also possible that the modules we're going to use from within the package will be extracted to the core Suave package.
 
 To use the package, we need to take a dependency on the following NuGet:
-```install-package Suave.Experimental -version 0.26.2```
+```install-package Suave.Experimental -version 0.28.1```
 
 Before we start defining views, let's organize our `App.fs` source file by adding following line at the beginning of the file:
 
@@ -434,10 +437,10 @@ Note that both `home` and `store` are constant values, while `browse` and `detai
 
 ```
 let browse =
-    request (fun r -> 
+    request (fun r ->
         match r.queryParam "genre" with
-        | Some genre -> html (View.browse genre)
-        | None -> never)
+        | Choice1Of2 genre -> html (View.browse genre)
+        | Choice2Of2 msg -> BAD_REQUEST msg)
 
 let webPart = 
     choose [
@@ -690,14 +693,14 @@ Now, we can modify the `browse` WebPart itself:
 
 ```
 let browse =
-    request (fun r -> 
+    request (fun r ->
         match r.queryParam Path.Store.browseKey with
-        | Some genre -> 
+        | Choice1Of2 genre -> 
             Db.getContext()
             |> Db.getAlbumsForGenre genre
             |> View.browse genre
             |> html
-        | None -> never)
+        | Choice2Of2 msg -> BAD_REQUEST msg)
 ```
 
 Again, usage of pipe operator makes it clear what happens in case the `genre` is resolved from the query parameter.
