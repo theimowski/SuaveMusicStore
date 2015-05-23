@@ -20,6 +20,15 @@ let passHash (pass: string) =
     |> Array.map (fun b -> b.ToString("x2"))
     |> String.concat ""
 
+type UserLoggedOnSession = {
+    Username : string
+    Role : string
+}
+
+type Session = 
+    | NoSession
+    | UserLoggedOn of UserLoggedOnSession
+
 let session = statefulForSession
 
 let sessionStore setF = context (fun x ->
