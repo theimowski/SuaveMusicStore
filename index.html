@@ -2214,4 +2214,219 @@ aHref (sprintf Path.Admin.deleteAlbum album.AlbumId) (text &quot;Delete&quot;)
 </code></pre>
 
 <p>Pheeew, this section was long, but also very productive. Looks like we can already do some serious interaction with the application!<br />
-Results can be seen here: <a href="https://github.com/theimowski/SuaveMusicStore/tree/crud_and_forms">Tag - crud_and_forms</a></p></article></body></html>
+Results can be seen here: <a href="https://github.com/theimowski/SuaveMusicStore/tree/crud_and_forms">Tag - crud_and_forms</a></p>
+<h2 id="auth-and-session"><a name="user-content-auth-and-session" href="#auth-and-session" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Auth and Session</h2>
+<p>In the previous section we succeeded in setting up Create, Update and Delete functionality for albums in the Music Store.<br />
+All of these actions are likely to be performed by some kind of shop manager, or administrator.<br />
+In fact, <code>Path</code> module defines that all the operations are available under &ldquo;/admin&rdquo; route.<br />
+It would be nice if we could authorize only chosen users to mess with albums in our Store.<br />
+That&rsquo;s exactly what we&rsquo;ll do right now.</p>
+<p>As a warmup, let&rsquo;s add navigation menu at the very top of the view.<br />
+We&rsquo;ll call it <code>partNav</code> and keep in separate function:</p>
+<pre><code>let partNav = 
+    ulAttr [&quot;id&quot;, &quot;navlist&quot;] [ 
+        li (aHref Path.home (text &quot;Home&quot;))
+        li (aHref Path.Store.overview (text &quot;Store&quot;))
+        li (aHref Path.Admin.manage (text &quot;Admin&quot;))
+    ]
+</code></pre>
+
+<p><code>partNav</code> consists of 3 main tabs: &ldquo;Home&rdquo;, &ldquo;Store&rdquo; and &ldquo;Admin&rdquo;. <code>ulAttr</code> can be defined like following:</p>
+<pre><code>let ulAttr attr xml = tag &quot;ul&quot; attr (flatten xml)
+</code></pre>
+
+<p>We want to specify the <code>id</code> attribute here so that our CSS can make the menu nice and shiny.<br />
+Add the <code>partNav</code> to main index view, in the &ldquo;header&rdquo; <code>div</code>:</p>
+<pre><code>divId &quot;header&quot; [
+    h1 (aHref Path.home (text &quot;F# Suave Music Store&quot;))
+    partNav
+]
+</code></pre>
+
+<p>This gives a possiblity to navigate through main features of our Music Store.<br />
+It would be good if a visitor to our site could authenticate himself.<br />
+To help him with that, we&rsquo;ll put a user partial view next to the navigation menu.<br />
+Just as in every other e-commerce website, if a user is logged in, he&rsquo;ll be shown his name and a &ldquo;Log off&rdquo; link.<br />
+Otherwise, we&rsquo;ll just display a &ldquo;Log on&rdquo; link.<br />
+First, open up the <code>Path</code> module and define routes for <code>logon</code> and <code>logoff</code> in <code>Account</code> submodule:</p>
+<pre><code>module Account =
+    let logon = &quot;/account/logon&quot;
+    let logoff = &quot;/account/logoff&quot;
+</code></pre>
+
+<p>Next, define <code>partUser</code> in the <code>View</code> module:</p>
+<pre><code>let partUser (user : string option) = 
+    divId &quot;part-user&quot; [
+        match user with
+        | Some user -&gt; 
+            yield text (sprintf &quot;Logged on as %s, &quot; user)
+            yield aHref Path.Account.logoff (text &quot;Log off&quot;)
+        | None -&gt;
+            yield aHref Path.Account.logon (text &quot;Log on&quot;)
+    ]
+</code></pre>
+
+<blockquote>
+<p>Note: Because we&rsquo;re inside pattern matching, the <code>yield</code> keyword is mandatory here.</p>
+</blockquote>
+<p>and include it in &ldquo;header&rdquo; <code>div</code> as well&rdquo;</p>
+<pre><code>divId &quot;header&quot; [
+    h1 (aHref Path.home (text &quot;F# Suave Music Store&quot;))
+    partNav
+    partUser (None)
+]
+</code></pre>
+
+<p>The only argument to <code>partUser</code> is an optional username - if it exists, then the user is authenticated.<br />
+For now, we assume no user is logged on, thus we hardcode the <code>None</code> in call to <code>partUser</code>.</p>
+<p>There&rsquo;s no handler for the <code>logon</code> route yet, so we need to create one.<br />
+Logon view will be rather straightforward - just a simple form with username and password.</p>
+<pre><code>type Logon = {
+    Username : string
+    Password : Password
+}
+
+let logon : Form&lt;Logon&gt; = Form ([],[])
+</code></pre>
+
+<p>Above snippet shows how the <code>logon</code> form can be defined in our <code>Form</code> module.<br />
+<code>Password</code> is a type from Suave library and helps to determine the input type for HTML markup (we don&rsquo;t want anyone to see our secret pass as we type it).</p>
+<pre><code>let logon = [
+    h2 &quot;Log On&quot;
+    p [
+        text &quot;Please enter your user name and password.&quot;
+    ]
+
+    renderForm
+        { Form = Form.logon
+          Fieldsets = 
+              [ { Legend = &quot;Account Information&quot;
+                  Fields = 
+                      [ { Label = &quot;User Name&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.Username @&gt;) [] }
+                        { Label = &quot;Password&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.Password @&gt;) [] } ] } ]
+          SubmitText = &quot;Log On&quot; }
+]
+</code></pre>
+
+<p>As I promised, nothing fancy here.<br />
+We&rsquo;ve already seen how the <code>renderForm</code> works, so the above snippet is just another plain HTML form with some additional instructions at the top.</p>
+<p>The GET handler for <code>logon</code> is also very simple:</p>
+<pre><code>let logon =
+    View.logon
+    |&gt; html
+</code></pre>
+
+<pre><code>path Path.Account.logon &gt;&gt;= logon
+</code></pre>
+
+<p>Things get more complicated with regards to the POST handler.<br />
+As a gentle introduction, we&rsquo;ll add logic to verify passed credentials - by querying the database (<code>Db</code> module):</p>
+<pre><code>let validateUser (username, password) (ctx : DbContext) : User option =
+    query {
+        for user in ctx.``[dbo].[Users]`` do
+            where (user.UserName = username &amp;&amp; user.Password = password)
+            select user
+    } |&gt; firstOrNone
+</code></pre>
+
+<p>The snippet makes use of <code>User</code> type alias:</p>
+<pre><code>type User = DbContext.``[dbo].[Users]Entity``
+</code></pre>
+
+<p>Now, in the <code>App</code> module add two more <code>open</code> statements:</p>
+<pre><code>open System
+...
+open Suave.State.CookieStateStore
+</code></pre>
+
+<p>and add a couple of helper functions:</p>
+<pre><code>let passHash (pass: string) =
+    use sha = Security.Cryptography.SHA256.Create()
+    Text.Encoding.UTF8.GetBytes(pass)
+    |&gt; sha.ComputeHash
+    |&gt; Array.map (fun b -&gt; b.ToString(&quot;x2&quot;))
+    |&gt; String.concat &quot;&quot;
+
+let session = statefulForSession
+
+let sessionStore setF = context (fun x -&gt;
+    match HttpContext.state x with
+    | Some state -&gt; setF state
+    | None -&gt; never)
+
+let returnPathOrHome = 
+    request (fun x -&gt; 
+        let path = 
+            match (x.queryParam &quot;returnPath&quot;) with
+            | Choice1Of2 path -&gt; path
+            | _ -&gt; Path.home
+        Redirection.FOUND path)
+</code></pre>
+
+<p>Comments:</p>
+<ul>
+<li><code>passHash</code> is of type <code>string -&gt; string</code> - from a given string it creates a SHA256 hash and formats it to hexadecimal. That&rsquo;s how users&rsquo; passwords are stored in our database.</li>
+<li><code>session</code> for now is just an alias to <code>statefulForSession</code> from Suave, which initializes a user state for a browsing session. We will however add extra argument to the <code>session</code> function in a few minutes, that&rsquo;s why we might want to have it extracted already.</li>
+<li><code>sessionStore</code> is a higher-order function, taking <code>setF</code> as a parameter - which in turn can be used to read from or write to the session store.</li>
+<li><code>returnPathOrHome</code> tries to extract &ldquo;returnPath&rdquo; query parameter from the url, and redirects to that path if it exists. If no &ldquo;returnPath&rdquo; is found, we get back redirected to the home page.</li>
+</ul>
+<p>Now turn for the <code>logon</code> POST handler monster:</p>
+<pre><code>let logon =
+    choose [
+        GET &gt;&gt;= (View.logon |&gt; html)
+        POST &gt;&gt;= bindToForm Form.logon (fun form -&gt;
+            let ctx = Db.getContext()
+            let (Password password) = form.Password
+            match Db.validateUser(form.Username, passHash password) ctx with
+            | Some user -&gt;
+                    Auth.authenticated Cookie.CookieLife.Session false 
+                    &gt;&gt;= session
+                    &gt;&gt;= sessionStore (fun store -&gt;
+                        store.set &quot;username&quot; user.UserName
+                        &gt;&gt;= store.set &quot;role&quot; user.Role)
+                    &gt;&gt;= returnPathOrHome
+            | _ -&gt;
+                never
+        )
+    ]
+</code></pre>
+
+<p>Not that bad, isn&rsquo;t it?<br />
+What we do first here is we bind to <code>Form.logon</code>.<br />
+This means that in case the request is malformed, <code>bindToForm</code> takes care of returning 400 Bad Request status code.<br />
+If someone however decides to be polite and fill in the logon form correctly, then we reach the database and ask whether such user with such password exists.<br />
+Note, that we have to pattern match the password string in form result (<code>let (Password password) = form.Password</code>).<br />
+If <code>Db.validateUser</code> returns <code>Some user</code> then we compose 4 WebParts together in order to correctly set up the user state and redirect user to his destination.<br />
+First, <code>Auth.authenticated</code> sets proper cookies which live till the session ends. The second (<code>false</code>) argument specifies the cookie isn&rsquo;t &ldquo;HttpsOnly&rdquo;.<br />
+Then we bind the result to <code>session</code>, which as described earlier, sets up the user session state.<br />
+Next, we write two values to the session store: &ldquo;username&rdquo; and &ldquo;role&rdquo;.<br />
+Finally, we bind to <code>returnPathOrHome</code> - we&rsquo;ll shortly see how this one can be useful.</p>
+<p>You might have noticed, that the above code will results in &ldquo;Not found&rdquo; page in case <code>Db.validateUser</code> returns None.<br />
+That&rsquo;s because we temporarily assigned <code>never</code> to the latter match.<br />
+Ideally, we&rsquo;d like to see some kind of a validation message next to the form.<br />
+To achieve that, let&rsquo;s add <code>msg</code> parameter to <code>View.logon</code>:</p>
+<pre><code>let logon msg = [
+    h2 &quot;Log On&quot;
+    p [
+        text &quot;Please enter your user name and password.&quot;
+    ]
+
+    divId &quot;logon-message&quot; [
+        text msg
+    ]
+...
+</code></pre>
+
+<p>Now we can invoke it in two ways:</p>
+<pre><code>GET &gt;&gt;= (View.logon &quot;&quot; |&gt; html)
+
+...
+
+View.logon &quot;Username or password is invalid.&quot; |&gt; html
+</code></pre>
+
+<p>The first one being GET <code>logon</code> handler, and the other one being returned if provided credentials are incorrect.</p>
+<p>Up to this point, we should be able to authenticate with &ldquo;admin&rdquo; -&gt; &ldquo;admin&rdquo; credentials to our application.<br />
+This is however not very useful, as there are no handlers that would demand user to be authenticated yet.</p></article></body></html>
