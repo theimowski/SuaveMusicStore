@@ -219,6 +219,16 @@ let partNav =
         li (aHref Path.Admin.manage (text "Admin"))
     ]
 
+let partUser (user : string option) = 
+    divId "part-user" [
+        match user with
+        | Some user -> 
+            yield text (sprintf "Logged on as %s, " user)
+            yield aHref Path.Account.logoff (text "Log off")
+        | None ->
+            yield aHref Path.Account.logon (text "Log on")
+    ]
+
 let index container = 
     html [
         head [
@@ -230,6 +240,7 @@ let index container =
             divId "header" [
                 h1 (aHref Path.home (text "F# Suave Music Store"))
                 partNav
+                partUser (None)
             ]
 
             divId "container" container
