@@ -4,6 +4,7 @@ open System
 
 open Suave
 open Suave.Authentication
+open Suave.Cookie
 open Suave.Filters
 open Suave.Form
 open Suave.Model.Binding
@@ -43,6 +44,15 @@ let sessionStore setF = context (fun x ->
     | Some state -> setF state
     | None -> never)
 
+let reset =
+    unsetPair SessionAuthCookie
+    >=> Redirection.FOUND Path.home
+
+let redirectWithReturnPath redirection =
+    request (fun x ->
+        let path = x.url.AbsolutePath
+        Redirection.FOUND (redirection |> Path.withParam ("returnPath", path)))
+
 let returnPathOrHome = 
     request (fun x -> 
         let path = 
@@ -50,6 +60,21 @@ let returnPathOrHome =
             | Choice1Of2 path -> path
             | _ -> Path.home
         Redirection.FOUND path)
+
+let loggedOn f_success =
+    authenticate
+        Cookie.CookieLife.Session
+        false
+        (fun () -> Choice2Of2(redirectWithReturnPath Path.Account.logon))
+        (fun _ -> Choice2Of2 reset)
+        f_success
+
+let admin f_success =
+    loggedOn (session (function
+        | UserLoggedOn { Role = "admin" } -> f_success
+        | UserLoggedOn _ -> FORBIDDEN "Only for admin"
+        | _ -> UNAUTHORIZED "Not logged in"
+    ))
 
 let html container =
     OK (View.index container)
