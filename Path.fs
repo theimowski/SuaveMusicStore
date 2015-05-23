@@ -13,6 +13,10 @@ module Store =
 
     let browseKey = "genre"
 
+module Account =
+    let logon = "/account/logon"
+    let logoff = "/account/logoff"
+
 module Admin =
     let manage = "/admin/manage"
     let createAlbum = "/admin/create"
