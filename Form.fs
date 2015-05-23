@@ -16,3 +16,10 @@ let album : Form<Album> =
             DecimalProp ((fun f -> <@ f.Price @>), [ min 0.01M; max 100.0M; step 0.01M ])
             ],
           [])
+
+type Logon = {
+    Username : string
+    Password : Password
+}
+
+let logon : Form<Logon> = Form ([],[])
