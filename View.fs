@@ -249,7 +249,7 @@ let partUser (user : string option) =
             yield aHref Path.Account.logon (text "Log on")
     ]
 
-let index container = 
+let index partUser container = 
     html [
         head [
             title "Suave Music Store"
@@ -260,7 +260,7 @@ let index container =
             divId "header" [
                 h1 (aHref Path.home (text "F# Suave Music Store"))
                 partNav
-                partUser (None)
+                partUser
             ]
 
             divId "container" container
