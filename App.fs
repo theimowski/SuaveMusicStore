@@ -46,6 +46,7 @@ let sessionStore setF = context (fun x ->
 
 let reset =
     unsetPair SessionAuthCookie
+    >=> unsetPair StateCookie
     >=> Redirection.FOUND Path.home
 
 let redirectWithReturnPath redirection =
@@ -195,6 +196,7 @@ let webPart =
         pathScan Path.Store.details details
 
         path Path.Account.logon >=> logon
+        path Path.Account.logoff >=> reset
 
         path Path.Admin.manage >=> admin manage
         path Path.Admin.createAlbum >=> admin createAlbum
