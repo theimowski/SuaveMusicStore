@@ -77,8 +77,13 @@ let admin f_success =
     ))
 
 let html container =
-    OK (View.index container)
+    let result user =
+        OK (View.index (View.partUser user) container)
     >=> Writers.setMimeType "text/html; charset=utf-8"
+
+    session (function
+    | UserLoggedOn { Username = username } -> result (Some username)
+    | _ -> result None)
 
 let browse =
     request (fun r -> 
