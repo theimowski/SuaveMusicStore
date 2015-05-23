@@ -47,6 +47,10 @@ let manage = warbler (fun _ ->
 let bindToForm form handler =
     bindReq (bindForm form) handler BAD_REQUEST
 
+let logon =
+    View.logon
+    |> html
+
 let createAlbum =
     let ctx = Db.getContext()
     choose [
@@ -103,6 +107,8 @@ let webPart =
         path Path.Store.overview >>= overview
         path Path.Store.browse >>= browse
         pathScan Path.Store.details details
+
+        path Path.Account.logon >>= logon
 
         path Path.Admin.manage >>= manage
         path Path.Admin.createAlbum >>= createAlbum
