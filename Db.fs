@@ -12,6 +12,7 @@ type Album = DbContext.``[dbo].[Albums]Entity``
 type Artist = DbContext.``[dbo].[Artists]Entity``
 type Genre = DbContext.``[dbo].[Genres]Entity``
 type AlbumDetails = DbContext.``[dbo].[AlbumDetails]Entity``
+type User = DbContext.``[dbo].[Users]Entity``
 
 let getContext() = Sql.GetDataContext()
 
@@ -47,6 +48,13 @@ let getAlbum id (ctx : DbContext) : Album option =
         for album in ctx.``[dbo].[Albums]`` do
             where (album.AlbumId = id)
             select album
+    } |> firstOrNone
+
+let validateUser (username, password) (ctx : DbContext) : User option =
+    query {
+        for user in ctx.``[dbo].[Users]`` do
+            where (user.UserName = username && user.Password = password)
+            select user
     } |> firstOrNone
 
 let createAlbum (artistId, genreId, price, title) (ctx : DbContext) =
