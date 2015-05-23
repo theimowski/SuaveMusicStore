@@ -70,8 +70,6 @@ let renderForm (layout : FormLayout<_>) =
         yield submitInput layout.SubmitText
     ]
 
-
-
 let home = [
     h2 "Home"
 ]
