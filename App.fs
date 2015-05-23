@@ -192,10 +192,10 @@ let webPart =
 
         path Path.Account.logon >>= logon
 
-        path Path.Admin.manage >>= manage
-        path Path.Admin.createAlbum >>= createAlbum
-        pathScan Path.Admin.editAlbum editAlbum
-        pathScan Path.Admin.deleteAlbum deleteAlbum
+        path Path.Admin.manage >>= admin manage
+        path Path.Admin.createAlbum >>= admin createAlbum
+        pathScan Path.Admin.editAlbum (fun id -> admin (editAlbum id))
+        pathScan Path.Admin.deleteAlbum (fun id -> admin (deleteAlbum id))
 
         pathRegex "(.*)\.(css|png|gif)" >>= Files.browseHome
 
