@@ -199,6 +199,24 @@ let editAlbum (album : Db.Album) genres artists = [
     ]
 ]
 
+let logon = [
+    h2 "Log On"
+    p [
+        text "Please enter your user name and password."
+    ]
+
+    renderForm
+        { Form = Form.logon
+          Fieldsets = 
+              [ { Legend = "Account Information"
+                  Fields = 
+                      [ { Label = "User Name"
+                          Xml = input (fun f -> <@ f.Username @>) [] }
+                        { Label = "Password"
+                          Xml = input (fun f -> <@ f.Password @>) [] } ] } ]
+          SubmitText = "Log On" }
+]
+
 let notFound = [
     h2 "Page not found"
     p [
