@@ -12,6 +12,7 @@ let h2 s = tag "h2" [] (text s)
 let aHref href = tag "a" ["href", href]
 let cssLink href = linkAttr [ "href", href; " rel", "stylesheet"; " type", "text/css" ]
 let ul xml = tag "ul" [] (flatten xml)
+let ulAttr attr xml = tag "ul" attr (flatten xml)
 let li = tag "li" []
 let imgSrc src = imgAttr [ "src", src ]
 let em s = tag "em" [] (text s)
@@ -211,6 +212,13 @@ let notFound = [
     ]
 ]
 
+let partNav = 
+    ulAttr ["id", "navlist"] [ 
+        li (aHref Path.home (text "Home"))
+        li (aHref Path.Store.overview (text "Store"))
+        li (aHref Path.Admin.manage (text "Admin"))
+    ]
+
 let index container = 
     html [
         head [
@@ -221,6 +229,7 @@ let index container =
         body [
             divId "header" [
                 h1 (aHref Path.home (text "F# Suave Music Store"))
+                partNav
             ]
 
             divId "container" container
