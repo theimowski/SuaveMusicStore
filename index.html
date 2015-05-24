@@ -2429,4 +2429,155 @@ View.logon &quot;Username or password is invalid.&quot; |&gt; html
 
 <p>The first one being GET <code>logon</code> handler, and the other one being returned if provided credentials are incorrect.</p>
 <p>Up to this point, we should be able to authenticate with &ldquo;admin&rdquo; -&gt; &ldquo;admin&rdquo; credentials to our application.<br />
-This is however not very useful, as there are no handlers that would demand user to be authenticated yet.</p></article></body></html>
+This is however not very useful, as there are no handlers that would demand user to be authenticated yet.</p>
+<p>To change that, let&rsquo;s define custom types to represent user state:</p>
+<pre><code>type UserLoggedOnSession = {
+    Username : string
+    Role : string
+}
+
+type Session = 
+    | NoSession
+    | UserLoggedOn of UserLoggedOnSession
+</code></pre>
+
+<p><code>Session</code> type is so-called &ldquo;Discriminated Union&rdquo; in F#.<br />
+It basically means that an instance of <code>Session</code> type is either <code>NoSession</code> or <code>UserLoggedOn</code>, and no other than that.<br />
+<code>of UserLoggedOnSession</code> is an indicator that there is some data of type <code>UserLoggedOnSession</code> related.<br />
+Read <a href="http://fsharpforfunandprofit.com/posts/discriminated-unions/">here</a> for more info on Discriminated Unions. </p>
+<p>On the other hand, <code>UserLoggedOnSession</code> is a &ldquo;Record type&rdquo;.<br />
+We can think of Record as a Plain-Old-Class Object, or DTO, or whatever you like.<br />
+It has however a number of language built-in features that make it really awesome, including:</p>
+<ul>
+<li>imutability by default</li>
+<li>structural equality by default</li>
+<li>pattern matching</li>
+<li>copy-and-update expression</li>
+</ul>
+<p>Again, if you want to learn more about Records, make sure you visit <a href="http://fsharpforfunandprofit.com/posts/records/">this</a> post.</p>
+<p>With these two types, we&rsquo;ll be able to distinguish from when a user is logged on to our application and when he is not.</p>
+<p>As stated before, we&rsquo;ll now add a parameter to the <code>session</code> function:</p>
+<pre><code>let session f = 
+    statefulForSession
+    &gt;&gt;= context (fun x -&gt; 
+        match x |&gt; HttpContext.state with
+        | None -&gt; f NoSession
+        | Some state -&gt;
+            match state.get &quot;username&quot;, state.get &quot;role&quot; with
+            | Some username, Some role -&gt; f (UserLoggedOn {Username = username; Role = role})
+            | _ -&gt; f NoSession)
+</code></pre>
+
+<p>Type of <code>f</code> parameter is <code>Session -&gt; WebPart</code>.<br />
+You guessed it, it means we will be able to do different things including returning different responses, depending on the user session state.<br />
+In order to confirm that a user is logged on, session state store must contain both &ldquo;username&rdquo; and &ldquo;role&rdquo; values.</p>
+<blockquote>
+<p>Note: We have used a pattern matching on a tuple in the above snippet - we could pass two values separated with comma to the <code>match</code> construct, and then pattern match on both values: <code>Some username, Some role</code> means both values are present. The latter (<code>_</code>) covers all other instances.</p>
+</blockquote>
+<p>The only usage of <code>session</code> for now is in the <code>logon</code> POST handler - let&rsquo;s adjust it to new version:</p>
+<pre><code>...
+Auth.authenticated Cookie.CookieLife.Session false 
+&gt;&gt;= session (fun _ -&gt; succeed)
+&gt;&gt;= sessionStore (fun store -&gt;
+...
+</code></pre>
+
+<p>Yes I know, I promised we&rsquo;ll pass something funky to the <code>session</code> function, but bear with with me - we will later.<br />
+For the moment usage of <code>session</code> in <code>logon</code> doesn&rsquo;t require any custom action, but we still need to invoke it to &ldquo;initalize&rdquo; the user state.</p>
+<p>There are a few more helper functions needed before we can set up proper authorization for &ldquo;/admin&rdquo; handlers.<br />
+Add following to <code>App</code> module:</p>
+<pre><code>open Suave.Cookie
+
+...
+
+let reset =
+    unsetPair Auth.SessionAuthCookie
+    &gt;&gt;= unsetPair StateCookie
+    &gt;&gt;= Redirection.FOUND Path.home
+
+let redirectWithReturnPath redirection =
+    request (fun x -&gt;
+        let path = x.url.AbsolutePath
+        Redirection.FOUND (redirection |&gt; Path.withParam (&quot;returnPath&quot;, path)))
+
+
+...
+
+let loggedOn f_success =
+    Auth.authenticate
+        Cookie.CookieLife.Session
+        false
+        (fun () -&gt; Choice2Of2(redirectWithReturnPath Path.Account.logon))
+        (fun _ -&gt; Choice2Of2 reset)
+        f_success
+
+let admin f_success =
+    loggedOn (session (function
+        | UserLoggedOn { Role = &quot;admin&quot; } -&gt; f_success
+        | UserLoggedOn _ -&gt; FORBIDDEN &quot;Only for admin&quot;
+        | _ -&gt; UNAUTHORIZED &quot;Not logged in&quot;
+    ))
+</code></pre>
+
+<p>Remarks:</p>
+<ul>
+<li><code>reset</code> is a WebPart to clean up auth and state cookie values, and redirect to home page afterwards. We&rsquo;ll use it for logging user off.</li>
+<li><code>redirectWithReturnPath</code> aims to point user to some url, with the &ldquo;returnPath&rdquo; query parameter baked into the url. We&rsquo;ll use it for redirecting user to logon page if specific action requires authentication.</li>
+<li><code>loggedOn</code> takes <code>f_success</code> WebPart as argument, which will be applied if user is authenticated. Here we use the library function <code>Auth.authenticate</code>, to which <code>f_success</code> comes as last parameter. The rest of parameters, starting with first are are respectively:<ul>
+<li><code>CookieLife</code> - <code>Session</code> in our case</li>
+<li><code>httpsOnly</code> - we pass false as we won&rsquo;t cover HTTPS bindings in the tutorial (however Suave does support it).</li>
+<li>3rd parameter is a function applied if auth cookie is missing - that&rsquo;s where we want to redirect user to the logon page with a &ldquo;returnPath&rdquo;</li>
+<li>4th parameter is a function applied if there occured a decryption error. In real world this could mean a malformed request, however at current stage we&rsquo;ll stick to reseting the state. This way we can re-run the server multiple times during development, without worrying about the browser to pass a cookie value encrypted with stale server key (Suave regenerates a new server key each time it is run).</li>
+</ul>
+</li>
+<li><code>admin</code> also takes <code>f_success</code> WebPart as argument. Here, we invoke <code>loggedOn</code> with an inline function using <code>session</code>. The interesting part is inside the <code>session</code> function:<ul>
+<li>syntax <code>function | ... -&gt;</code> is just a shorter version of <code>match x with | ... -&gt;</code> but the <code>x</code> param is implicit here, and <code>x</code> is of type <code>Session</code></li>
+<li>first pattern shows the real power of the pattern matching technique - <code>f_success</code> will be applied only if user is logged on, and his Role is &ldquo;admin&rdquo; (we&rsquo;ll distinguish between &ldquo;admin&rdquo; and &ldquo;user&rdquo; roles)</li>
+<li>second pattern holds if user is logged on but with different role, thus we return 403 Forbidden status code</li>
+<li>the last &ldquo;otherwise&rdquo; (<code>_</code>) pattern should never hold, because we&rsquo;re already inside <code>loggedOn</code>. We use it anyway, just as a safety net.</li>
+</ul>
+</li>
+</ul>
+<p>That was quite long, but worth it. Finally we&rsquo;re able to guard the &ldquo;/admin&rdquo; actions:</p>
+<pre><code>path Path.Admin.manage &gt;&gt;= admin manage
+path Path.Admin.createAlbum &gt;&gt;= admin createAlbum
+pathScan Path.Admin.editAlbum (fun id -&gt; admin (editAlbum id))
+pathScan Path.Admin.deleteAlbum (fun id -&gt; admin (deleteAlbum id))
+</code></pre>
+
+<p>Go and have a look what happens when you try to navigate to &ldquo;/admin/manage&rdquo; route.</p>
+<p>We still need to update the <code>partUser</code>, when a user is logged on (remember we hardcoded <code>None</code> for username).<br />
+To do this, we can pass <code>partUser</code> as parameter to <code>View.index</code>:</p>
+<pre><code>let index partUser container = 
+
+...
+
+            divId &quot;header&quot; [
+                h1 (aHref Path.home (text &quot;F# Suave Music Store&quot;))
+                partNav
+                partUser
+            ]
+</code></pre>
+
+<p>and determine whether a user is logged on in the <code>html</code> WebPart in <code>App</code> module:</p>
+<pre><code>let html container =
+    let result user =
+        OK (View.index (View.partUser user) container)
+        &gt;&gt;= Writers.setMimeType &quot;text/html; charset=utf-8&quot;
+
+    session (function
+    | UserLoggedOn { Username = username } -&gt; result (Some username)
+    | _ -&gt; result None)
+</code></pre>
+
+<p>We declared a sub function <code>result</code> which takes the <code>user</code> parameter.<br />
+<code>session</code> can be used to determine user state.<br />
+Effectively, we invoke the <code>result</code> function always but with <code>user</code> argument based on the user state.</p>
+<p>The last thing we need to support is <code>logoff</code>. In the main <code>choose</code> WebPart add:</p>
+<pre><code>path Path.Account.logoff &gt;&gt;= reset
+</code></pre>
+
+<p><code>logoff</code> doesn&rsquo;t require separate WebPart, <code>reset</code> can be reused instead.</p>
+<p>That concludes our journey to Auth and Session features in <code>Suave</code> library. <br />
+We&rsquo;ll revisit them when implementing Cart functionality, but the base is already done.<br />
+Code up to this point can be browsed here: <a href="https://github.com/theimowski/SuaveMusicStore/tree/auth_and_session">Tag - auth_and_session</a></p></article></body></html>
