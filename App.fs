@@ -140,7 +140,12 @@ let logon =
         )
     ]
 
-let cart = View.cart [] |> html
+let cart = 
+    session (function
+    | NoSession -> View.emptyCart |> html
+    | UserLoggedOn { Username = cartId } | CartIdOnly cartId ->
+        let ctx = Db.getContext()
+        Db.getCartsDetails cartId ctx |> View.cart |> html)
 
 let addToCart albumId =
     let ctx = Db.getContext()
