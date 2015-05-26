@@ -96,3 +96,8 @@ let addToCart cartId albumId (ctx : DbContext)  =
     | None ->
         ctx.``[dbo].[Carts]``.Create(albumId, cartId, 1, DateTime.UtcNow) |> ignore
     ctx.SubmitUpdates()
+
+let removeFromCart (cart : Cart) albumId (ctx : DbContext) = 
+    cart.Count <- cart.Count - 1
+    if cart.Count = 0 then cart.Delete()
+    ctx.SubmitUpdates()

@@ -167,6 +167,18 @@ let addToCart albumId =
                 succeed)
         >=> Redirection.FOUND Path.Cart.overview
 
+let removeFromCart albumId =
+    session (function
+    | NoSession -> never
+    | UserLoggedOn { Username = cartId } | CartIdOnly cartId ->
+        let ctx = Db.getContext()
+        match Db.getCart cartId albumId ctx with
+        | Some cart -> 
+            Db.removeFromCart cart albumId ctx
+            Db.getCartsDetails cartId ctx |> View.cart |> Html.flatten |> Html.xmlToString |> OK
+        | None -> 
+            never)
+
 let createAlbum =
     let ctx = Db.getContext()
     choose [
@@ -229,6 +241,7 @@ let webPart =
 
         path Path.Cart.overview >=> cart
         pathScan Path.Cart.addAlbum addToCart
+        pathScan Path.Cart.removeAlbum removeFromCart
 
         path Path.Admin.manage >=> admin manage
         path Path.Admin.createAlbum >=> admin createAlbum
