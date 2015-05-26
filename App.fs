@@ -235,7 +235,7 @@ let webPart =
         pathScan Path.Admin.editAlbum (fun id -> admin (editAlbum id))
         pathScan Path.Admin.deleteAlbum (fun id -> admin (deleteAlbum id))
 
-        pathRegex "(.*)\.(css|png|gif)" >=> Files.browseHome
+        pathRegex "(.*)\.(css|png|gif|js)" >=> Files.browseHome
 
         html View.notFound
     ]

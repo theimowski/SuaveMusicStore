@@ -259,6 +259,8 @@ let nonEmptyCart (carts : Db.CartDetails list) = [
             td [text d]
         ]
     ]
+    scriptAttr [ "type", "text/javascript"; " src", "/jquery-1.11.3.min.js" ] [ text "" ]
+    scriptAttr [ "type", "text/javascript"; " src", "/script.js" ] [ text "" ]
 ]
 
 let cart = function
