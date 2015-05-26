@@ -13,6 +13,7 @@ type Artist = DbContext.``[dbo].[Artists]Entity``
 type Genre = DbContext.``[dbo].[Genres]Entity``
 type AlbumDetails = DbContext.``[dbo].[AlbumDetails]Entity``
 type User = DbContext.``[dbo].[Users]Entity``
+type CartDetails = DbContext.``[dbo].[CartDetails]Entity``
 
 let getContext() = Sql.GetDataContext()
 

@@ -10,6 +10,7 @@ let divClass c = divAttr ["class", c]
 let h1 xml = tag "h1" [] xml
 let h2 s = tag "h2" [] (text s)
 let aHref href = tag "a" ["href", href]
+let aHrefAttr href attr = tag "a" (("href", href) :: attr)
 let cssLink href = linkAttr [ "href", href; " rel", "stylesheet"; " type", "text/css" ]
 let ul xml = tag "ul" [] (flatten xml)
 let ulAttr attr xml = tag "ul" attr (flatten xml)
@@ -220,6 +221,46 @@ let logon msg = [
                           Xml = input (fun f -> <@ f.Password @>) [] } ] } ]
           SubmitText = "Log On" }
 ]
+
+let emptyCart = [
+    h2 "Your cart is empty"
+    text "Find some great music in our "
+    aHref Path.home (text "store")
+    text "!"
+]
+
+let nonEmptyCart (carts : Db.CartDetails list) = [
+    h2 "Review your cart:"
+    table [
+        yield tr [
+            for h in ["Album Name"; "Price (each)"; "Quantity"; ""] ->
+            th [text h]
+        ]
+        for cart in carts ->
+            tr [
+                td [
+                    aHref (sprintf Path.Store.details cart.AlbumId) (text cart.AlbumTitle)
+                ]
+                td [
+                    text (formatDec cart.Price)
+                ]
+                td [
+                    text (cart.Count.ToString())
+                ]
+                td [
+                    aHrefAttr "#" ["class", "removeFromCart"; "data-id", cart.AlbumId.ToString()] (text "Remove from cart") 
+                ]
+            ]
+        yield tr [
+            for d in ["Total"; ""; ""; carts |> List.sumBy (fun c -> c.Price * (decimal c.Count)) |> formatDec] ->
+            td [text d]
+        ]
+    ]
+]
+
+let cart = function
+    | [] -> emptyCart
+    | list -> nonEmptyCart list
 
 let notFound = [
     h2 "Page not found"
