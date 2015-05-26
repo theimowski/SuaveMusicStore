@@ -139,6 +139,8 @@ let logon =
         )
     ]
 
+let cart = View.cart [] |> html
+
 let createAlbum =
     let ctx = Db.getContext()
     choose [
@@ -198,6 +200,8 @@ let webPart =
 
         path Path.Account.logon >>= logon
         path Path.Account.logoff >>= reset
+
+        path Path.Cart.overview >>= cart
 
         path Path.Admin.manage >>= admin manage
         path Path.Admin.createAlbum >>= admin createAlbum
