@@ -103,6 +103,9 @@ let details (album : Db.AlbumDetails) = [
                 em caption
                 text t
             ]
+        yield pAttr ["class", "button"] [
+            aHref (sprintf Path.Cart.addAlbum album.AlbumId) (text "Add to cart")
+        ]
     ]
 ]
 

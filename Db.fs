@@ -1,5 +1,6 @@
 ﻿module SuaveMusicStore.Db
 
+open System
 open FSharp.Data.Sql
 
 type Sql = 
@@ -13,6 +14,7 @@ type Artist = DbContext.``[dbo].[Artists]Entity``
 type Genre = DbContext.``[dbo].[Genres]Entity``
 type AlbumDetails = DbContext.``[dbo].[AlbumDetails]Entity``
 type User = DbContext.``[dbo].[Users]Entity``
+type Cart = DbContext.``[dbo].[Carts]Entity``
 type CartDetails = DbContext.``[dbo].[CartDetails]Entity``
 
 let getContext() = Sql.GetDataContext()
@@ -58,6 +60,13 @@ let validateUser (username, password) (ctx : DbContext) : User option =
             select user
     } |> firstOrNone
 
+let getCart cartId albumId (ctx : DbContext) : Cart option =
+    query {
+        for cart in ctx.``[dbo].[Carts]`` do
+            where (cart.CartId = cartId && cart.AlbumId = albumId)
+            select cart
+    } |> firstOrNone
+
 let createAlbum (artistId, genreId, price, title) (ctx : DbContext) =
     ctx.``[dbo].[Albums]``.Create(artistId, genreId, price, title) |> ignore
     ctx.SubmitUpdates()
@@ -71,4 +80,12 @@ let updateAlbum (album : Album) (artistId, genreId, price, title) (ctx : DbConte
 
 let deleteAlbum (album : Album) (ctx : DbContext) = 
     album.Delete()
+    ctx.SubmitUpdates()
+
+let addToCart cartId albumId (ctx : DbContext)  =
+    match getCart cartId albumId ctx with
+    | Some cart ->
+        cart.Count <- cart.Count + 1
+    | None ->
+        ctx.``[dbo].[Carts]``.Create(albumId, cartId, 1, DateTime.UtcNow) |> ignore
     ctx.SubmitUpdates()
