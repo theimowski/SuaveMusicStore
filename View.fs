@@ -234,6 +234,7 @@ let emptyCart = [
 
 let nonEmptyCart (carts : Db.CartDetails list) = [
     h2 "Review your cart:"
+    divId "update-message" [text " "]
     table [
         yield tr [
             for h in ["Album Name"; "Price (each)"; "Quantity"; ""] ->
