@@ -277,6 +277,7 @@ let partNav =
     ulAttr ["id", "navlist"] [ 
         li (aHref Path.home (text "Home"))
         li (aHref Path.Store.overview (text "Store"))
+        li (aHref Path.Cart.overview (text "Cart"))
         li (aHref Path.Admin.manage (text "Admin"))
     ]
 
