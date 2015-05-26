@@ -37,8 +37,9 @@ let session f =
         match x |> HttpContext.state with
         | None -> f NoSession
         | Some state ->
-            match state.get "username", state.get "role" with
-            | Some username, Some role -> f (UserLoggedOn {Username = username; Role = role})
+            match state.get "cartid", state.get "username", state.get "role" with
+            | Some cartId, None, None -> f (CartIdOnly cartId)
+            | _, Some username, Some role -> f (UserLoggedOn {Username = username; Role = role})
             | _ -> f NoSession)
 
 let sessionStore setF = context (fun x ->
