@@ -67,6 +67,13 @@ let getCart cartId albumId (ctx : DbContext) : Cart option =
             select cart
     } |> firstOrNone
 
+let getCartsDetails cartId (ctx : DbContext) : CartDetails list =
+    query {
+        for cart in ctx.``[dbo].[CartDetails]`` do
+            where (cart.CartId = cartId)
+            select cart
+    } |> Seq.toList
+
 let createAlbum (artistId, genreId, price, title) (ctx : DbContext) =
     ctx.``[dbo].[Albums]``.Create(artistId, genreId, price, title) |> ignore
     ctx.SubmitUpdates()
