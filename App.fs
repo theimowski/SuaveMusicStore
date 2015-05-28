@@ -137,7 +137,12 @@ let logon =
             match Db.validateUser(form.Username, passHash password) ctx with
             | Some user ->
                     authenticated Cookie.CookieLife.Session false 
-                    >=> session (fun _ -> succeed)
+                    >=> session (function
+                        | CartIdOnly cartId ->
+                            let ctx = Db.getContext()
+                            Db.upgradeCarts (cartId, user.UserName) ctx
+                            sessionStore (fun store -> store.set "cartid" "")
+                        | _ -> succeed)
                     >=> sessionStore (fun store ->
                         store.set "username" user.UserName
                         >=> store.set "role" user.Role)
