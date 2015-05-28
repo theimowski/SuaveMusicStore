@@ -2579,5 +2579,170 @@ Effectively, we invoke the <code>result</code> function always but with <code>us
 
 <p><code>logoff</code> doesn&rsquo;t require separate WebPart, <code>reset</code> can be reused instead.</p>
 <p>That concludes our journey to Auth and Session features in <code>Suave</code> library. <br />
-We&rsquo;ll revisit them when implementing Cart functionality, but the base is already done.<br />
-Code up to this point can be browsed here: <a href="https://github.com/theimowski/SuaveMusicStore/tree/auth_and_session">Tag - auth_and_session</a></p></article></body></html>
+We&rsquo;ll revisit the concepts in next section, but much of the implementation can be reused.<br />
+Code up to this point can be browsed here: <a href="https://github.com/theimowski/SuaveMusicStore/tree/auth_and_session">Tag - auth_and_session</a></p>
+<h2 id="more-cookies-in-shopping-cart"><a name="user-content-more-cookies-in-shopping-cart" href="#more-cookies-in-shopping-cart" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>More cookies in shopping cart</h2>
+<p>What&rsquo;s a shop without cart feature?<br />
+We would like to let the user add albums to a cart while shopping at our Store.<br />
+To fill in the gap, let&rsquo;s start by declaring new routes in <code>Path</code> module:</p>
+<pre><code>module Cart =
+    let overview = &quot;/cart&quot;
+    let addAlbum : IntPath = &quot;/cart/add/%d&quot;
+    let removeAlbum : IntPath = &quot;/cart/remove/%d&quot;
+</code></pre>
+
+<p>Before we move to the <code>View</code>, add new type annotation for yet another database view <code>CartDetails</code>.<br />
+<code>CartDetails</code> is a view that joins <code>Cart</code> with its corresponding <code>Album</code> in order to contain album&rsquo;s title and its price.</p>
+<pre><code>type CartDetails = DbContext.``[dbo].[CartDetails]Entity``
+</code></pre>
+
+<p>&ldquo;As a user I want to see that my cart is empty when my cart is empty so that I can make my cart not empty&rdquo;<br />
+With such a serious business requirement, we&rsquo;d better distinguish case when user has anything in his cart from case when the cart is empty.<br />
+To do that, add separate <code>emptyCart</code> in <code>View</code> module: </p>
+<pre><code>let emptyCart = [
+    h2 &quot;Your cart is empty&quot;
+    text &quot;Find some great music in our &quot;
+    aHref Path.home (text &quot;store&quot;)
+    text &quot;!&quot;
+]
+</code></pre>
+
+<p>In the latter case, we&rsquo;re going to display a table with all albums in the cart:</p>
+<pre><code>let aHrefAttr href attr = tag &quot;a&quot; ((&quot;href&quot;, href) :: attr)
+
+...
+
+let nonEmptyCart (carts : Db.CartDetails list) = [
+    h2 &quot;Review your cart:&quot;
+    table [
+        yield tr [
+            for h in [&quot;Album Name&quot;; &quot;Price (each)&quot;; &quot;Quantity&quot;; &quot;&quot;] -&gt;
+            th [text h]
+        ]
+        for cart in carts -&gt;
+            tr [
+                td [
+                    aHref (sprintf Path.Store.details cart.AlbumId) (text cart.AlbumTitle)
+                ]
+                td [
+                    text (formatDec cart.Price)
+                ]
+                td [
+                    text (cart.Count.ToString())
+                ]
+                td [
+                    aHrefAttr &quot;#&quot; [&quot;class&quot;, &quot;removeFromCart&quot;; &quot;data-id&quot;, cart.AlbumId.ToString()] (text &quot;Remove from cart&quot;) 
+                ]
+            ]
+        yield tr [
+            for d in [&quot;Total&quot;; &quot;&quot;; &quot;&quot;; carts |&gt; List.sumBy (fun c -&gt; c.Price * (decimal c.Count)) |&gt; formatDec] -&gt;
+            td [text d]
+        ]
+    ]
+]
+</code></pre>
+
+<p>With these two separate views we can declare a more general one, for when we&rsquo;re not sure whether the cart is empty or not:</p>
+<pre><code>let cart = function
+    | [] -&gt; emptyCart
+    | list -&gt; nonEmptyCart list
+</code></pre>
+
+<p><code>cart</code> makes use of the short <code>function</code> pattern matching syntax. <code>[]</code> case holds only for empty lists, so the second case is valid for non-empty lists.</p>
+<p>A few remarks regarding the <code>nonEmptyCart</code> function:</p>
+<ul>
+<li>first comes the column headings row (&ldquo;Name, Price, Quantity&rdquo;)</li>
+<li>then for each <code>CartDetail</code> from the list there is a row containg:<ul>
+<li>link to album details with album title caption</li>
+<li>single album price</li>
+<li>count of this very album in cart</li>
+<li>link to remove the item from cart (we&rsquo;ll soon apply AJAX updates to this one)</li>
+</ul>
+</li>
+<li>finally there&rsquo;s a summary row that displays the total price for albums in the cart</li>
+</ul>
+<p>We can&rsquo;t really test the view for now, as we haven&rsquo;t yet implemented fetching cart items from database. <br />
+We can however see how the <code>emptyCart</code> view looks like if we add proper handler in <code>App</code> module:</p>
+<pre><code>let cart = View.cart [] |&gt; html
+
+...
+
+path Path.Cart.overview &gt;&gt;= cart
+</code></pre>
+
+<p>A navigation menu item can also appear handy (<code>View.partNav</code>):</p>
+<pre><code>li (aHref Path.Cart.overview (text &quot;Cart&quot;))
+</code></pre>
+
+<p>It&rsquo;s time to revisit the <code>Session</code> type from <code>App</code> module.<br />
+Business requirement is that in order to checkout, a user must be logged on but he doesn&rsquo;t have to when adding albums to the cart.<br />
+That seems reasonable, as we don&rsquo;t want to stop him from his shopping spree with boring logon forms.<br />
+For this purpose we&rsquo;ll add another case <code>CartIdOnly</code> to the <code>Session</code> type.<br />
+This state will be valid for users who are not yet logged on to the store, but have already some albums in their cart:</p>
+<pre><code>type Session = 
+    | NoSession
+    | CartIdOnly of string
+    | UserLoggedOn of UserLoggedOnSession
+</code></pre>
+
+<p><code>CartIdOnly</code> contains string with a GUID generated upon adding first item to the cart.</p>
+<p>Switching back to <code>Db</code> module, let&rsquo;s create a type alias for <code>Carts</code> table:</p>
+<pre><code>type Cart = DbContext.``[dbo].[Carts]Entity``
+</code></pre>
+
+<p><code>Cart</code> has following properties:</p>
+<ul>
+<li>CartId - a GUID if user is not logged on, otherwise username</li>
+<li>AlbumId</li>
+<li>Count</li>
+</ul>
+<p>To implement <code>App</code> handler, we need the following <code>Db</code> module functions:</p>
+<pre><code>let getCart cartId albumId (ctx : DbContext) : Cart option =
+    query {
+        for cart in ctx.``[dbo].[Carts]`` do
+            where (cart.CartId = cartId &amp;&amp; cart.AlbumId = albumId)
+            select cart
+    } |&gt; firstOrNone
+</code></pre>
+
+<pre><code>let addToCart cartId albumId (ctx : DbContext)  =
+    match getCart cartId albumId ctx with
+    | Some cart -&gt;
+        cart.Count &lt;- cart.Count + 1
+    | None -&gt;
+        ctx.``[dbo].[Carts]``.Create(albumId, cartId, 1, DateTime.UtcNow) |&gt; ignore
+    ctx.SubmitUpdates()
+</code></pre>
+
+<p><code>addToCart</code> takes <code>cartId</code> and <code>albumId</code>. <br />
+If there&rsquo;s already such cart entry in the database, we do increment the <code>Count</code> column, otherwise we create a new row.<br />
+To check if a cart entry exists in database, we use <code>getCart</code> - it does a standard lookup on the cartId and albumId.</p>
+<p>Now open up the <code>View</code> module and find the <code>details</code> function to append a new button &ldquo;Add to cart&rdquo;, at the very bottom of &ldquo;album-details&rdquo; div:</p>
+<pre><code>yield pAttr [&quot;class&quot;, &quot;button&quot;] [
+    aHref (sprintf Path.Cart.addAlbum album.AlbumId) (text &quot;Add to cart&quot;)
+]
+</code></pre>
+
+<p>With above in place, we&rsquo;re ready to define the handler in <code>App</code> module:</p>
+<pre><code>let addToCart albumId =
+    let ctx = Db.getContext()
+    session (function
+            | NoSession -&gt; 
+                let cartId = Guid.NewGuid().ToString(&quot;N&quot;)
+                Db.addToCart cartId albumId ctx
+                sessionStore (fun store -&gt;
+                    store.set &quot;cartid&quot; cartId)
+            | UserLoggedOn { Username = cartId } | CartIdOnly cartId -&gt;
+                Db.addToCart cartId albumId ctx
+                succeed)
+        &gt;&gt;= Redirection.FOUND Path.Cart.overview
+</code></pre>
+
+<pre><code>pathScan Path.Cart.addAlbum addToCart
+</code></pre>
+
+<p><code>addToCart</code> invokes our <code>session</code> function with two flavors:</p>
+<ul>
+<li>if <code>NoSession</code> then create a new GUID, save the record in database and update the session store with &ldquo;cartid&rdquo; key</li>
+<li>if <code>UserLoggedOn</code> or <code>CartIdOnly</code> then only add the album to the user&rsquo;s cart. Note that we could bind the <code>cartId</code> string value here to both cases - as described earlier <code>cartId</code> equals GUID if user is not logged on, otherwise it&rsquo;s the user&rsquo;s name.</li>
+</ul></article></body></html>

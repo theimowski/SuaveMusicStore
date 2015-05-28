@@ -1850,5 +1850,200 @@ path Path.Account.logoff >>= reset
 `logoff` doesn't require separate WebPart, `reset` can be reused instead.
 
 That concludes our journey to Auth and Session features in `Suave` library. 
-We'll revisit them when implementing Cart functionality, but the base is already done.
+We'll revisit the concepts in next section, but much of the implementation can be reused.
 Code up to this point can be browsed here: [Tag - auth_and_session](https://github.com/theimowski/SuaveMusicStore/tree/auth_and_session)
+
+
+More cookies in shopping cart
+-----------------------------
+
+What's a shop without cart feature?
+We would like to let the user add albums to a cart while shopping at our Store.
+To fill in the gap, let's start by declaring new routes in `Path` module:
+
+```
+module Cart =
+    let overview = "/cart"
+    let addAlbum : IntPath = "/cart/add/%d"
+    let removeAlbum : IntPath = "/cart/remove/%d"
+```
+
+Before we move to the `View`, add new type annotation for yet another database view `CartDetails`.
+`CartDetails` is a view that joins `Cart` with its corresponding `Album` in order to contain album's title and its price.
+
+```
+type CartDetails = DbContext.``[dbo].[CartDetails]Entity``
+```
+
+"As a user I want to see that my cart is empty when my cart is empty so that I can make my cart not empty"
+With such a serious business requirement, we'd better distinguish case when user has anything in his cart from case when the cart is empty.
+To do that, add separate `emptyCart` in `View` module: 
+
+```
+let emptyCart = [
+    h2 "Your cart is empty"
+    text "Find some great music in our "
+    aHref Path.home (text "store")
+    text "!"
+]
+```
+
+In the latter case, we're going to display a table with all albums in the cart:
+
+```
+let aHrefAttr href attr = tag "a" (("href", href) :: attr)
+
+...
+
+let nonEmptyCart (carts : Db.CartDetails list) = [
+    h2 "Review your cart:"
+    table [
+        yield tr [
+            for h in ["Album Name"; "Price (each)"; "Quantity"; ""] ->
+            th [text h]
+        ]
+        for cart in carts ->
+            tr [
+                td [
+                    aHref (sprintf Path.Store.details cart.AlbumId) (text cart.AlbumTitle)
+                ]
+                td [
+                    text (formatDec cart.Price)
+                ]
+                td [
+                    text (cart.Count.ToString())
+                ]
+                td [
+                    aHrefAttr "#" ["class", "removeFromCart"; "data-id", cart.AlbumId.ToString()] (text "Remove from cart") 
+                ]
+            ]
+        yield tr [
+            for d in ["Total"; ""; ""; carts |> List.sumBy (fun c -> c.Price * (decimal c.Count)) |> formatDec] ->
+            td [text d]
+        ]
+    ]
+]
+```
+
+With these two separate views we can declare a more general one, for when we're not sure whether the cart is empty or not:
+
+```
+let cart = function
+    | [] -> emptyCart
+    | list -> nonEmptyCart list
+```
+
+`cart` makes use of the short `function` pattern matching syntax. `[]` case holds only for empty lists, so the second case is valid for non-empty lists.
+
+A few remarks regarding the `nonEmptyCart` function:
+
+- first comes the column headings row ("Name, Price, Quantity")
+- then for each `CartDetail` from the list there is a row containg:
+    - link to album details with album title caption
+    - single album price
+    - count of this very album in cart
+    - link to remove the item from cart (we'll soon apply AJAX updates to this one)
+- finally there's a summary row that displays the total price for albums in the cart
+
+We can't really test the view for now, as we haven't yet implemented fetching cart items from database. 
+We can however see how the `emptyCart` view looks like if we add proper handler in `App` module:
+
+```
+let cart = View.cart [] |> html
+
+...
+
+path Path.Cart.overview >>= cart
+```
+
+A navigation menu item can also appear handy (`View.partNav`):
+
+```
+li (aHref Path.Cart.overview (text "Cart"))
+```
+
+It's time to revisit the `Session` type from `App` module.
+Business requirement is that in order to checkout, a user must be logged on but he doesn't have to when adding albums to the cart.
+That seems reasonable, as we don't want to stop him from his shopping spree with boring logon forms.
+For this purpose we'll add another case `CartIdOnly` to the `Session` type.
+This state will be valid for users who are not yet logged on to the store, but have already some albums in their cart:
+
+```
+type Session = 
+    | NoSession
+    | CartIdOnly of string
+    | UserLoggedOn of UserLoggedOnSession
+```
+
+`CartIdOnly` contains string with a GUID generated upon adding first item to the cart.
+
+Switching back to `Db` module, let's create a type alias for `Carts` table:
+
+```
+type Cart = DbContext.``[dbo].[Carts]Entity``
+```
+
+`Cart` has following properties:
+
+- CartId - a GUID if user is not logged on, otherwise username
+- AlbumId
+- Count
+
+To implement `App` handler, we need the following `Db` module functions:
+
+```
+let getCart cartId albumId (ctx : DbContext) : Cart option =
+    query {
+        for cart in ctx.``[dbo].[Carts]`` do
+            where (cart.CartId = cartId && cart.AlbumId = albumId)
+            select cart
+    } |> firstOrNone
+```
+
+```
+let addToCart cartId albumId (ctx : DbContext)  =
+    match getCart cartId albumId ctx with
+    | Some cart ->
+        cart.Count <- cart.Count + 1
+    | None ->
+        ctx.``[dbo].[Carts]``.Create(albumId, cartId, 1, DateTime.UtcNow) |> ignore
+    ctx.SubmitUpdates()
+```
+
+`addToCart` takes `cartId` and `albumId`. 
+If there's already such cart entry in the database, we do increment the `Count` column, otherwise we create a new row.
+To check if a cart entry exists in database, we use `getCart` - it does a standard lookup on the cartId and albumId.
+
+Now open up the `View` module and find the `details` function to append a new button "Add to cart", at the very bottom of "album-details" div:
+
+```
+yield pAttr ["class", "button"] [
+    aHref (sprintf Path.Cart.addAlbum album.AlbumId) (text "Add to cart")
+]
+```
+
+With above in place, we're ready to define the handler in `App` module:
+
+```
+let addToCart albumId =
+    let ctx = Db.getContext()
+    session (function
+            | NoSession -> 
+                let cartId = Guid.NewGuid().ToString("N")
+                Db.addToCart cartId albumId ctx
+                sessionStore (fun store ->
+                    store.set "cartid" cartId)
+            | UserLoggedOn { Username = cartId } | CartIdOnly cartId ->
+                Db.addToCart cartId albumId ctx
+                succeed)
+        >>= Redirection.FOUND Path.Cart.overview
+```
+
+```
+pathScan Path.Cart.addAlbum addToCart
+```
+
+`addToCart` invokes our `session` function with two flavors:
+
+- if `NoSession` then create a new GUID, save the record in database and update the session store with "cartid" key
+- if `UserLoggedOn` or `CartIdOnly` then only add the album to the user's cart. Note that we could bind the `cartId` string value here to both cases - as described earlier `cartId` equals GUID if user is not logged on, otherwise it's the user's name.
