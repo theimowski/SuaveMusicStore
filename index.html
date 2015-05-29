@@ -2745,4 +2745,203 @@ To check if a cart entry exists in database, we use <code>getCart</code> - it do
 <ul>
 <li>if <code>NoSession</code> then create a new GUID, save the record in database and update the session store with &ldquo;cartid&rdquo; key</li>
 <li>if <code>UserLoggedOn</code> or <code>CartIdOnly</code> then only add the album to the user&rsquo;s cart. Note that we could bind the <code>cartId</code> string value here to both cases - as described earlier <code>cartId</code> equals GUID if user is not logged on, otherwise it&rsquo;s the user&rsquo;s name.</li>
-</ul></article></body></html>
+</ul>
+<p>We still have to recognize the <code>CartIdOnly</code> case - coming back to the <code>session</code> function, the pattern matching handling <code>CartIdOnly</code> looks like this:</p>
+<pre><code>match state.get &quot;cartid&quot;, state.get &quot;username&quot;, state.get &quot;role&quot; with
+| Some cartId, None, None -&gt; f (CartIdOnly cartId)
+| _, Some username, Some role -&gt; f (UserLoggedOn {Username = username; Role = role})
+| _ -&gt; f NoSession
+</code></pre>
+
+<p>This means that if the session store contains <code>cartid</code> key, but no <code>username</code> or <code>role</code> then we invoke the <code>f</code> parameter with <code>CartIdOnly</code>.</p>
+<p>To fetch the actual <code>CartDetails</code> for a given <code>cartId</code>, let&rsquo;s define appropriate function in <code>Db</code> module:</p>
+<pre><code>let getCartsDetails cartId (ctx : DbContext) : CartDetails list =
+    query {
+        for cart in ctx.``[dbo].[CartDetails]`` do
+            where (cart.CartId = cartId)
+            select cart
+    } |&gt; Seq.toList
+</code></pre>
+
+<p>This allows us to implement <code>cart</code> handler correctly:</p>
+<pre><code>let cart = 
+    session (function
+    | NoSession -&gt; View.emptyCart |&gt; html
+    | UserLoggedOn { Username = cartId } | CartIdOnly cartId -&gt;
+        let ctx = Db.getContext()
+        Db.getCartsDetails cartId ctx |&gt; View.cart |&gt; html)
+</code></pre>
+
+<p>Again, we use two different patterns for the same behavior here - <code>CartIdOnly</code> and <code>UserLoggedOn</code> states will query the database for cart details.</p>
+<p>Remember our navigation menu with <code>Cart</code> tab? <br />
+Why don&rsquo;t we add a number of total albums in our cart there?<br />
+To do that, let&rsquo;s parametrize the <code>partNav</code> view:</p>
+<pre><code>let partNav cartItems = 
+    ulAttr [&quot;id&quot;, &quot;navlist&quot;] [ 
+        li (aHref Path.home (text &quot;Home&quot;))
+        li (aHref Path.Store.overview (text &quot;Store&quot;))
+        li (aHref Path.Cart.overview (text (sprintf &quot;Cart (%d)&quot; cartItems)))
+        li (aHref Path.Admin.manage (text &quot;Admin&quot;))
+    ]
+</code></pre>
+
+<p>as well as add the <code>partNav</code> parameter to the main <code>index</code> view:</p>
+<pre><code>let index partNav partUser container = 
+</code></pre>
+
+<p>In order to create the navigation menu, we now need to pass <code>cartItems</code> parameter.<br />
+It has to be resolved in the <code>html</code> function from <code>App</code> module, which can now look like following:</p>
+<pre><code>let html container =
+    let ctx = Db.getContext()
+    let result cartItems user =
+        OK (View.index (View.partNav cartItems) (View.partUser user) container)
+        &gt;&gt;= Writers.setMimeType &quot;text/html; charset=utf-8&quot;
+
+    session (function
+    | UserLoggedOn { Username = username } -&gt; 
+        let items = Db.getCartsDetails username ctx |&gt; List.sumBy (fun c -&gt; c.Count)
+        result items (Some username)
+    | CartIdOnly cartId -&gt;
+        let items = Db.getCartsDetails cartId ctx |&gt; List.sumBy (fun c -&gt; c.Count)
+        result items None
+    | NoSession -&gt;
+        result 0 None)
+</code></pre>
+
+<p>The change is that the nested <code>result</code> function in <code>html</code> now takes two arguments: <code>cartItems</code> and <code>user</code>. <br />
+Additionally, we handle all cases inside the <code>session</code> invocation.<br />
+Note how the <code>result</code> function is passed different set of parameters in different cases.</p>
+<p>Now that we can add albums to the cart, and see the total number both in <code>cart</code> overview and navigation menu, it would be nice to be able to remove albums from the cart as well.<br />
+This is a great occasion to employ AJAX in our application.<br />
+We&rsquo;ll write a simple script in JS that makes use of jQuery to remove selected album from the cart and update the cart view.</p>
+<p>Download jQuery from <a href="https://jquery.com/download/">here</a> (I used the compressed / minified version) and add it to the project.<br />
+Don&rsquo;t forget to set the &ldquo;Copy to Output Directory&rdquo; property.</p>
+<p>Now add new JS file to the project <code>script.js</code>, and fill in its contents:</p>
+<pre><code>$('.removeFromCart').click(function () {
+    var albumId = $(this).attr(&quot;data-id&quot;);
+    var albumTitle = $(this).closest('tr').find('td:first-child &gt; a').html();
+    var $cartNav = $('#navlist').find('a[href=&quot;/cart&quot;]');
+    var count = parseInt($cartNav.html().match(/\d+/));
+
+    $.post(&quot;/cart/remove/&quot; + albumId, function (data) {
+        $('#container').html(data);
+        $('#update-message').html(albumTitle + ' has been removed from your shopping cart.');
+        $cartNav.html('Cart (' + (count - 1) + ')');
+    });
+});
+</code></pre>
+
+<p>We won&rsquo;t go into much details about the code itself, however it&rsquo;s important to know that the script:</p>
+<ul>
+<li>subscribes to click event on each <code>removeFromCart</code> element</li>
+<li>parses information such as:<ul>
+<li>album id</li>
+<li>album title</li>
+<li>count of this album in cart</li>
+</ul>
+</li>
+<li>sends a POST request to &ldquo;/cart/remove&rdquo; endpoint </li>
+<li>upon successfull POST response it updates:<ul>
+<li>html of the container element</li>
+<li>message, to indicate which album has been removed</li>
+<li>navigation menu to decrement count of albums</li>
+</ul>
+</li>
+</ul>
+<p>The <code>update-message</code> div should be added to the <code>nonEmptyCart</code> view, before the table:</p>
+<pre><code>    divId &quot;update-message&quot; [text &quot; &quot;]
+</code></pre>
+
+<p>We explictly have to pass in non-empty text, because we cannot have an empty div element in HTML markup.<br />
+With jQuery and our <code>script.cs</code> files, we can now attach them to the end of <code>nonEmptyCart</code> view, just after the table:</p>
+<pre><code>scriptAttr [ &quot;type&quot;, &quot;text/javascript&quot;; &quot; src&quot;, &quot;/jquery-1.11.3.min.js&quot; ] [ text &quot;&quot; ]
+scriptAttr [ &quot;type&quot;, &quot;text/javascript&quot;; &quot; src&quot;, &quot;/script.js&quot; ] [ text &quot;&quot; ]
+</code></pre>
+
+<p>We also need to allow browsing for files with &ldquo;js&rdquo; extension in our handler:</p>
+<pre><code>pathRegex &quot;(.*)\.(css|png|gif|js)&quot; &gt;&gt;= Files.browseHome
+</code></pre>
+
+<p>The script tries to reach route that is not mapped to any handler yet.<br />
+Let&rsquo;s change that by first adding <code>removeFromCart</code> to <code>Db</code> module:</p>
+<pre><code>let removeFromCart (cart : Cart) albumId (ctx : DbContext) = 
+    cart.Count &lt;- cart.Count - 1
+    if cart.Count = 0 then cart.Delete()
+    ctx.SubmitUpdates()
+</code></pre>
+
+<p>then adding the <code>removeFromCart</code> handler in <code>App</code> module:</p>
+<pre><code>let removeFromCart albumId =
+    session (function
+    | NoSession -&gt; never
+    | UserLoggedOn { Username = cartId } | CartIdOnly cartId -&gt;
+        let ctx = Db.getContext()
+        match Db.getCart cartId albumId ctx with
+        | Some cart -&gt; 
+            Db.removeFromCart cart albumId ctx
+            Db.getCartsDetails cartId ctx |&gt; View.cart |&gt; Html.flatten |&gt; Html.xmlToString |&gt; OK
+        | None -&gt; 
+            never)
+</code></pre>
+
+<p>and finally mapping the route to the handler in main <code>choose</code> WebPart:</p>
+<pre><code>pathScan Path.Cart.removeAlbum removeFromCart
+</code></pre>
+
+<p>A few comments to the <code>removeFromCart</code> WebPart:</p>
+<ul>
+<li>this handler should not be invoked with <code>NoSession</code>, <code>never</code> prevents from unwanted requests</li>
+<li>the same happens, when someone tries to invoke <code>removeFromCart</code> for <code>albumId</code> not present in his cart (Db.getCart returns <code>None</code>)</li>
+<li>if proper cart has been found, <code>Db.removeFromCart</code> is invoked, and</li>
+<li>an inline portion of HTML is returned. Note that we don&rsquo;t go through our <code>html</code> helper function here like before, but instead return just the a part that <code>script.js</code> will inject into the &ldquo;container&rdquo; div on our page with AJAX.</li>
+</ul>
+<p>This almost concludes the cart feature.<br />
+One more thing before we finish this section: <br />
+What should happen if user first adds some albums to his cart and later decides to log on?<br />
+If user logs on, we have his user name - so we can &ldquo;upgrade&rdquo; all his carts from GUID to the acutal user&rsquo;s name.<br />
+Add necessary functions to the <code>Db</code> module:</p>
+<pre><code>let getCarts cartId (ctx : DbContext) : Cart list =
+    query {
+        for cart in ctx.``[dbo].[Carts]`` do
+            where (cart.CartId = cartId)
+            select cart
+    } |&gt; Seq.toList
+</code></pre>
+
+<pre><code>let upgradeCarts (cartId : string, username :string) (ctx : DbContext) =
+    for cart in getCarts cartId ctx do
+        match getCart username cart.AlbumId ctx with
+        | Some existing -&gt;
+            existing.Count &lt;- existing.Count +  cart.Count
+            cart.Delete()
+        | None -&gt;
+            cart.CartId &lt;- username
+    ctx.SubmitUpdates()
+</code></pre>
+
+<p>and update the <code>logon</code> handler in <code>App</code> module:</p>
+<pre><code>Auth.authenticated Cookie.CookieLife.Session false 
+&gt;&gt;= session (function
+    | CartIdOnly cartId -&gt;
+        let ctx = Db.getContext()
+        Db.upgradeCarts (cartId, user.UserName) ctx
+        sessionStore (fun store -&gt; store.set &quot;cartid&quot; &quot;&quot;)
+    | _ -&gt; succeed)
+&gt;&gt;= sessionStore (fun store -&gt;
+    store.set &quot;username&quot; user.UserName
+    &gt;&gt;= store.set &quot;role&quot; user.Role)
+&gt;&gt;= returnPathOrHome
+</code></pre>
+
+<p>Remarks:</p>
+<ul>
+<li><code>Db.getCarts</code> returns just a plain list of all carts for a given <code>cartId</code></li>
+<li><code>Db.upgradeCarts</code> takes <code>cartId</code> and <code>username</code> in order to iterate through all carts (returned by <code>Db.getCarts</code>), and for each of them:<ul>
+<li>if there&rsquo;s already a cart in the database for this <code>username</code> and <code>albumId</code>, it sums up the counts and deletes the GUID cart. This can happen if logged on user adds an album to cart, then logs off and adds the same album to cart, and then back again logs on - album&rsquo;s count should be 2</li>
+<li>if there&rsquo;s no cart for such <code>username</code> and <code>albumId</code>, simply &ldquo;upgrade&rdquo; the cart by changing the <code>CartId</code> property to <code>username</code></li>
+</ul>
+</li>
+<li><code>logon</code> handler now recognizes <code>CartIdOnly</code> case, for which it has to invoke <code>Db.upgradeCarts</code>. In addition it whipes out the <code>cartId</code> key from session store, as from now on <code>username</code> will be used as a cart id.</li>
+</ul>
+<p>Whoa, we now have the cart functionality in our Music Store! <br />
+See the following link to browse the code: <a href="https://github.com/theimowski/SuaveMusicStore/tree/cart">Tag - cart</a></p></article></body></html>
