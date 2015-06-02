@@ -153,6 +153,11 @@ let logon =
         )
     ]
 
+let register =
+    choose [
+        GET >>= (View.register "" |> html)
+    ]
+
 let cart = 
     session (function
     | NoSession -> View.emptyCart |> html
@@ -244,6 +249,7 @@ let webPart =
 
         path Path.Account.logon >>= logon
         path Path.Account.logoff >>= reset
+        path Path.Account.register >>= register
 
         path Path.Cart.overview >>= cart
         pathScan Path.Cart.addAlbum addToCart
