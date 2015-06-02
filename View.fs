@@ -225,6 +225,32 @@ let logon msg = [
           SubmitText = "Log On" }
 ]
 
+let register msg = [
+    h2 "Create a New Account"
+    p [
+        text "Use the form below to create a new account."
+    ]
+    
+    divId "register-message" [
+        text msg
+    ]
+
+    renderForm
+        { Form = Form.register
+          Fieldsets = 
+              [ { Legend = "Create a New Account"
+                  Fields = 
+                      [ { Label = "User name (max 30 characters)"
+                          Xml = input (fun f -> <@ f.Username @>) [] }
+                        { Label = "Email address"
+                          Xml = input (fun f -> <@ f.Email @>) [] }
+                        { Label = "Password (between 6 and 20 characters)"
+                          Xml = input (fun f -> <@ f.Password @>) [] }
+                        { Label = "Confirm password"
+                          Xml = input (fun f -> <@ f.ConfirmPassword @>) [] } ] } ]
+          SubmitText = "Register" }
+]
+
 let emptyCart = [
     h2 "Your cart is empty"
     text "Find some great music in our "
