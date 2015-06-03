@@ -262,6 +262,9 @@ let emptyCart = [
 
 let nonEmptyCart (carts : Db.CartDetails list) = [
     h2 "Review your cart:"
+    pAttr ["class", "button"] [
+            aHref Path.Cart.checkout (text "Checkout >>")
+    ]
     divId "update-message" [text " "]
     table [
         yield tr [
