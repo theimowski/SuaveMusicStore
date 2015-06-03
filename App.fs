@@ -204,6 +204,14 @@ let removeFromCart albumId =
         | None -> 
             never)
 
+let checkout =
+    session (function
+    | NoSession | CartIdOnly _ -> never
+    | UserLoggedOn {Username = username } ->
+        choose [
+            GET >>= (View.checkout |> html)
+        ])
+
 let createAlbum =
     let ctx = Db.getContext()
     choose [
@@ -268,6 +276,7 @@ let webPart =
         path Path.Cart.overview >>= cart
         pathScan Path.Cart.addAlbum addToCart
         pathScan Path.Cart.removeAlbum removeFromCart
+        path Path.Cart.checkout >>= loggedOn checkout
 
         path Path.Admin.manage >>= admin manage
         path Path.Admin.createAlbum >>= admin createAlbum
