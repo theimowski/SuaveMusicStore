@@ -3125,4 +3125,125 @@ In order to reuse the logic from logon POST handler, extract a separate function
 <p>This concludes register feature - we&rsquo;re now set for new customers to do the shopping.<br />
 Wait a second, they can put albums to the cart, but how do they checkout?<br />
 Ah yes, we haven&rsquo;t implemented that yet.</p>
-<p>So let&rsquo;s take a deep breath and roll to the last significant feature in our application!</p></article></body></html>
+<p>So let&rsquo;s take a deep breath and roll to the last significant feature in our application!</p>
+<p>Again, checkout will be based on a form:</p>
+<pre><code>type Checkout = {
+    FirstName : string
+    LastName : string
+    Address : string
+    PromoCode : string option
+}
+
+let checkout : Form&lt;Checkout&gt; = Form ([], [])
+</code></pre>
+
+<p>Note that, while first three fields are mandatory, the last one &ldquo;PromoCode&rdquo; is optional (it&rsquo;s type is <code>string option</code>).</p>
+<p>Following is the view for the checkout form:</p>
+<pre><code>let checkout = [
+    h2 &quot;Address And Payment&quot;
+    renderForm
+        { Form = Form.checkout 
+          Fieldsets = 
+              [ { Legend = &quot;Shipping Information&quot;
+                  Fields = 
+                      [ { Label = &quot;First Name&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.FirstName @&gt;) [] }
+                        { Label = &quot;Last Name&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.LastName @&gt;) [] }
+                        { Label = &quot;Address&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.Address @&gt;) [] } ] }
+
+                { Legend = &quot;Payment&quot;
+                  Fields = 
+                      [ { Label = &quot;Promo Code&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.PromoCode @&gt;) [] } ] } ]
+          SubmitText = &quot;Submit Order&quot;
+        }
+]
+</code></pre>
+
+<p>Note that there are 2 fieldsets here, whereas before we used only 1.<br />
+Thanks to multiple fieldsets we can group fields that have something in common.</p>
+<p>Now let&rsquo;s add a route for checkout (<code>Path.Cart</code>):</p>
+<pre><code>let checkout = &quot;/cart/checkout&quot;
+</code></pre>
+
+<p>a navigation button in <code>View.nonEmptyCart</code> :</p>
+<pre><code>let nonEmptyCart (carts : Db.CartDetails list) = [
+    h2 &quot;Review your cart:&quot;
+    pAttr [&quot;class&quot;, &quot;button&quot;] [
+            aHref Path.Cart.checkout (text &quot;Checkout &gt;&gt;&quot;)
+    ]
+
+    ...
+</code></pre>
+
+<p>and GET handler for checkout in <code>App</code> module:</p>
+<pre><code>let checkout =
+    session (function
+    | NoSession | CartIdOnly _ -&gt; never
+    | UserLoggedOn {Username = username } -&gt;
+        choose [
+            GET &gt;&gt;= (View.checkout |&gt; html)
+        ])
+</code></pre>
+
+<pre><code>path Path.Cart.checkout &gt;&gt;= loggedOn checkout
+</code></pre>
+
+<p>Remarks:</p>
+<ul>
+<li><code>checkout</code> can only be invoked if user is logged on. If there is <code>NoSession</code> or <code>CartIdOnly</code> we don&rsquo;t want to let anyone in.</li>
+<li>additionally we decorated the <code>checkout</code> WebPart with <code>loggedOn</code> in the routing code. This ensures to redirect user to logon form if necessary.</li>
+</ul>
+<p>Now it&rsquo;s time to implement <code>placeOrder</code> function in the <code>Db</code> module:</p>
+<pre><code>let placeOrder (username : string) (ctx : DbContext) =
+    let carts = getCartsDetails username ctx
+    let total = carts |&gt; List.sumBy (fun c -&gt; (decimal) c.Count * c.Price)
+    let order = ctx.``[dbo].[Orders]``.Create(DateTime.UtcNow, total)
+    order.Username &lt;- username
+    ctx.SubmitUpdates()
+    for cart in carts do
+        let orderDetails = ctx.``[dbo].[OrderDetails]``.Create(cart.AlbumId, order.OrderId, cart.Count, cart.Price)
+        getCart cart.CartId cart.AlbumId ctx
+        |&gt; Option.iter (fun cart -&gt; cart.Delete())
+    ctx.SubmitUpdates()
+</code></pre>
+
+<p>Explanation of the above snippet:</p>
+<ol>
+<li>we retrieve all carts that belong to the given user</li>
+<li>we count the total amount of cash to pay</li>
+<li>a new order is created with current timestamp, total, and username</li>
+<li>we invoke <code>SubmitUpdates</code> so that the <code>order</code> instance gets its <code>OrderId</code> property filled in</li>
+<li>we iterate through all the carts and for each of them:<ol>
+<li>we create <code>OrderDetails</code> with all properties</li>
+<li>we delete the corresponding <code>cart</code> from database. Note that we cannot delete the cart which is currently being iterated through, because it represents a row from database view <code>CartDetails</code>, not the table <code>Cart</code> itself.</li>
+</ol>
+</li>
+<li>finally we <code>SubmitUpdates</code> at the very end.</li>
+</ol>
+<p>When user checks out the cart, we want to show him a following confirmation (<code>View</code> module):</p>
+<pre><code>let checkoutComplete = [
+    h2 &quot;Checkout Complete&quot;
+    p [
+        text &quot;Thanks for your order!&quot;
+    ]
+    p [
+        text &quot;How about shopping for some more music in our &quot;
+        aHref Path.home (text &quot;store&quot;)
+        text &quot;?&quot;
+    ]
+]
+</code></pre>
+
+<p>With that in place, we can now implement the POST checkout handler:</p>
+<pre><code>POST &gt;&gt;= warbler (fun _ -&gt;
+    let ctx = Db.getContext()
+    Db.placeOrder username ctx
+    View.checkoutComplete |&gt; html)
+</code></pre>
+
+<p>We need to invoke the <code>Db.placeOrder</code> in a warbler, to ensure that it&rsquo;s not called for the GET handler as well.</p>
+<p>Phew, I think we&rsquo;re done for now!</p>
+<p>Browse the code here: <a href="https://github.com/theimowski/SuaveMusicStore/tree/checkout_and_registration">Tag - checkout_and_registration</a></p></article></body></html>
