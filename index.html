@@ -1024,7 +1024,7 @@ You can still benefit from the tutorial if you don&rsquo;t have C# / .NET backgr
 No prior experience with F# is required - the tutorial will cover basic concepts of the language.<br />
 The tutorial is going to have plenty of references to the awesome <a href="http://fsharpforfunandprofit.com">fsharpforfunandprofit.com</a> WebSite, which includes plenty of articles about F# written by Scott Wlaschin.</p>
 <p>For most of the following sections there will be a direct link to a specific tagged commit that contains implementation of the application up to the point.<br />
-This allows you to follow along the process of creating the app, and get back on the track in case of any amibiguity.</p>
+This allows you to follow along the process of creating the app, and get back on the track in case of any ambiguity.</p>
 <p>Visual Studio 2013 is used throughout the tutorial, but of course you can use IDE of your choice.</p>
 <p>You&rsquo;re more than welcome to create issues or pull requests for this tutorial <a href="https://github.com/theimowski/SuaveMusicStore">here</a>.</p>
 <h2 id="hello-world-from-suave"><a name="user-content-hello-world-from-suave" href="#hello-world-from-suave" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Hello World from Suave</h2>
@@ -1066,7 +1066,7 @@ That&rsquo;s where the <code>Option</code> type comes in. Object of type <code>O
 </blockquote>
 <p>In our case, <code>(OK "Hello World!")</code> is the simplest <code>WebPart</code> possible. No matter what comes in the HttpContext, we always return an async of <code>Some</code> <code>HttpContext</code> with response of HTTP Result <code>200 OK</code> and &ldquo;Hello World!&rdquo; in the response body.</p>
 <p>To some extent you could think of the <code>WebPart</code> as a <code>Filter</code> in ASP.NET MVC application, but there&rsquo;s more to it than <code>Filters</code> can do.</p>
-<p>If the above explanation of <code>WebPart</code> doesn&rsquo;t yet make much sense to you, or you don&rsquo;t understand why it has such type signature, bear with me - in next sections we&rsquo;ll try to prove that this type turns out to be really handy when it comes to one of the greatest powers of functional programming paradigm: <strong>composability</strong>.</p>
+<p>If the above explanation of <code>WebPart</code> doesn&rsquo;t yet make much sense to you, or you don&rsquo;t understand why it has such type signature, bear with me - in next sections we&rsquo;ll try to prove that this type turns out to be really handy when it comes to one of the greatest powers of functional programming paradigm: <strong>composition</strong>.</p>
 <h2 id="basic-routing"><a name="user-content-basic-routing" href="#basic-routing" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Basic routing</h2>
 <p>It&rsquo;s time to extend our WebPart to support multiple routes.<br />
 First, let&rsquo;s extract the WebPart and bind it to an identifier. <br />
@@ -1144,7 +1144,7 @@ In this section we&rsquo;ll see how we can deal with returning good looking HTML
 Templating HTML views is quite a big topic itself, that we don&rsquo;t want to go into much details about.<br />
 Keep in mind that the concept can be approached in many different ways, and the way presented here is not the only proper way of rendering HTML views.<br />
 Having said that, I hope you&rsquo;ll still find the following implementation concise and easy to understand.<br />
-In this application we&rsquo;ll use server-side HTML templating with the help of a seperate Suave package called <code>Suave.Experimental</code>.</p>
+In this application we&rsquo;ll use server-side HTML templating with the help of a separate Suave package called <code>Suave.Experimental</code>.</p>
 <blockquote>
 <p>Note: As of the time of writing, <code>Suave.Experimental</code> is a separate package. It&rsquo;s likely that next releases of the package will include breaking changes. It&rsquo;s also possible that the modules we&rsquo;re going to use from within the package will be extracted to the core Suave package.</p>
 </blockquote>
@@ -1212,12 +1212,12 @@ A few remarks about the above snippet:</p>
 <li><code>Xml</code> is an internal Suave type holding object model for the HTML markup</li>
 <li><code>index</code> is our representation of HTML markup. </li>
 <li><code>html</code> is a function that takes a list of other tags as its argument. So do <code>head</code> and <code>body</code>.</li>
-<li><code>text</code> serves outputing plain text into an HTML element.</li>
-<li><code>xmlToString</code> transformates the object model into the resulting raw HTML string.</li>
+<li><code>text</code> serves outputting plain text into an HTML element.</li>
+<li><code>xmlToString</code> transforms the object model into the resulting raw HTML string.</li>
 </ul>
 <blockquote>
 <p>Note: <code>tag</code> function from Suave takes 3 arguments ().<br />
-We&rsquo;ve defined the <code>aHref</code> function by invoking <code>tag</code> with only 2 arguments, and the compilator is perfectly happy with that - Why?<br />
+We&rsquo;ve defined the <code>aHref</code> function by invoking <code>tag</code> with only 2 arguments, and the compiler is perfectly happy with that - Why?<br />
 This concept is called &ldquo;partial application&rdquo;, and allows us to invoke a function by passing only a subset of arguments.<br />
 When we invoke a function with only a subset of arguments, the function will return another function that will expect the rest of arguments.<br />
 In our case this means <code>aHref</code> is of type <code>string -&gt; Xml -&gt; Xml</code>, so the second &ldquo;hidden&rdquo; argument to <code>aHref</code> is of type <code>Xml</code>.<br />
@@ -1271,7 +1271,7 @@ We&rsquo;ll see in a moment how we can use <code>details</code> in <code>App</co
 <p>Note, that in <code>App</code> module we still benefit from the static typed routes feature that Suave gives us - the <code>id</code> parameter is inferred by the compiler to be of integer type.<br />
 If you&rsquo;re not familiar with type inference mechanism, you can follow up <a href="http://fsharpforfunandprofit.com/posts/type-inference/">this link</a>.</p>
 <p>It&rsquo;s high time we added some CSS styles to our HTML markup.<br />
-We&rsquo;ll not deepdive into the details about the styles itself, as this is not a tutorial on Web Design.<br />
+We&rsquo;ll not deep-dive into the details about the styles itself, as this is not a tutorial on Web Design.<br />
 The stylesheet can be downloaded <a href="https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/Site.css">from here</a> in its final shape.<br />
 Add the <code>Site.css</code> stylesheet to the project, and don&rsquo;t forget to set the <code>Copy To Output Directory</code> property to <code>Copy If Newer</code>.</p>
 <p>In order to include the stylesheet in our HTML markup, let&rsquo;s add the following to our <code>View</code>:</p>
@@ -1320,7 +1320,7 @@ Start by adding <code>container</code> parameter to <code>index</code> in <code>
     divId &quot;container&quot; container
 </code></pre>
 
-<p><code>index</code> previosly was a constant value, but now became a function taking <code>container</code> as parameter.</p>
+<p><code>index</code> previously was a constant value, but now became a function taking <code>container</code> as parameter.</p>
 <p>We can now define actual container for the &ldquo;home&rdquo; page:</p>
 <pre><code>let home = [
     text &quot;Home&quot;
@@ -1443,7 +1443,7 @@ To learn more about Type Providers, check out <a href="https://msdn.microsoft.co
 We can install SQLProvider from NuGet:<br />
 <code>install-package SQLProvider -includeprerelease</code></p>
 <blockquote>
-<p>Note: SQLProvider is marked on NuGet as a &ldquo;prerelease&rdquo;. While it could be risky for more sophisticated queries, we are perfectly fine to use it in our case, as it fullfills all of our data access requirements.</p>
+<p>Note: SQLProvider is marked on NuGet as a &ldquo;prerelease&rdquo;. While it could be risky for more sophisticated queries, we are perfectly fine to use it in our case, as it fulfills all of our data access requirements.</p>
 </blockquote>
 <p>If you&rsquo;re using Visual Studio, a dialog window can pop asking to confirm enabling the Type Provider. <br />
 This is just to notify about capability of the Type Provider to execute its custom code in design time.<br />
@@ -1503,12 +1503,12 @@ let getAlbumDetails id (ctx : DbContext) : AlbumDetails option =
 The function, as well as all functions we&rsquo;ll define in <code>Db</code> module, takes the <code>DbContext</code> as a parameter.<br />
 The <code>: Genre list</code> part is a type annotation, which makes sure the function returns a list of <code>Genre</code>s.<br />
 Implementation is straight forward:  <code>ctx.``[dbo].[Genres]``</code> queries all genres, so we just need to pipe it to the <code>Seq.toList</code>.</p>
-<p><code>getAlbumsForGenre</code> takes <code>genreName</code> as argument (infered to be of type string) and returns a list of <code>Album</code>s.<br />
+<p><code>getAlbumsForGenre</code> takes <code>genreName</code> as argument (inferred to be of type string) and returns a list of <code>Album</code>s.<br />
 It makes use of &ldquo;query expression&rdquo; (<code>query { }</code>) which is very similar to C# Linq query.<br />
 Read <a href="https://msdn.microsoft.com/en-us/library/hh225374.aspx">here</a> for more info about query expressions.<br />
 Inside the query expression, we&rsquo;re performing an inner join of <code>Albums</code> and <code>Genres</code> with the <code>GenreId</code> foreign key, and then we apply a predicate on <code>genre.Name</code> to match the input <code>genreName</code>.<br />
 The result of the query is piped to <code>Seq.toList</code>.</p>
-<p><code>getAlbumDetails</code> takes <code>id</code> as argument (infered to be of type int) and returns <code>AlbumDetails option</code> because there might be no Album with the given id.<br />
+<p><code>getAlbumDetails</code> takes <code>id</code> as argument (inferred to be of type int) and returns <code>AlbumDetails option</code> because there might be no Album with the given id.<br />
 Here, the result of the query is piped to the <code>firstOrNone</code> function, which takes care to transform the result to <code>option</code> type.<br />
 <code>firstOrNone</code> verifies if a query returned any result.<br />
 In case of any result, <code>firstOrNone</code> will return <code>Some x</code>, otherwise <code>None</code>.</p>
@@ -1707,7 +1707,7 @@ let td x = tag &quot;td&quot; [] (flatten x)
 <p>Remarks:</p>
 <ul>
 <li>our HTML table consists of first row (<code>tr</code>) containing column headers (<code>th</code>) and a set of rows for each album with cells (<code>td</code>) to display specific values.</li>
-<li>we used the <code>yield</code> keyword for the first time. It is required here because we&rsquo;re using it in conjuction with the <code>for album in albums -&gt;</code> list comprehension syntax inside the same list. The rule of thumb is that whenever you use the list comprehension syntax, then you need the <code>yield</code> keyword for any other item not contained in the comprehension syntax. This might seem hard to remember, but don&rsquo;t worry - the compiler is helpful here and will issue a warning if you forget the <code>yield</code> keyword.</li>
+<li>we used the <code>yield</code> keyword for the first time. It is required here because we&rsquo;re using it in conjunction with the <code>for album in albums -&gt;</code> list comprehension syntax inside the same list. The rule of thumb is that whenever you use the list comprehension syntax, then you need the <code>yield</code> keyword for any other item not contained in the comprehension syntax. This might seem hard to remember, but don&rsquo;t worry - the compiler is helpful here and will issue a warning if you forget the <code>yield</code> keyword.</li>
 <li>for the sake of saving a few keystrokes we used a nested list comprehension syntax to output <code>th</code>s and <code>td</code>s. Again, it&rsquo;s just a matter of taste, and could be also solved by enumerating each element separately</li>
 </ul>
 <p>We are going to need to fetch the list of all <code>AlbumDetail</code>s from the database. <br />
@@ -1827,7 +1827,7 @@ For the moment both GET and POST requests will do the same, which is return HTML
 <ul>
 <li><code>deleteAlbum</code> WebPart gets passed the <code>choose</code> with two possibilities. </li>
 <li><code>GET</code> and <code>POST</code> are WebParts that succeed (return <code>Some x</code>) only if the incoming HTTP request is of GET or POST verb respectively.</li>
-<li>after succesfull deletion of album, the <code>POST</code> case redirects us to the <code>Path.Admin.manage</code> page</li>
+<li>after successful deletion of album, the <code>POST</code> case redirects us to the <code>Path.Admin.manage</code> page</li>
 </ul>
 <blockquote>
 <p>Important: We have to wrap both GET and POST handlers with a <code>warbler</code> - otherwise they would be evaluated just after <code>Some album</code> match, resulting in invoking <code>Db.deleteAlbum</code> even if POST does not apply.</p>
@@ -1905,7 +1905,7 @@ It consists of list of &ldquo;Props&rdquo; (Properties), of which we can think a
 </ul>
 <p>Those properties can be now used as both client and server side.<br />
 For client side we will the <code>album</code> declaration in our <code>View</code> module in order to output HTML5 input validation attributes.<br />
-For server side we will use an utitlity WebPart that will parse the form field values from a request.</p>
+For server side we will use an utility WebPart that will parse the form field values from a request.</p>
 <blockquote>
 <p>Note: the above snippet uses F# Quotations - a feature that you can read more about <a href="https://msdn.microsoft.com/en-us/library/dd233212.aspx">here</a>.<br />
 For the sake of tutorial, you only need to know that they allow Suave to lookup the name of a Field from a property getter.</p>
@@ -2094,7 +2094,7 @@ To our <code>View.manage</code> we can add a link to <code>createAlbum</code>:</
 <li>it takes as first argument a form of type <code>Form&lt;'a&gt;</code></li>
 <li>it takes as second argument a handler of type <code>'a -&gt; WebPart</code></li>
 <li>if the incoming request contains form fields filled correctly, meaning they can be parsed to corresponding types, and hold all <code>Prop</code>s defined in <code>Form</code> module, then the <code>handler</code> argument is applied with the values of <code>'a</code> filled in</li>
-<li>otherwise the 400 HTTP Status Code &ldquo;Bad Request&rdquo; is returned with information about what was mailformed.</li>
+<li>otherwise the 400 HTTP Status Code &ldquo;Bad Request&rdquo; is returned with information about what was malformed.</li>
 </ul>
 <p>There are just 2 more things before we&rsquo;re good to go with creating album functionality.</p>
 <p>We need <code>createAlbum</code> for the <code>Db</code> module (the created album is piped to <code>ignore</code> function, because we don&rsquo;t need it afterwards):</p>
@@ -2199,11 +2199,11 @@ This one will be fairly easy, as it&rsquo;s gonna be very similar to create (we 
 <li><code>editAlbum</code> View looks very much the same as the <code>createAlbum</code>. The only significant difference is that it has all the filed values pre-filled. </li>
 <li>in <code>Db.updateAlbum</code> we can see examples of property setters. This is the way SQLProvider mutates our <code>Album</code> value, while keeping track on what has changed before <code>SubmitUpdates()</code></li>
 <li><code>warbler</code> is needed in <code>editAlbum</code> GET handler to prevent eager evaluation</li>
-<li>but it&rsquo;s not necessary for POST, because POST needs to parse the incoming request, thus the evaluation is postponed upon the successfull parsing.</li>
+<li>but it&rsquo;s not necessary for POST, because POST needs to parse the incoming request, thus the evaluation is postponed upon the successful parsing.</li>
 <li>after the album is updated, a redirection to <code>manage</code> is applied</li>
 </ul>
 <blockquote>
-<p>Note: SQLProvider allows to change <code>Album</code> properties after the object has been instantiated - that&rsquo;s generally against the immutability concept that&rsquo;s propageted in the functional programming paradigm. We need to remember however, that F# is not pure functional programming language, but rather &ldquo;functional first&rdquo;. This means that while it encourages to write in functional style, it still allows to use Object Oriented constructs. This often turns out to be usefull, for example when we need to improve performance.</p>
+<p>Note: SQLProvider allows to change <code>Album</code> properties after the object has been instantiated - that&rsquo;s generally against the immutability concept that&rsquo;s propagated in the functional programming paradigm. We need to remember however, that F# is not pure functional programming language, but rather &ldquo;functional first&rdquo;. This means that while it encourages to write in functional style, it still allows to use Object Oriented constructs. This often turns out to be useful, for example when we need to improve performance.</p>
 </blockquote>
 <p>As the icing on the cake, let&rsquo;s also add link to details for each of the albums in <code>View.manage</code>:</p>
 <pre><code>aHref (sprintf Path.Admin.editAlbum album.AlbumId) (text &quot;Edit&quot;)
@@ -2221,7 +2221,7 @@ All of these actions are likely to be performed by some kind of shop manager, or
 In fact, <code>Path</code> module defines that all the operations are available under &ldquo;/admin&rdquo; route.<br />
 It would be nice if we could authorize only chosen users to mess with albums in our Store.<br />
 That&rsquo;s exactly what we&rsquo;ll do right now.</p>
-<p>As a warmup, let&rsquo;s add navigation menu at the very top of the view.<br />
+<p>As a warm-up, let&rsquo;s add navigation menu at the very top of the view.<br />
 We&rsquo;ll call it <code>partNav</code> and keep in separate function:</p>
 <pre><code>let partNav = 
     ulAttr [&quot;id&quot;, &quot;navlist&quot;] [ 
@@ -2243,7 +2243,7 @@ Add the <code>partNav</code> to main index view, in the &ldquo;header&rdquo; <co
 ]
 </code></pre>
 
-<p>This gives a possiblity to navigate through main features of our Music Store.<br />
+<p>This gives a possibility to navigate through main features of our Music Store.<br />
 It would be good if a visitor to our site could authenticate himself.<br />
 To help him with that, we&rsquo;ll put a user partial view next to the navigation menu.<br />
 Just as in every other e-commerce website, if a user is logged in, he&rsquo;ll be shown his name and a &ldquo;Log off&rdquo; link.<br />
@@ -2449,7 +2449,7 @@ Read <a href="http://fsharpforfunandprofit.com/posts/discriminated-unions/">here
 We can think of Record as a Plain-Old-Class Object, or DTO, or whatever you like.<br />
 It has however a number of language built-in features that make it really awesome, including:</p>
 <ul>
-<li>imutability by default</li>
+<li>immutability by default</li>
 <li>structural equality by default</li>
 <li>pattern matching</li>
 <li>copy-and-update expression</li>
@@ -2527,7 +2527,7 @@ let admin f_success =
 <li><code>CookieLife</code> - <code>Session</code> in our case</li>
 <li><code>httpsOnly</code> - we pass false as we won&rsquo;t cover HTTPS bindings in the tutorial (however Suave does support it).</li>
 <li>3rd parameter is a function applied if auth cookie is missing - that&rsquo;s where we want to redirect user to the logon page with a &ldquo;returnPath&rdquo;</li>
-<li>4th parameter is a function applied if there occured a decryption error. In real world this could mean a malformed request, however at current stage we&rsquo;ll stick to reseting the state. This way we can re-run the server multiple times during development, without worrying about the browser to pass a cookie value encrypted with stale server key (Suave regenerates a new server key each time it is run).</li>
+<li>4th parameter is a function applied if there occurred a decryption error. In real world this could mean a malformed request, however at current stage we&rsquo;ll stick to reseting the state. This way we can re-run the server multiple times during development, without worrying about the browser to pass a cookie value encrypted with stale server key (Suave regenerates a new server key each time it is run).</li>
 </ul>
 </li>
 <li><code>admin</code> also takes <code>f_success</code> WebPart as argument. Here, we invoke <code>loggedOn</code> with an inline function using <code>session</code>. The interesting part is inside the <code>session</code> function:<ul>
@@ -2652,7 +2652,7 @@ let nonEmptyCart (carts : Db.CartDetails list) = [
 <p>A few remarks regarding the <code>nonEmptyCart</code> function:</p>
 <ul>
 <li>first comes the column headings row (&ldquo;Name, Price, Quantity&rdquo;)</li>
-<li>then for each <code>CartDetail</code> from the list there is a row containg:<ul>
+<li>then for each <code>CartDetail</code> from the list there is a row containing:<ul>
 <li>link to album details with album title caption</li>
 <li>single album price</li>
 <li>count of this very album in cart</li>
@@ -2841,7 +2841,7 @@ Don&rsquo;t forget to set the &ldquo;Copy to Output Directory&rdquo; property.</
 </ul>
 </li>
 <li>sends a POST request to &ldquo;/cart/remove&rdquo; endpoint </li>
-<li>upon successfull POST response it updates:<ul>
+<li>upon successful POST response it updates:<ul>
 <li>html of the container element</li>
 <li>message, to indicate which album has been removed</li>
 <li>navigation menu to decrement count of albums</li>
@@ -2852,7 +2852,7 @@ Don&rsquo;t forget to set the &ldquo;Copy to Output Directory&rdquo; property.</
 <pre><code>    divId &quot;update-message&quot; [text &quot; &quot;]
 </code></pre>
 
-<p>We explictly have to pass in non-empty text, because we cannot have an empty div element in HTML markup.<br />
+<p>We explicitly have to pass in non-empty text, because we cannot have an empty div element in HTML markup.<br />
 With jQuery and our <code>script.cs</code> files, we can now attach them to the end of <code>nonEmptyCart</code> view, just after the table:</p>
 <pre><code>scriptAttr [ &quot;type&quot;, &quot;text/javascript&quot;; &quot; src&quot;, &quot;/jquery-1.11.3.min.js&quot; ] [ text &quot;&quot; ]
 scriptAttr [ &quot;type&quot;, &quot;text/javascript&quot;; &quot; src&quot;, &quot;/script.js&quot; ] [ text &quot;&quot; ]
@@ -2898,7 +2898,7 @@ Let&rsquo;s change that by first adding <code>removeFromCart</code> to <code>Db<
 <p>This almost concludes the cart feature.<br />
 One more thing before we finish this section: <br />
 What should happen if user first adds some albums to his cart and later decides to log on?<br />
-If user logs on, we have his user name - so we can &ldquo;upgrade&rdquo; all his carts from GUID to the acutal user&rsquo;s name.<br />
+If user logs on, we have his user name - so we can &ldquo;upgrade&rdquo; all his carts from GUID to the actual user&rsquo;s name.<br />
 Add necessary functions to the <code>Db</code> module:</p>
 <pre><code>let getCarts cartId (ctx : DbContext) : Cart list =
     query {
@@ -2941,7 +2941,7 @@ Add necessary functions to the <code>Db</code> module:</p>
 <li>if there&rsquo;s no cart for such <code>username</code> and <code>albumId</code>, simply &ldquo;upgrade&rdquo; the cart by changing the <code>CartId</code> property to <code>username</code></li>
 </ul>
 </li>
-<li><code>logon</code> handler now recognizes <code>CartIdOnly</code> case, for which it has to invoke <code>Db.upgradeCarts</code>. In addition it whipes out the <code>cartId</code> key from session store, as from now on <code>username</code> will be used as a cart id.</li>
+<li><code>logon</code> handler now recognizes <code>CartIdOnly</code> case, for which it has to invoke <code>Db.upgradeCarts</code>. In addition it wipes out the <code>cartId</code> key from session store, as from now on <code>username</code> will be used as a cart id.</li>
 </ul>
 <p>Whoa, we now have the cart functionality in our Music Store! <br />
 See the following link to browse the code: <a href="https://github.com/theimowski/SuaveMusicStore/tree/cart">Tag - cart</a></p>
@@ -3246,4 +3246,4 @@ Thanks to multiple fieldsets we can group fields that have something in common.<
 
 <p>We need to invoke the <code>Db.placeOrder</code> in a warbler, to ensure that it&rsquo;s not called for the GET handler as well.</p>
 <p>Phew, I think we&rsquo;re done for now!</p>
-<p>Browse the code here: <a href="https://github.com/theimowski/SuaveMusicStore/tree/checkout_and_registration">Tag - checkout_and_registration</a></p></article></body></html>
+<p>Browse the code here: <a href="https://github.com/theimowski/SuaveMusicStore/tree/registration_and_checkout">Tag - registration_and_checkout</a></p></article></body></html>

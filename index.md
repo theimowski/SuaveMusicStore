@@ -14,7 +14,7 @@ No prior experience with F# is required - the tutorial will cover basic concepts
 The tutorial is going to have plenty of references to the awesome [fsharpforfunandprofit.com](http://fsharpforfunandprofit.com) WebSite, which includes plenty of articles about F# written by Scott Wlaschin.
 
 For most of the following sections there will be a direct link to a specific tagged commit that contains implementation of the application up to the point.
-This allows you to follow along the process of creating the app, and get back on the track in case of any amibiguity.
+This allows you to follow along the process of creating the app, and get back on the track in case of any ambiguity.
 
 Visual Studio 2013 is used throughout the tutorial, but of course you can use IDE of your choice.
 
@@ -75,7 +75,7 @@ In our case, `(OK "Hello World!")` is the simplest `WebPart` possible. No matter
 
 To some extent you could think of the `WebPart` as a `Filter` in ASP.NET MVC application, but there's more to it than `Filters` can do.
 
-If the above explanation of `WebPart` doesn't yet make much sense to you, or you don't understand why it has such type signature, bear with me - in next sections we'll try to prove that this type turns out to be really handy when it comes to one of the greatest powers of functional programming paradigm: **composability**.
+If the above explanation of `WebPart` doesn't yet make much sense to you, or you don't understand why it has such type signature, bear with me - in next sections we'll try to prove that this type turns out to be really handy when it comes to one of the greatest powers of functional programming paradigm: **composition**.
 
 Basic routing
 -------------
@@ -175,7 +175,7 @@ In this section we'll see how we can deal with returning good looking HTML marku
 Templating HTML views is quite a big topic itself, that we don't want to go into much details about.
 Keep in mind that the concept can be approached in many different ways, and the way presented here is not the only proper way of rendering HTML views.
 Having said that, I hope you'll still find the following implementation concise and easy to understand.
-In this application we'll use server-side HTML templating with the help of a seperate Suave package called `Suave.Experimental`.
+In this application we'll use server-side HTML templating with the help of a separate Suave package called `Suave.Experimental`.
 
 > Note: As of the time of writing, `Suave.Experimental` is a separate package. It's likely that next releases of the package will include breaking changes. It's also possible that the modules we're going to use from within the package will be extracted to the core Suave package.
 
@@ -248,11 +248,11 @@ A few remarks about the above snippet:
 - `Xml` is an internal Suave type holding object model for the HTML markup
 - `index` is our representation of HTML markup. 
 - `html` is a function that takes a list of other tags as its argument. So do `head` and `body`.
-- `text` serves outputing plain text into an HTML element.
-- `xmlToString` transformates the object model into the resulting raw HTML string.
+- `text` serves outputting plain text into an HTML element.
+- `xmlToString` transforms the object model into the resulting raw HTML string.
 
 > Note: `tag` function from Suave takes 3 arguments ().
-> We've defined the `aHref` function by invoking `tag` with only 2 arguments, and the compilator is perfectly happy with that - Why?
+> We've defined the `aHref` function by invoking `tag` with only 2 arguments, and the compiler is perfectly happy with that - Why?
 > This concept is called "partial application", and allows us to invoke a function by passing only a subset of arguments.
 > When we invoke a function with only a subset of arguments, the function will return another function that will expect the rest of arguments.
 > In our case this means `aHref` is of type `string -> Xml -> Xml`, so the second "hidden" argument to `aHref` is of type `Xml`.
@@ -319,7 +319,7 @@ Note, that in `App` module we still benefit from the static typed routes feature
 If you're not familiar with type inference mechanism, you can follow up [this link](http://fsharpforfunandprofit.com/posts/type-inference/).
 
 It's high time we added some CSS styles to our HTML markup.
-We'll not deepdive into the details about the styles itself, as this is not a tutorial on Web Design.
+We'll not deep-dive into the details about the styles itself, as this is not a tutorial on Web Design.
 The stylesheet can be downloaded [from here](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/Site.css) in its final shape.
 Add the `Site.css` stylesheet to the project, and don't forget to set the `Copy To Output Directory` property to `Copy If Newer`.
 
@@ -384,7 +384,7 @@ and div with id "container" just after the div "header":
     divId "container" container
 ```
 
-`index` previosly was a constant value, but now became a function taking `container` as parameter.
+`index` previously was a constant value, but now became a function taking `container` as parameter.
 
 We can now define actual container for the "home" page:
 
@@ -540,7 +540,7 @@ SQLProvider is example of a Type Provider library, which gives ability to cooper
 We can install SQLProvider from NuGet:
 ```install-package SQLProvider -includeprerelease```
 
-> Note: SQLProvider is marked on NuGet as a "prerelease". While it could be risky for more sophisticated queries, we are perfectly fine to use it in our case, as it fullfills all of our data access requirements.
+> Note: SQLProvider is marked on NuGet as a "prerelease". While it could be risky for more sophisticated queries, we are perfectly fine to use it in our case, as it fulfills all of our data access requirements.
 
 If you're using Visual Studio, a dialog window can pop asking to confirm enabling the Type Provider. 
 This is just to notify about capability of the Type Provider to execute its custom code in design time.
@@ -614,13 +614,13 @@ The function, as well as all functions we'll define in `Db` module, takes the `D
 The `: Genre list` part is a type annotation, which makes sure the function returns a list of `Genre`s.
 Implementation is straight forward:  ```ctx.``[dbo].[Genres]`` ``` queries all genres, so we just need to pipe it to the `Seq.toList`.
 
-`getAlbumsForGenre` takes `genreName` as argument (infered to be of type string) and returns a list of `Album`s.
+`getAlbumsForGenre` takes `genreName` as argument (inferred to be of type string) and returns a list of `Album`s.
 It makes use of "query expression" (`query { }`) which is very similar to C# Linq query.
 Read [here](https://msdn.microsoft.com/en-us/library/hh225374.aspx) for more info about query expressions.
 Inside the query expression, we're performing an inner join of `Albums` and `Genres` with the `GenreId` foreign key, and then we apply a predicate on `genre.Name` to match the input `genreName`.
 The result of the query is piped to `Seq.toList`.
 
-`getAlbumDetails` takes `id` as argument (infered to be of type int) and returns `AlbumDetails option` because there might be no Album with the given id.
+`getAlbumDetails` takes `id` as argument (inferred to be of type int) and returns `AlbumDetails option` because there might be no Album with the given id.
 Here, the result of the query is piped to the `firstOrNone` function, which takes care to transform the result to `option` type.
 `firstOrNone` verifies if a query returned any result.
 In case of any result, `firstOrNone` will return `Some x`, otherwise `None`.
@@ -857,7 +857,7 @@ let truncate k (s : string) =
 Remarks:
 
 - our HTML table consists of first row (`tr`) containing column headers (`th`) and a set of rows for each album with cells (`td`) to display specific values.
-- we used the `yield` keyword for the first time. It is required here because we're using it in conjuction with the `for album in albums ->` list comprehension syntax inside the same list. The rule of thumb is that whenever you use the list comprehension syntax, then you need the `yield` keyword for any other item not contained in the comprehension syntax. This might seem hard to remember, but don't worry - the compiler is helpful here and will issue a warning if you forget the `yield` keyword.
+- we used the `yield` keyword for the first time. It is required here because we're using it in conjunction with the `for album in albums ->` list comprehension syntax inside the same list. The rule of thumb is that whenever you use the list comprehension syntax, then you need the `yield` keyword for any other item not contained in the comprehension syntax. This might seem hard to remember, but don't worry - the compiler is helpful here and will issue a warning if you forget the `yield` keyword.
 - for the sake of saving a few keystrokes we used a nested list comprehension syntax to output `th`s and `td`s. Again, it's just a matter of taste, and could be also solved by enumerating each element separately
 
 We are going to need to fetch the list of all `AlbumDetail`s from the database. 
@@ -1002,7 +1002,7 @@ let deleteAlbum id =
 
 - `deleteAlbum` WebPart gets passed the `choose` with two possibilities. 
 - `GET` and `POST` are WebParts that succeed (return `Some x`) only if the incoming HTTP request is of GET or POST verb respectively.
-- after succesfull deletion of album, the `POST` case redirects us to the `Path.Admin.manage` page
+- after successful deletion of album, the `POST` case redirects us to the `Path.Admin.manage` page
 
 > Important: We have to wrap both GET and POST handlers with a `warbler` - otherwise they would be evaluated just after `Some album` match, resulting in invoking `Db.deleteAlbum` even if POST does not apply.
 
@@ -1082,7 +1082,7 @@ It consists of list of "Props" (Properties), of which we can think as of validat
 
 Those properties can be now used as both client and server side.
 For client side we will the `album` declaration in our `View` module in order to output HTML5 input validation attributes.
-For server side we will use an utitlity WebPart that will parse the form field values from a request.
+For server side we will use an utility WebPart that will parse the form field values from a request.
 
 > Note: the above snippet uses F# Quotations - a feature that you can read more about [here](https://msdn.microsoft.com/en-us/library/dd233212.aspx).
 > For the sake of tutorial, you only need to know that they allow Suave to lookup the name of a Field from a property getter.
@@ -1285,7 +1285,7 @@ What `bindToForm` does is:
 - it takes as first argument a form of type `Form<'a>`
 - it takes as second argument a handler of type `'a -> WebPart`
 - if the incoming request contains form fields filled correctly, meaning they can be parsed to corresponding types, and hold all `Prop`s defined in `Form` module, then the `handler` argument is applied with the values of `'a` filled in
-- otherwise the 400 HTTP Status Code "Bad Request" is returned with information about what was mailformed.
+- otherwise the 400 HTTP Status Code "Bad Request" is returned with information about what was malformed.
 
 There are just 2 more things before we're good to go with creating album functionality.
 
@@ -1408,10 +1408,10 @@ Comments to above snippets:
 - `editAlbum` View looks very much the same as the `createAlbum`. The only significant difference is that it has all the filed values pre-filled. 
 - in `Db.updateAlbum` we can see examples of property setters. This is the way SQLProvider mutates our `Album` value, while keeping track on what has changed before `SubmitUpdates()`
 - `warbler` is needed in `editAlbum` GET handler to prevent eager evaluation
-- but it's not necessary for POST, because POST needs to parse the incoming request, thus the evaluation is postponed upon the successfull parsing.
+- but it's not necessary for POST, because POST needs to parse the incoming request, thus the evaluation is postponed upon the successful parsing.
 - after the album is updated, a redirection to `manage` is applied
 
-> Note: SQLProvider allows to change `Album` properties after the object has been instantiated - that's generally against the immutability concept that's propageted in the functional programming paradigm. We need to remember however, that F# is not pure functional programming language, but rather "functional first". This means that while it encourages to write in functional style, it still allows to use Object Oriented constructs. This often turns out to be usefull, for example when we need to improve performance.
+> Note: SQLProvider allows to change `Album` properties after the object has been instantiated - that's generally against the immutability concept that's propagated in the functional programming paradigm. We need to remember however, that F# is not pure functional programming language, but rather "functional first". This means that while it encourages to write in functional style, it still allows to use Object Oriented constructs. This often turns out to be useful, for example when we need to improve performance.
 
 As the icing on the cake, let's also add link to details for each of the albums in `View.manage`:
 
@@ -1436,7 +1436,7 @@ In fact, `Path` module defines that all the operations are available under "/adm
 It would be nice if we could authorize only chosen users to mess with albums in our Store.
 That's exactly what we'll do right now.
 
-As a warmup, let's add navigation menu at the very top of the view.
+As a warm-up, let's add navigation menu at the very top of the view.
 We'll call it `partNav` and keep in separate function:
 
 ```
@@ -1464,7 +1464,7 @@ divId "header" [
 ]
 ```
 
-This gives a possiblity to navigate through main features of our Music Store.
+This gives a possibility to navigate through main features of our Music Store.
 It would be good if a visitor to our site could authenticate himself.
 To help him with that, we'll put a user partial view next to the navigation menu.
 Just as in every other e-commerce website, if a user is logged in, he'll be shown his name and a "Log off" link.
@@ -1704,7 +1704,7 @@ On the other hand, `UserLoggedOnSession` is a "Record type".
 We can think of Record as a Plain-Old-Class Object, or DTO, or whatever you like.
 It has however a number of language built-in features that make it really awesome, including:
 
-- imutability by default
+- immutability by default
 - structural equality by default
 - pattern matching
 - copy-and-update expression
@@ -1791,7 +1791,7 @@ Remarks:
     - `CookieLife` - `Session` in our case
     - `httpsOnly` - we pass false as we won't cover HTTPS bindings in the tutorial (however Suave does support it).
     - 3rd parameter is a function applied if auth cookie is missing - that's where we want to redirect user to the logon page with a "returnPath"
-    - 4th parameter is a function applied if there occured a decryption error. In real world this could mean a malformed request, however at current stage we'll stick to reseting the state. This way we can re-run the server multiple times during development, without worrying about the browser to pass a cookie value encrypted with stale server key (Suave regenerates a new server key each time it is run).
+    - 4th parameter is a function applied if there occurred a decryption error. In real world this could mean a malformed request, however at current stage we'll stick to reseting the state. This way we can re-run the server multiple times during development, without worrying about the browser to pass a cookie value encrypted with stale server key (Suave regenerates a new server key each time it is run).
 - `admin` also takes `f_success` WebPart as argument. Here, we invoke `loggedOn` with an inline function using `session`. The interesting part is inside the `session` function:
     - syntax `function | ... -> ` is just a shorter version of `match x with | ... -> ` but the `x` param is implicit here, and `x` is of type `Session`
     - first pattern shows the real power of the pattern matching technique - `f_success` will be applied only if user is logged on, and his Role is "admin" (we'll distinguish between "admin" and "user" roles)
@@ -1938,7 +1938,7 @@ let cart = function
 A few remarks regarding the `nonEmptyCart` function:
 
 - first comes the column headings row ("Name, Price, Quantity")
-- then for each `CartDetail` from the list there is a row containg:
+- then for each `CartDetail` from the list there is a row containing:
     - link to album details with album title caption
     - single album price
     - count of this very album in cart
@@ -2160,7 +2160,7 @@ We won't go into much details about the code itself, however it's important to k
     - album title
     - count of this album in cart
 - sends a POST request to "/cart/remove" endpoint 
-- upon successfull POST response it updates:
+- upon successful POST response it updates:
     - html of the container element
     - message, to indicate which album has been removed
     - navigation menu to decrement count of albums
@@ -2171,7 +2171,7 @@ The `update-message` div should be added to the `nonEmptyCart` view, before the 
     divId "update-message" [text " "]
 ```
 
-We explictly have to pass in non-empty text, because we cannot have an empty div element in HTML markup.
+We explicitly have to pass in non-empty text, because we cannot have an empty div element in HTML markup.
 With jQuery and our `script.cs` files, we can now attach them to the end of `nonEmptyCart` view, just after the table:
 
 ```
@@ -2227,7 +2227,7 @@ A few comments to the `removeFromCart` WebPart:
 This almost concludes the cart feature.
 One more thing before we finish this section: 
 What should happen if user first adds some albums to his cart and later decides to log on?
-If user logs on, we have his user name - so we can "upgrade" all his carts from GUID to the acutal user's name.
+If user logs on, we have his user name - so we can "upgrade" all his carts from GUID to the actual user's name.
 Add necessary functions to the `Db` module:
 
 ```
@@ -2273,7 +2273,7 @@ Remarks:
 - `Db.upgradeCarts` takes `cartId` and `username` in order to iterate through all carts (returned by `Db.getCarts`), and for each of them:
     - if there's already a cart in the database for this `username` and `albumId`, it sums up the counts and deletes the GUID cart. This can happen if logged on user adds an album to cart, then logs off and adds the same album to cart, and then back again logs on - album's count should be 2
     - if there's no cart for such `username` and `albumId`, simply "upgrade" the cart by changing the `CartId` property to `username`
-- `logon` handler now recognizes `CartIdOnly` case, for which it has to invoke `Db.upgradeCarts`. In addition it whipes out the `cartId` key from session store, as from now on `username` will be used as a cart id.
+- `logon` handler now recognizes `CartIdOnly` case, for which it has to invoke `Db.upgradeCarts`. In addition it wipes out the `cartId` key from session store, as from now on `username` will be used as a cart id.
 
 Whoa, we now have the cart functionality in our Music Store! 
 See the following link to browse the code: [Tag - cart](https://github.com/theimowski/SuaveMusicStore/tree/cart)
@@ -2625,4 +2625,4 @@ We need to invoke the `Db.placeOrder` in a warbler, to ensure that it's not call
 
 Phew, I think we're done for now!
 
-Browse the code here: [Tag - checkout_and_registration](https://github.com/theimowski/SuaveMusicStore/tree/checkout_and_registration)
+Browse the code here: [Tag - registration_and_checkout](https://github.com/theimowski/SuaveMusicStore/tree/registration_and_checkout)
