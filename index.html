@@ -2944,4 +2944,49 @@ Add necessary functions to the <code>Db</code> module:</p>
 <li><code>logon</code> handler now recognizes <code>CartIdOnly</code> case, for which it has to invoke <code>Db.upgradeCarts</code>. In addition it whipes out the <code>cartId</code> key from session store, as from now on <code>username</code> will be used as a cart id.</li>
 </ul>
 <p>Whoa, we now have the cart functionality in our Music Store! <br />
-See the following link to browse the code: <a href="https://github.com/theimowski/SuaveMusicStore/tree/cart">Tag - cart</a></p></article></body></html>
+See the following link to browse the code: <a href="https://github.com/theimowski/SuaveMusicStore/tree/cart">Tag - cart</a></p>
+<h2 id="registration-and-checkout"><a name="user-content-registration-and-checkout" href="#registration-and-checkout" class="headeranchor-link" aria-hidden="true"><span class="headeranchor"></span></a>Registration and checkout</h2>
+<p>There&rsquo;s already a bunch of nice features in our app, however we still lack of registration.<br />
+Currently it&rsquo;s only admin account without possibility to create new users.<br />
+It would be a pity if no one can register, because only registered users can buy albums in our store!</p>
+<p>Register feature will be based on a standard form, so let&rsquo;s add one to the <code>Form</code> module:</p>
+<pre><code>open System.Net.Mail
+</code></pre>
+
+<pre><code>type Register = {
+    Username : string
+    Email : MailAddress
+    Password : Password
+    ConfirmPassword : Password
+}
+
+let pattern = @&quot;(\w){6,20}&quot;
+
+let passwordsMatch = 
+    (fun f -&gt; f.Password = f.ConfirmPassword), &quot;Passwords must match&quot;
+
+let register : Form&lt;Register&gt; = 
+    Form ([ TextProp ((fun f -&gt; &lt;@ f.Username @&gt;), [ maxLength 30 ] )
+            PasswordProp ((fun f -&gt; &lt;@ f.Password @&gt;), [ passwordRegex pattern ] )
+            PasswordProp ((fun f -&gt; &lt;@ f.ConfirmPassword @&gt;), [ passwordRegex pattern ] )
+            ],[ passwordsMatch ])
+</code></pre>
+
+<p>In the above snippet:<br />
+- we open the <code>System.Net.Mail</code> namespace to use the <code>MailAddress</code> type<br />
+- the form consists of 4 fields:<br />
+    - <code>Username</code> of <code>string</code><br />
+    - <code>Email</code> of type <code>MailAddress</code> (ensures proper validation of the field)<br />
+    - <code>Password</code> of type <code>Password</code> (ensures proper HTML input type)<br />
+    - <code>ConfirmPassword</code> of the same type<br />
+- <code>pattern</code> is a regular expression pattern for password<br />
+- <code>passwordsMatch</code> is a server-side only validation function<br />
+- <code>register</code> is the definition of our form, with a few constraints:<br />
+    - <code>Username</code> must be at most 30 characters long<br />
+    - <code>Password</code> must match the regular expression<br />
+    - <code>ConfirmPassword</code> must match the regular expression</p>
+<p>Server-side only validation, like <code>passwordMatch</code> are of type <code>('FormType -&gt; bool) * string</code>.<br />
+So this is just a tuple of a predicate function and a string error.<br />
+We can create as many validations as we like, and pass them to the <code>Form</code> definition.<br />
+These can be used for validations that lookup more than one field, or require some complex logic.<br />
+We won&rsquo;t create client-side validation to check if the passwords match in the tutorial, but it could be achieved with some custom JavaScript code.</p></article></body></html>
