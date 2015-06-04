@@ -2972,21 +2972,157 @@ let register : Form&lt;Register&gt; =
             ],[ passwordsMatch ])
 </code></pre>
 
-<p>In the above snippet:<br />
-- we open the <code>System.Net.Mail</code> namespace to use the <code>MailAddress</code> type<br />
-- the form consists of 4 fields:<br />
-    - <code>Username</code> of <code>string</code><br />
-    - <code>Email</code> of type <code>MailAddress</code> (ensures proper validation of the field)<br />
-    - <code>Password</code> of type <code>Password</code> (ensures proper HTML input type)<br />
-    - <code>ConfirmPassword</code> of the same type<br />
-- <code>pattern</code> is a regular expression pattern for password<br />
-- <code>passwordsMatch</code> is a server-side only validation function<br />
-- <code>register</code> is the definition of our form, with a few constraints:<br />
-    - <code>Username</code> must be at most 30 characters long<br />
-    - <code>Password</code> must match the regular expression<br />
-    - <code>ConfirmPassword</code> must match the regular expression</p>
+<p>In the above snippet:</p>
+<ul>
+<li>we open the <code>System.Net.Mail</code> namespace to use the <code>MailAddress</code> type</li>
+<li>the form consists of 4 fields:<ul>
+<li><code>Username</code> of <code>string</code></li>
+<li><code>Email</code> of type <code>MailAddress</code> (ensures proper validation of the field)</li>
+<li><code>Password</code> of type <code>Password</code> (ensures proper HTML input type)</li>
+<li><code>ConfirmPassword</code> of the same type</li>
+</ul>
+</li>
+<li><code>pattern</code> is a regular expression pattern for password</li>
+<li><code>passwordsMatch</code> is a server-side only validation function</li>
+<li><code>register</code> is the definition of our form, with a few constraints:<ul>
+<li><code>Username</code> must be at most 30 characters long</li>
+<li><code>Password</code> must match the regular expression</li>
+<li><code>ConfirmPassword</code> must match the regular expression</li>
+</ul>
+</li>
+</ul>
 <p>Server-side only validation, like <code>passwordMatch</code> are of type <code>('FormType -&gt; bool) * string</code>.<br />
 So this is just a tuple of a predicate function and a string error.<br />
 We can create as many validations as we like, and pass them to the <code>Form</code> definition.<br />
 These can be used for validations that lookup more than one field, or require some complex logic.<br />
-We won&rsquo;t create client-side validation to check if the passwords match in the tutorial, but it could be achieved with some custom JavaScript code.</p></article></body></html>
+We won&rsquo;t create client-side validation to check if the passwords match in the tutorial, but it could be achieved with some custom JavaScript code.</p>
+<p>With the form definition in place, let&rsquo;s proceed to <code>View</code>:</p>
+<pre><code>let register msg = [
+    h2 &quot;Create a New Account&quot;
+    p [
+        text &quot;Use the form below to create a new account.&quot;
+    ]
+
+    divId &quot;register-message&quot; [
+        text msg
+    ]
+
+    renderForm
+        { Form = Form.register
+          Fieldsets = 
+              [ { Legend = &quot;Create a New Account&quot;
+                  Fields = 
+                      [ { Label = &quot;User name (max 30 characters)&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.Username @&gt;) [] }
+                        { Label = &quot;Email address&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.Email @&gt;) [] }
+                        { Label = &quot;Password (between 6 and 20 characters)&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.Password @&gt;) [] }
+                        { Label = &quot;Confirm password&quot;
+                          Xml = input (fun f -&gt; &lt;@ f.ConfirmPassword @&gt;) [] } ] } ]
+          SubmitText = &quot;Register&quot; }
+]
+</code></pre>
+
+<p>As you can see, we&rsquo;re using the <code>msg</code> parameter here similar to how it was done in <code>View.logon</code> to include possible error messages.<br />
+The rest of the snippet is rather self-explanatory.</p>
+<p>We&rsquo;re now left with proper <code>Path.Account</code> entry:</p>
+<pre><code>let register = &quot;/account/register&quot;
+</code></pre>
+
+<p>GET handler for registration in <code>App</code>:</p>
+<pre><code>let register =
+    choose [
+        GET &gt;&gt;= (View.register &quot;&quot; |&gt; html)
+    ]
+</code></pre>
+
+<pre><code>path Path.Account.register &gt;&gt;= register
+</code></pre>
+
+<p>and a direct link from the <code>View.logon</code> :</p>
+<pre><code>let logon msg = [
+    h2 &quot;Log On&quot;
+    p [
+        text &quot;Please enter your user name and password.&quot;
+        aHref Path.Account.register (text &quot; Register&quot;)
+        text &quot; if you don't have an account yet.&quot;
+    ]
+
+    ...
+</code></pre>
+
+<p>This allows us to navigate to the registration form.<br />
+Moving on to implementing the actual POST handler, let&rsquo;s first create necessary functions in <code>Db</code> module:</p>
+<pre><code>let getUser username (ctx : DbContext) : User option = 
+    query {
+        for user in ctx.``[dbo].[Users]`` do
+        where (user.UserName = username)
+        select user
+    } |&gt; firstOrNone
+</code></pre>
+
+<pre><code>let newUser (username, password, email) (ctx : DbContext) =
+    let user = ctx.``[dbo].[Users]``.Create(email, password, &quot;user&quot;, username)
+    ctx.SubmitUpdates()
+    user
+</code></pre>
+
+<p><code>getUser</code> will be crucial to check if a user with given <code>username</code> already exists in the database - we don&rsquo;t want two users with the same <code>username</code>.<br />
+<code>newUser</code> is a simple function that creates and returns the new user.<br />
+Note that we hardcode &ldquo;user&rdquo; for each new user&rsquo;s role. <br />
+This way, they can be distinguished from admin&rsquo;s role.</p>
+<p>After a successful registration, we&rsquo;d like to authenticate user at once - in other words apply the same logic which happens after successful logon.<br />
+In a real application, you&rsquo;d probably use a confirmation mail mechanism, but for the sake of simplicity we&rsquo;ll skip that.<br />
+In order to reuse the logic from logon POST handler, extract a separate function:</p>
+<pre><code>let authenticateUser (user : Db.User) =
+    Auth.authenticated Cookie.CookieLife.Session false 
+    &gt;&gt;= session (function
+        | CartIdOnly cartId -&gt;
+            let ctx = Db.getContext()
+            Db.upgradeCarts (cartId, user.UserName) ctx
+            sessionStore (fun store -&gt; store.set &quot;cartid&quot; &quot;&quot;)
+        | _ -&gt; succeed)
+    &gt;&gt;= sessionStore (fun store -&gt;
+        store.set &quot;username&quot; user.UserName
+        &gt;&gt;= store.set &quot;role&quot; user.Role)
+    &gt;&gt;= returnPathOrHome
+</code></pre>
+
+<p>after extraction, <code>logon</code> POST handler looks like this:</p>
+<pre><code>match Db.validateUser(form.Username, passHash password) ctx with
+| Some user -&gt;
+    authenticateUser user
+| _ -&gt;
+    View.logon &quot;Username or password is invalid.&quot; |&gt; html
+</code></pre>
+
+<p>Finally, the full register handler can be implemented following:</p>
+<pre><code>let register =
+    choose [
+        GET &gt;&gt;= (View.register &quot;&quot; |&gt; html)
+        POST &gt;&gt;= bindToForm Form.register (fun form -&gt;
+            let ctx = Db.getContext()
+            match Db.getUser form.Username ctx with
+            | Some existing -&gt; 
+                View.register &quot;Sorry this username is already taken. Try another one.&quot; |&gt; html
+            | None -&gt;
+                let (Password password) = form.Password
+                let email = form.Email.Address
+                let user = Db.newUser (form.Username, passHash password, email) ctx
+                authenticateUser user
+        )
+    ]
+</code></pre>
+
+<p>Comments for POST part:</p>
+<ul>
+<li>bind to <code>Form.register</code> to validate the request</li>
+<li>check if a user with given <code>username</code> already exists</li>
+<li>if that&rsquo;s the case then show the <code>View.register</code> form again with a proper error message</li>
+<li>otherwise read the form fields&rsquo; values, create new user and invoke the <code>authenticateUser</code> function</li>
+</ul>
+<p>This concludes register feature - we&rsquo;re now set for new customers to do the shopping.<br />
+Wait a second, they can put albums to the cart, but how do they checkout?<br />
+Ah yes, we haven&rsquo;t implemented that yet.</p>
+<p>So let&rsquo;s take a deep breath and roll to the last significant feature in our application!</p></article></body></html>
