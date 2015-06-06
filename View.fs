@@ -87,9 +87,9 @@ let store genres = [
 ]
 
 let browse genre (albums : Db.Album list) = [
-    h2 (sprintf "Genre: %s" genre)
-    
     divClass "genre" [ 
+        h2 (sprintf "Genre: %s" genre)
+ 
         ulAttr ["id", "album-list"] [
             for album in albums ->
                 li (aHref 
@@ -392,7 +392,7 @@ let index partNav partUser partGenres container =
 
             partGenres
 
-            divId "container" container
+            divId "main" container
 
             divId "footer" [
                 text "built with "
