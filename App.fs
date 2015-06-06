@@ -99,6 +99,11 @@ let html container =
     | NoSession ->
         result 0 None)
 
+let home =
+    let ctx = Db.getContext()
+    let bestsellers = Db.getBestSellers ctx
+    View.home bestsellers |> html
+
 let browse =
     request (fun r -> 
         match r.queryParam Path.Store.browseKey with
@@ -271,7 +276,7 @@ let deleteAlbum id =
 
 let webPart = 
     choose [
-        path Path.home >=> html View.home
+        path Path.home >=> home
         path Path.Store.overview >=> overview
         path Path.Store.browse >=> browse
         pathScan Path.Store.details details

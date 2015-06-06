@@ -16,6 +16,7 @@ type AlbumDetails = DbContext.``[dbo].[AlbumDetails]Entity``
 type User = DbContext.``[dbo].[Users]Entity``
 type Cart = DbContext.``[dbo].[Carts]Entity``
 type CartDetails = DbContext.``[dbo].[CartDetails]Entity``
+type BestSeller = DbContext.``[dbo].[BestSellers]Entity``
 
 let getContext() = Sql.GetDataContext()
 
@@ -45,6 +46,9 @@ let getAlbumDetails id (ctx : DbContext) : AlbumDetails option =
 
 let getAlbumsDetails (ctx : DbContext) : AlbumDetails list = 
     ctx.``[dbo].[AlbumDetails]`` |> Seq.toList
+
+let getBestSellers (ctx : DbContext) : BestSeller list  =
+    ctx.``[dbo].[BestSellers]`` |> Seq.toList
 
 let getAlbum id (ctx : DbContext) : Album option = 
     query { 

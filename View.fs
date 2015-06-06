@@ -71,8 +71,16 @@ let renderForm (layout : FormLayout<_>) =
         yield submitInput layout.SubmitText
     ]
 
-let home = [
-    h2 "Home"
+let home (bestSellers : Db.BestSeller list) = [
+    imgSrc "/home-showcase.png"
+    h2 "Fresh off the grill"
+    ulAttr ["id", "album-list"] [
+            for album in bestSellers ->
+                li (aHref 
+                        (sprintf Path.Store.details album.AlbumId) 
+                        (flatten [ imgSrc "/placeholder.gif"
+                                   span (text album.Title)]))
+        ]
 ]
 
 let store genres = [
