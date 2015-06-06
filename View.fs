@@ -88,9 +88,15 @@ let store genres = [
 
 let browse genre (albums : Db.Album list) = [
     h2 (sprintf "Genre: %s" genre)
-    ul [
-        for a in albums ->
-            li (aHref (sprintf Path.Store.details a.AlbumId) (text a.Title))
+    
+    divClass "genre" [ 
+        ulAttr ["id", "album-list"] [
+            for album in albums ->
+                li (aHref 
+                        (sprintf Path.Store.details album.AlbumId) 
+                        (flatten [ imgSrc album.AlbumArtUrl
+                                   span (text album.Title)]))
+        ]
     ]
 ]
 
