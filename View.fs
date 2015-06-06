@@ -362,7 +362,15 @@ let partUser (user : string option) =
             yield aHref Path.Account.logon (text "Log on")
     ]
 
-let index partNav partUser container = 
+let partGenres (genres : Db.Genre list) =
+    ulAttr ["id", "categories"] [
+        for genre in genres -> 
+            li (aHref 
+                    (Path.Store.browse |> Path.withParam (Path.Store.browseKey, genre.Name)) 
+                    (text genre.Name))
+    ]
+
+let index partNav partUser partGenres container = 
     html [
         head [
             title "Suave Music Store"
@@ -375,6 +383,8 @@ let index partNav partUser container =
                 partNav
                 partUser
             ]
+
+            partGenres
 
             divId "container" container
 

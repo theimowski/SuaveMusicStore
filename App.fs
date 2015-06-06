@@ -83,7 +83,11 @@ let admin f_success =
 let html container =
     let ctx = Db.getContext()
     let result cartItems user =
-        OK (View.index (View.partNav cartItems) (View.partUser user) container)
+        OK (View.index 
+                (View.partNav cartItems) 
+                (View.partUser user) 
+                (View.partGenres (Db.getGenres ctx))
+                container)
         >>= Writers.setMimeType "text/html; charset=utf-8"
 
     session (function
