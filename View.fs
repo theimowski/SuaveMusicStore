@@ -78,7 +78,7 @@ let home (bestSellers : Db.BestSeller list) = [
             for album in bestSellers ->
                 li (aHref 
                         (sprintf Path.Store.details album.AlbumId) 
-                        (flatten [ imgSrc "/placeholder.gif"
+                        (flatten [ imgSrc album.AlbumArtUrl
                                    span (text album.Title)]))
         ]
 ]
