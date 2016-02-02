@@ -4,14 +4,14 @@ open System
 
 open Suave
 open Suave.Cookie
-open Suave.Form
+open Suave.Filters
 open Suave.Http
-open Suave.Http.Successful
-open Suave.Http.RequestErrors
-open Suave.Http.Applicatives
+open Suave.Model
+open Suave.Successful
+open Suave.RequestErrors
 open Suave.Model.Binding
+open Suave.Operators
 open Suave.State.CookieStateStore
-open Suave.Types
 open Suave.Web
 
 let passHash (pass: string) =
@@ -33,7 +33,7 @@ type Session =
 
 let session f = 
     statefulForSession
-    >>= context (fun x -> 
+    >=> context (fun x -> 
         match x |> HttpContext.state with
         | None -> f NoSession
         | Some state ->
@@ -48,9 +48,9 @@ let sessionStore setF = context (fun x ->
     | None -> never)
 
 let reset =
-    unsetPair Auth.SessionAuthCookie
-    >>= unsetPair StateCookie
-    >>= Redirection.FOUND Path.home
+    unsetPair Authentication.SessionAuthCookie
+    >=> unsetPair StateCookie
+    >=> Redirection.FOUND Path.home
 
 let redirectWithReturnPath redirection =
     request (fun x ->
@@ -66,7 +66,7 @@ let returnPathOrHome =
         Redirection.FOUND path)
 
 let loggedOn f_success =
-    Auth.authenticate
+    Authentication.authenticate
         Cookie.CookieLife.Session
         false
         (fun () -> Choice2Of2(redirectWithReturnPath Path.Account.logon))
@@ -88,7 +88,7 @@ let html container =
                 (View.partUser user) 
                 (View.partGenres (Db.getGenres ctx))
                 container)
-        >>= Writers.setMimeType "text/html; charset=utf-8"
+        >=> Writers.setMimeType "text/html; charset=utf-8"
 
     session (function
     | UserLoggedOn { Username = username } -> 
@@ -136,27 +136,27 @@ let manage = warbler (fun _ ->
     |> html)
 
 let bindToForm form handler =
-    bindReq (bindForm form) handler BAD_REQUEST
+    bindReq (Suave.Form.bindForm form) handler BAD_REQUEST
 
 let authenticateUser (user : Db.User) =
-    Auth.authenticated Cookie.CookieLife.Session false 
-    >>= session (function
+    Authentication.authenticated Cookie.CookieLife.Session false 
+    >=> session (function
         | CartIdOnly cartId ->
             let ctx = Db.getContext()
             Db.upgradeCarts (cartId, user.UserName) ctx
             sessionStore (fun store -> store.set "cartid" "")
         | _ -> succeed)
-    >>= sessionStore (fun store ->
+    >=> sessionStore (fun store ->
         store.set "username" user.UserName
-        >>= store.set "role" user.Role)
-    >>= returnPathOrHome
+        >=> store.set "role" user.Role)
+    >=> returnPathOrHome
 
 let logon =
     choose [
-        GET >>= (View.logon "" |> html)
-        POST >>= bindToForm Form.logon (fun form ->
+        Filters.GET >=> (View.logon "" |> html)
+        Filters.POST >=> bindToForm Form.logon (fun form ->
             let ctx = Db.getContext()
-            let (Password password) = form.Password
+            let (Suave.Form.Password password) = form.Password
             match Db.validateUser(form.Username, passHash password) ctx with
             | Some user ->
                 authenticateUser user
@@ -167,14 +167,14 @@ let logon =
 
 let register =
     choose [
-        GET >>= (View.register "" |> html)
-        POST >>= bindToForm Form.register (fun form ->
+        Filters.GET >=> (View.register "" |> html)
+        Filters.POST >=> bindToForm Form.register (fun form ->
             let ctx = Db.getContext()
             match Db.getUser form.Username ctx with
             | Some existing -> 
                 View.register "Sorry this username is already taken. Try another one." |> html
             | None ->
-                let (Password password) = form.Password
+                let (Suave.Form.Password password) = form.Password
                 let email = form.Email.Address
                 let user = Db.newUser (form.Username, passHash password, email) ctx
                 authenticateUser user
@@ -199,7 +199,7 @@ let addToCart albumId =
             | UserLoggedOn { Username = cartId } | CartIdOnly cartId ->
                 Db.addToCart cartId albumId ctx
                 succeed)
-        >>= Redirection.FOUND Path.Cart.overview
+        >=> Redirection.FOUND Path.Cart.overview
 
 let removeFromCart albumId =
     session (function
@@ -218,8 +218,8 @@ let checkout =
     | NoSession | CartIdOnly _ -> never
     | UserLoggedOn {Username = username } ->
         choose [
-            GET >>= (View.checkout |> html)
-            POST >>= warbler (fun _ ->
+            Filters.GET >=> (View.checkout |> html)
+            Filters.POST >=> warbler (fun _ ->
                 let ctx = Db.getContext()
                 Db.placeOrder username ctx
                 View.checkoutComplete |> html)
@@ -228,7 +228,7 @@ let checkout =
 let createAlbum =
     let ctx = Db.getContext()
     choose [
-        GET >>= warbler (fun _ -> 
+        Filters.GET >=> warbler (fun _ -> 
             let genres = 
                 Db.getGenres ctx 
                 |> List.map (fun g -> decimal g.GenreId, g.Name)
@@ -236,7 +236,7 @@ let createAlbum =
                 Db.getArtists ctx
                 |> List.map (fun g -> decimal g.ArtistId, g.Name)
             html (View.createAlbum genres artists))
-        POST >>= bindToForm Form.album (fun form ->
+        Filters.POST >=> bindToForm Form.album (fun form ->
             Db.createAlbum (int form.ArtistId, int form.GenreId, form.Price, form.Title) ctx
             Redirection.FOUND Path.Admin.manage)
     ]
@@ -246,7 +246,7 @@ let editAlbum id =
     match Db.getAlbum id ctx with
     | Some album ->
         choose [
-            GET >>= warbler (fun _ ->
+            Filters.GET >=> warbler (fun _ ->
                 let genres = 
                     Db.getGenres ctx 
                     |> List.map (fun g -> decimal g.GenreId, g.Name)
@@ -254,7 +254,7 @@ let editAlbum id =
                     Db.getArtists ctx
                     |> List.map (fun g -> decimal g.ArtistId, g.Name)
                 html (View.editAlbum album genres artists))
-            POST >>= bindToForm Form.album (fun form ->
+            Filters.POST >=> bindToForm Form.album (fun form ->
                 Db.updateAlbum album (int form.ArtistId, int form.GenreId, form.Price, form.Title) ctx
                 Redirection.FOUND Path.Admin.manage)
         ]
@@ -266,9 +266,9 @@ let deleteAlbum id =
     match Db.getAlbum id ctx with
     | Some album ->
         choose [ 
-            GET >>= warbler (fun _ -> 
+            Filters.GET >=> warbler (fun _ -> 
                 html (View.deleteAlbum album.Title))
-            POST >>= warbler (fun _ -> 
+            Filters.POST >=> warbler (fun _ -> 
                 Db.deleteAlbum album ctx; 
                 Redirection.FOUND Path.Admin.manage)
         ]
@@ -277,26 +277,26 @@ let deleteAlbum id =
 
 let webPart = 
     choose [
-        path Path.home >>= home
-        path Path.Store.overview >>= overview
-        path Path.Store.browse >>= browse
+        path Path.home >=> home
+        path Path.Store.overview >=> overview
+        path Path.Store.browse >=> browse
         pathScan Path.Store.details details
 
-        path Path.Account.logon >>= logon
-        path Path.Account.logoff >>= reset
-        path Path.Account.register >>= register
+        path Path.Account.logon >=> logon
+        path Path.Account.logoff >=> reset
+        path Path.Account.register >=> register
 
-        path Path.Cart.overview >>= cart
+        path Path.Cart.overview >=> cart
         pathScan Path.Cart.addAlbum addToCart
         pathScan Path.Cart.removeAlbum removeFromCart
-        path Path.Cart.checkout >>= loggedOn checkout
+        path Path.Cart.checkout >=> loggedOn checkout
 
-        path Path.Admin.manage >>= admin manage
-        path Path.Admin.createAlbum >>= admin createAlbum
+        path Path.Admin.manage >=> admin manage
+        path Path.Admin.createAlbum >=> admin createAlbum
         pathScan Path.Admin.editAlbum (fun id -> admin (editAlbum id))
         pathScan Path.Admin.deleteAlbum (fun id -> admin (deleteAlbum id))
 
-        pathRegex "(.*)\.(css|png|gif|js)" >>= Files.browseHome
+        pathRegex "(.*)\.(css|png|gif|js)" >=> Files.browseHome
 
         html View.notFound
     ]
