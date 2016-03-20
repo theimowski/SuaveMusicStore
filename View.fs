@@ -77,8 +77,8 @@ let home (bestSellers : Db.BestSeller list) = [
     ulAttr ["id", "album-list"] [
             for album in bestSellers ->
                 li (aHref 
-                        (sprintf Path.Store.details album.AlbumId) 
-                        (flatten [ imgSrc album.AlbumArtUrl
+                        (sprintf Path.Store.details album.Albumid) 
+                        (flatten [ imgSrc album.Albumarturl
                                    span (text album.Title)]))
         ]
 ]
@@ -101,8 +101,8 @@ let browse genre (albums : Db.Album list) = [
         ulAttr ["id", "album-list"] [
             for album in albums ->
                 li (aHref 
-                        (sprintf Path.Store.details album.AlbumId) 
-                        (flatten [ imgSrc album.AlbumArtUrl
+                        (sprintf Path.Store.details album.Albumid) 
+                        (flatten [ imgSrc album.Albumarturl
                                    span (text album.Title)]))
         ]
     ]
@@ -110,7 +110,7 @@ let browse genre (albums : Db.Album list) = [
 
 let details (album : Db.AlbumDetails) = [
     h2 album.Title
-    p [ imgSrc album.AlbumArtUrl ]
+    p [ imgSrc album.Albumarturl ]
     divId "album-details" [
         for (caption,t) in ["Genre:",album.Genre;"Artist:",album.Artist;"Price:",formatDec album.Price] ->
             p [
@@ -118,7 +118,7 @@ let details (album : Db.AlbumDetails) = [
                 text t
             ]
         yield pAttr ["class", "button"] [
-            aHref (sprintf Path.Cart.addAlbum album.AlbumId) (text "Add to cart")
+            aHref (sprintf Path.Cart.addAlbum album.Albumid) (text "Add to cart")
         ]
     ]
 ]
@@ -139,11 +139,11 @@ let manage (albums : Db.AlbumDetails list) = [
                 td [ text t ]
 
             yield td [
-                aHref (sprintf Path.Admin.editAlbum album.AlbumId) (text "Edit")
+                aHref (sprintf Path.Admin.editAlbum album.Albumid) (text "Edit")
                 text " | "
-                aHref (sprintf Path.Store.details album.AlbumId) (text "Details")
+                aHref (sprintf Path.Store.details album.Albumid) (text "Details")
                 text " | "
-                aHref (sprintf Path.Admin.deleteAlbum album.AlbumId) (text "Delete")
+                aHref (sprintf Path.Admin.deleteAlbum album.Albumid) (text "Delete")
             ]
         ]
     ]
@@ -201,9 +201,9 @@ let editAlbum (album : Db.Album) genres artists = [
               [ { Legend = "Album"
                   Fields = 
                       [ { Label = "Genre"
-                          Xml = selectInput (fun f -> <@ f.GenreId @>) genres (Some (decimal album.GenreId)) }
+                          Xml = selectInput (fun f -> <@ f.GenreId @>) genres (Some (decimal album.Genreid)) }
                         { Label = "Artist"
-                          Xml = selectInput (fun f -> <@ f.ArtistId @>) artists (Some (decimal album.ArtistId))}
+                          Xml = selectInput (fun f -> <@ f.ArtistId @>) artists (Some (decimal album.Artistid))}
                         { Label = "Title"
                           Xml = input (fun f -> <@ f.Title @>) ["value", album.Title] }
                         { Label = "Price"
@@ -288,7 +288,7 @@ let nonEmptyCart (carts : Db.CartDetails list) = [
         for cart in carts ->
             tr [
                 td [
-                    aHref (sprintf Path.Store.details cart.AlbumId) (text cart.AlbumTitle)
+                    aHref (sprintf Path.Store.details cart.Albumid) (text cart.Albumtitle)
                 ]
                 td [
                     text (formatDec cart.Price)
@@ -297,7 +297,7 @@ let nonEmptyCart (carts : Db.CartDetails list) = [
                     text (cart.Count.ToString())
                 ]
                 td [
-                    aHrefAttr "#" ["class", "removeFromCart"; "data-id", cart.AlbumId.ToString()] (text "Remove from cart") 
+                    aHrefAttr "#" ["class", "removeFromCart"; "data-id", cart.Albumid.ToString()] (text "Remove from cart") 
                 ]
             ]
         yield tr [
