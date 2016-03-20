@@ -1,5 +1,6 @@
 source https://www.nuget.org/api/v2
 
-nuget SQLProvider 0.0.9-alpha
+nuget SQLProvider 0.0.11-alpha
+nuget Npgsql 2.2.7
 nuget Suave 1.0.0
 nuget Suave.Experimental 1.0.0

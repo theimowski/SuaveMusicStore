@@ -1,3 +1,4 @@
 SQLProvider
+Npgsql
 Suave
 Suave.Experimental
