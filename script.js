@@ -5,7 +5,7 @@
     var count = parseInt($cartNav.html().match(/\d+/));
 
     $.post("/cart/remove/" + albumId, function (data) {
-        $('#container').html(data);
+        $('#main').html(data);
         $('#update-message').html(albumTitle + ' has been removed from your shopping cart.');
         $cartNav.html('Cart (' + (count - 1) + ')');
     });
