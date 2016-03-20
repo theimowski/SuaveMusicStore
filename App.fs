@@ -142,11 +142,11 @@ let authenticateUser (user : Db.User) =
     >=> session (function
         | CartIdOnly cartId ->
             let ctx = Db.getContext()
-            Db.upgradeCarts (cartId, user.UserName) ctx
+            Db.upgradeCarts (cartId, user.Username) ctx
             sessionStore (fun store -> store.set "cartid" "")
         | _ -> succeed)
     >=> sessionStore (fun store ->
-        store.set "username" user.UserName
+        store.set "username" user.Username
     >=> store.set "role" user.Role)
     >=> returnPathOrHome
 
@@ -230,10 +230,10 @@ let createAlbum =
         GET >=> warbler (fun _ -> 
             let genres = 
                 Db.getGenres ctx 
-                |> List.map (fun g -> decimal g.GenreId, g.Name)
+                |> List.map (fun g -> decimal g.Genreid, g.Name)
             let artists = 
                 Db.getArtists ctx
-                |> List.map (fun g -> decimal g.ArtistId, g.Name)
+                |> List.map (fun g -> decimal g.Artistid, g.Name)
             html (View.createAlbum genres artists))
         POST >=> bindToForm Form.album (fun form ->
             Db.createAlbum (int form.ArtistId, int form.GenreId, form.Price, form.Title) ctx
@@ -248,10 +248,10 @@ let editAlbum id =
             GET >=> warbler (fun _ ->
                 let genres = 
                     Db.getGenres ctx 
-                    |> List.map (fun g -> decimal g.GenreId, g.Name)
+                    |> List.map (fun g -> decimal g.Genreid, g.Name)
                 let artists = 
                     Db.getArtists ctx
-                    |> List.map (fun g -> decimal g.ArtistId, g.Name)
+                    |> List.map (fun g -> decimal g.Artistid, g.Name)
                 html (View.editAlbum album genres artists))
             POST >=> bindToForm Form.album (fun form ->
                 Db.updateAlbum album (int form.ArtistId, int form.GenreId, form.Price, form.Title) ctx
