@@ -300,4 +300,8 @@ let webPart =
         html View.notFound
     ]
 
-startWebServer defaultConfig webPart
+let cfg =
+  { defaultConfig with
+      bindings = [ HttpBinding.mk HTTP (System.Net.IPAddress.Parse "0.0.0.0") 8083us  ] }
+
+startWebServer cfg webPart
