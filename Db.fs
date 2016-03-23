@@ -19,7 +19,7 @@ type Cart = DbContext.``public.cartsEntity``
 type CartDetails = DbContext.``public.cartdetailsEntity``
 type BestSeller = DbContext.``public.bestsellersEntity``
 
-let getContext() = Sql.GetDataContext()
+let getContext() = Sql.GetDataContext("Server=suavemusicstore_db;Database=suavemusicstore;User Id=suave;Password=1234;")
 
 let firstOrNone s = s |> Seq.tryFind (fun _ -> true)
 
