@@ -86,7 +86,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Data.SqlProvider">
-      <HintPath>packages\SQLProvider.0.0.9-alpha\lib\net40\FSharp.Data.SqlProvider.dll</HintPath>
+      <HintPath>packages\SQLProvider.1.0.0\lib\FSharp.Data.SqlProvider.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FsPickler">
