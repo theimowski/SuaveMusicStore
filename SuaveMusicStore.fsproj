@@ -79,7 +79,6 @@
     </Content>
     <None Include="App.config" />
     <Content Include="paket.references" />
-    <Compile Include="App.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
