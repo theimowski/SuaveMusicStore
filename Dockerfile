@@ -1,4 +1,4 @@
-FROM mono:4.2.3.4
+FROM fsharp/fsharp:latest
 
 COPY ./bin/Debug /app
 
