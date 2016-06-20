@@ -79,7 +79,6 @@
     </Content>
     <None Include="App.config" />
     <Content Include="packages.config" />
-    <Compile Include="App.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">
