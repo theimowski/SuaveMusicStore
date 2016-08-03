@@ -13,6 +13,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <Name>SuaveMusicStore</Name>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -82,20 +83,20 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">
-      <HintPath>packages\FSharp.Core.3.1.2.5\lib\net40\FSharp.Core.dll</HintPath>
+      <HintPath>packages\FSharp.Core.4.0.0.1\lib\net40\FSharp.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Data.SqlProvider">
-      <HintPath>packages\SQLProvider.0.0.9-alpha\lib\net40\FSharp.Data.SqlProvider.dll</HintPath>
+      <HintPath>packages\SQLProvider.1.0.23\lib\FSharp.Data.SqlProvider.dll</HintPath>
       <Private>True</Private>
     </Reference>
-	<Reference Include="mscorlib" />
+    <Reference Include="mscorlib" />
     <Reference Include="Suave">
-      <HintPath>packages\Suave.1.0.0\lib\net40\Suave.dll</HintPath>
+      <HintPath>packages\Suave.1.1.3\lib\net40\Suave.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Suave.Experimental">
-      <HintPath>packages\Suave.Experimental.1.0.0\lib\net40\Suave.Experimental.dll</HintPath>
+      <HintPath>packages\Suave.Experimental.1.1.3\lib\net40\Suave.Experimental.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
