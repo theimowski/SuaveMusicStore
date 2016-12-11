@@ -1,0 +1,5 @@
+source https://www.nuget.org/api/v2
+framework >= net451
+
+nuget SQLProvider
+nuget Suave.Experimental
