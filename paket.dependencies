@@ -1,0 +1,6 @@
+source https://www.nuget.org/api/v2
+
+framework: >= net461
+nuget FAKE 4.63.2
+nuget FSharp.Core 4.2.3 redirects:force
+nuget Suave 2.2.1
