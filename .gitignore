@@ -1,0 +1,6 @@
+.fake/
+packages/
+out/
+*.fs
+SuaveMusicStore.fsx
+paket.exe
