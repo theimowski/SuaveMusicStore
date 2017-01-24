@@ -195,14 +195,17 @@ let fillSnippets commit msg =
     |> List.collect formatChunk
 
   
-  let lines = "(*** hide ***)" :: (List.map (sprintf "#r \"%s\"") refDlls)
+  let lines = 
+    match refDlls with 
+    | [] -> []
+    | refDlls -> "(*** hide ***)" :: (List.map (sprintf "#r \"%s\"") refDlls)
 
   let lines = 
     srcFiles 
     |> List.collect srcFileContent 
     |> List.append lines
 
-  let scriptOutName = "SuaveMusicStore"
+  let scriptOutName = Path.Combine ( __SOURCE_DIRECTORY__, "SuaveMusicStore" )
   let _,_,outName = parseFirstMsgLine (Seq.head msg)
   write(scriptOutName + ".fsx", lines)
   Literate.ProcessScriptFile(scriptOutName + ".fsx",lineNumbers = false)
@@ -364,7 +367,7 @@ Target "Publish" (fun _ ->
 Target "All" DoNothing
 
 "Generate"
-  ==> "Preview"
+//  ==> "Preview"
   ==> "All"
 
 "Generate"

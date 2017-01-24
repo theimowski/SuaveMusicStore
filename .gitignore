@@ -1,6 +1,10 @@
 .fake/
 packages/
 out/
+bin/
+build/
+obj/
 *.fs
 SuaveMusicStore.fsx
+SuaveMusicStore.html
 paket.exe
