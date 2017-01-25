@@ -16,7 +16,7 @@ open Fake.Git
 open FSharp.Literate
 let outDir = "out"
 
-let repo = __SOURCE_DIRECTORY__
+let repo = getBuildParamOrDefault "repo" __SOURCE_DIRECTORY__
 let githubAccount = "theimowski"
 let githubRepo = "SuaveMusicStore"
 let branch = "v2.0_src"
@@ -73,7 +73,7 @@ let regexReplace (pattern: string) (replacement: string) (input: string) =
 
 let parseFirstMsgLine (firstLine: string) =
   let level = max 0 (firstLine.LastIndexOf("#"))
-  let title = firstLine.Substring(level + 1).Trim()
+  let title = firstLine.Trim()
   let fileName =
     if title = "Introduction" then
       "README.md"
@@ -91,10 +91,6 @@ let fillSnippets commit msg =
     |> fun x -> if String.IsNullOrWhiteSpace x then None else Some x
     |> Option.map XDocument.Parse
 
-      (*
-  [ "/home/vagrant/github/SuaveMusicStoreTutorial/Suave.dll"
-    "/home/vagrant/github/SuaveMusicStoreTutorial/Suave.Experimental.dll" ]
-*)
   let srcFiles,refDlls =
     match fsproj with
     | Some fsproj ->
@@ -107,7 +103,7 @@ let fillSnippets commit msg =
         |> List.filter ((<>) "AssemblyInfo.fs")
       let dlls = 
         fsproj.Root.XPathSelectElements ("//msbuild:Reference/msbuild:HintPath", ns)
-        |> Seq.map (fun e -> sprintf "%s/%s" repo (normalizePath e.Value))
+        |> Seq.map (fun e -> repo </> e.Value |> normalizePath)
         |> Seq.toList
       files, dlls
     | None ->
@@ -198,7 +194,7 @@ let fillSnippets commit msg =
   let lines = 
     match refDlls with 
     | [] -> []
-    | refDlls -> "(*** hide ***)" :: (List.map (sprintf "#r \"%s\"") refDlls)
+    | refDlls -> "(*** hide ***)" :: (List.map (sprintf "#r @\"%s\"") refDlls)
 
   let lines = 
     srcFiles 
@@ -300,12 +296,13 @@ let generate () =
       let msg = Git.CommandHelper.getGitResult repo ("log --format=%B -n 1 " + commit) |> Seq.toList
       let firstLine = msg |> Seq.item 0
       let level,title,fileName = parseFirstMsgLine firstLine
+      let outFile = outDir </> fileName
+      let original = File.ReadAllLines outFile |> List.ofArray
       let contents = 
-        msg
+        original
         |> fillSnippets commit
         |> insertGithubCommit commit
         |> insertGitDiff commit
-      let outFile = outDir </> fileName
       write (outFile, contents))
 
 let handleWatcherEvents (events:FileChange seq) =
@@ -324,10 +321,12 @@ Target "Generate" (fun _ ->
 
 Target "Preview" (fun _ ->
   
-  ExecProcess (fun si ->
-          si.FileName <- "gitbook"
-          si.Arguments <- sprintf "%s %s" "install" outDir
-      ) (TimeSpan.FromSeconds 10.)
+  let gitbook = Environment.ExpandEnvironmentVariables @"%APPDATA%\npm\node_modules\gitbook-cli\bin\gitbook.js"
+
+  directExec (fun si ->
+          si.FileName <- "node"
+          si.Arguments <- sprintf "%s %s %s" gitbook "install" outDir
+      ) //(TimeSpan.FromSeconds 10.)
   |> ignore
   
   use watcher = 
@@ -335,8 +334,8 @@ Target "Preview" (fun _ ->
     |> WatchChanges handleWatcherEvents
 
   StartProcess (fun si ->
-          si.FileName <- "gitbook"
-          si.Arguments <- sprintf "%s %s" "serve" outDir
+          si.FileName <- "node"
+          si.Arguments <- sprintf "%s %s %s" gitbook "serve" outDir
       )
     
   traceImportant "Waiting for git edits. Press any key to stop."
