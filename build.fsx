@@ -213,7 +213,7 @@ let fillSnippets commit msg =
     |> Seq.map (fun x -> x.ToString(SaveOptions.DisableFormatting)
                           .Replace("<code", "<div")
                           .Replace("</code", "</div")
-                          .Replace("\n","&#10;")
+                          //.Replace("\n","&#10;")
                           .Replace(""" <span class="k">end</span>""","")
                           |> regexReplace 
                               """class="t">(\w+)</span> <span class="o">=</span> <span class="k">begin</span>""" 
@@ -284,19 +284,19 @@ let insertGitDiff commit code =
 
 let generate () =
   CreateDir outDir
-  !! "en/*md"
-  ++ "book.json"
-  ++ "custom.css"
-  ++ "tips.js"
+  [ "LANGS.md"
+    "book.json"
+    "custom.css"
+    "tips.js" ]
   |> Copy outDir
-  
+  CopyDir (outDir </> "en") "en" (fun _ -> true)
   let commits = Git.CommandHelper.getGitResult repo ("log --reverse --pretty=%H " + branch)
   commits
   |> Seq.iter (fun commit ->
       let msg = Git.CommandHelper.getGitResult repo ("log --format=%B -n 1 " + commit) |> Seq.toList
       let firstLine = msg |> Seq.item 0
       let level,title,fileName = parseFirstMsgLine firstLine
-      let outFile = outDir </> fileName
+      let outFile = outDir </> "en" </> fileName
       let original = File.ReadAllLines outFile |> List.ofArray
       let contents = 
         original
@@ -344,14 +344,11 @@ Target "Preview" (fun _ ->
 )
 
 Target "Publish" (fun _ ->
-  failwith "todo here"
-  let publishRepo = sprintf "https://github.com/%s/%s.git" githubAccount githubRepo
-
+  let gitbookAccount = "theimowski"
+  let gitbookRepo = "suave-music-store"
+  let publishRepo = sprintf "https://git.gitbook.com/%s/%s.git" gitbookAccount gitbookRepo
+  let publishBranch = "v2.0"
   let publishDir = "publish"
-  let publishBranch = 
-    match branch with
-    | Regex "^(.*)_src$" [name] -> name
-    | name -> name + "_gb"
 
   CleanDir publishDir
   cloneSingleBranch "" publishRepo publishBranch publishDir
@@ -359,7 +356,7 @@ Target "Publish" (fun _ ->
   fullclean publishDir
   CopyRecursive outDir publishDir true |> printfn "%A"
   StageAll publishDir
-  Commit publishDir (sprintf "Update generated documentation %s" <| DateTime.UtcNow.ToShortDateString())
+  Commit publishDir (sprintf "Update generated gitbook %s" <| DateTime.UtcNow.ToShortDateString())
   Branches.push publishDir
 )
 

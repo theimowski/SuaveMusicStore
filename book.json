@@ -5,10 +5,10 @@
     "pluginsConfig": {
         "addcssjs": {
             "css": [
-                "custom.css"
+                "../custom.css"
             ],
             "js": [
-                "tips.js"
+                "../tips.js"
             ]
         }
     }

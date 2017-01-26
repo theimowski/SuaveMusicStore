@@ -1,6 +1,7 @@
 .fake/
 packages/
 out/
+publish/
 bin/
 build/
 obj/
