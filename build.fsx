@@ -282,20 +282,26 @@ let insertGitDiff commit code =
     |> List.append ["";"Files changed:";""]
     |> List.append code
 
-let generate () =
-  CreateDir outDir
-  [ "LANGS.md"
-    "book.json"
-    "custom.css"
-    "tips.js" ]
-  |> Copy outDir
-  CopyDir (outDir </> "en") "en" (fun _ -> true)
+let generate (changedFile : FileInfo option) =
   let commits = Git.CommandHelper.getGitResult repo ("log --reverse --pretty=%H " + branch)
-  commits
-  |> Seq.iter (fun commit ->
-      let msg = Git.CommandHelper.getGitResult repo ("log --format=%B -n 1 " + commit) |> Seq.toList
-      let firstLine = msg |> Seq.item 0
-      let level,title,fileName = parseFirstMsgLine firstLine
+  let fileNameFromCommit commit = 
+    let msg = Git.CommandHelper.getGitResult repo ("log --format=%B -n 1 " + commit) |> Seq.toList
+    let firstLine = msg |> Seq.item 0
+    let _,_,fileName = parseFirstMsgLine firstLine
+    fileName
+
+  match changedFile with
+  | None ->
+    CreateDir outDir
+    [ "LANGS.md"
+      "book.json"
+      "custom.css"
+      "tips.js" ]
+    |> Copy outDir
+    CopyDir (outDir </> "en") "en" (fun _ -> true)
+    commits
+    |> Seq.iter (fun commit ->
+      let fileName = fileNameFromCommit commit
       let outFile = outDir </> "en" </> fileName
       let original = File.ReadAllLines outFile |> List.ofArray
       let contents = 
@@ -304,19 +310,38 @@ let generate () =
         |> insertGithubCommit commit
         |> insertGitDiff commit
       write (outFile, contents))
+  | Some changedFile ->
+    let original = File.ReadAllLines changedFile.FullName |> List.ofArray
+    let commit = commits |> Seq.tryFind (fun c -> outDir </> "en" </> fileNameFromCommit c |> File.Exists)
+    let fileName = changedFile.Name
+    let outFile = outDir </> "en" </> fileName
+    let contents = 
+      match commit with
+      | Some commit ->
+          original
+          |> fillSnippets commit
+          |> insertGithubCommit commit
+          |> insertGitDiff commit
+      | None ->
+        original
+    write (outFile, contents)
+  
+let refresh (fi : FileInfo) = 
+  traceImportant <| sprintf "%s was changed." fi.FullName
+  generate (Some fi)
 
 let handleWatcherEvents (events:FileChange seq) =
-  for e in events do
-    let fi = fileInfo e.FullPath
-    traceImportant <| sprintf "%s was changed." fi.Name
-    match fi.Attributes.HasFlag FileAttributes.Hidden || fi.Attributes.HasFlag FileAttributes.Directory with
-    | true -> ()
-    | _ -> generate ()
+  events
+  |> Seq.map (fun e -> fileInfo e.FullPath)
+  |> Seq.filter (fun fi -> 
+    not (fi.Attributes.HasFlag FileAttributes.Hidden) && 
+    not (fi.Attributes.HasFlag FileAttributes.Directory))
+  |> Seq.iter refresh
 
 Target "Generate" (fun _ ->
   CleanDir outDir
 
-  generate()
+  generate None
 )
 
 Target "Preview" (fun _ ->
@@ -330,7 +355,8 @@ Target "Preview" (fun _ ->
   |> ignore
   
   use watcher = 
-    !! (repo </> ".git" </> "refs" </> "heads" </> "*.*") 
+  //  !! (repo </> ".git" </> "refs" </> "heads" </> "*.*")
+    !! ("en" </> "*.md") 
     |> WatchChanges handleWatcherEvents
 
   StartProcess (fun si ->
@@ -363,7 +389,7 @@ Target "Publish" (fun _ ->
 Target "All" DoNothing
 
 "Generate"
-//  ==> "Preview"
+  ==> "Preview"
   ==> "All"
 
 "Generate"
