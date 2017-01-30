@@ -14,7 +14,7 @@ Now, let's restrict our WebPart, so that the "Hello World" response is sent only
 `let webPart = path "/" >=> OK "Hello World"`
 `path` function is defined in `Suave.Filters` module, thus we need to open it at the beggining of `App.fs`. `Suave.Operators` and `Suave.Successful` modules will also be crucial - let's have them opened as well:
 
-==> App.fs:1-1
+==> App.fs:1-4
 
 `path` is a function of type:
 `string -> WebPart`

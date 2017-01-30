@@ -71,18 +71,19 @@ let inline normalizePath(path:string) =
 let regexReplace (pattern: string) (replacement: string) (input: string) =
   Regex(pattern).Replace(input, replacement)
 
+let markdownFileName (s: string) =
+  if s = "Introduction" then
+    "README.md"
+  else
+    let s =
+      Path.GetInvalidFileNameChars()
+      |> Array.fold (fun (s: string) c -> s.Replace(c.ToString(), "")) s
+    s.ToLowerInvariant().Replace(" ", "_") + ".md"
+
 let parseFirstMsgLine (firstLine: string) =
   let level = max 0 (firstLine.LastIndexOf("#"))
   let title = firstLine.Trim()
-  let fileName =
-    if title = "Introduction" then
-      "README.md"
-    else
-      let title =
-        Path.GetInvalidFileNameChars()
-        |> Array.fold (fun (title: string) c -> title.Replace(c.ToString(), "")) title
-      title.ToLowerInvariant().Replace(" ", "_") + ".md"
-  level,title,fileName
+  level,title,markdownFileName title
 
 let fillSnippets commit msg =
   let fsproj = 
@@ -283,12 +284,10 @@ let insertGitDiff commit code =
     |> List.append code
 
 let generate (changedFile : FileInfo option) =
-  let commits = Git.CommandHelper.getGitResult repo ("log --reverse --pretty=%H " + branch)
-  let fileNameFromCommit commit = 
-    let msg = Git.CommandHelper.getGitResult repo ("log --format=%B -n 1 " + commit) |> Seq.toList
-    let firstLine = msg |> Seq.item 0
-    let _,_,fileName = parseFirstMsgLine firstLine
-    fileName
+  let hashLen = 40
+  let commits = 
+    Git.CommandHelper.getGitResult repo ("log --reverse --pretty=oneline " + branch)
+    |> Seq.map (fun log -> log.Substring(0,hashLen), log.Substring(hashLen + 1))
 
   match changedFile with
   | None ->
@@ -300,28 +299,30 @@ let generate (changedFile : FileInfo option) =
     |> Copy outDir
     CopyDir (outDir </> "en") "en" (fun _ -> true)
     commits
-    |> Seq.iter (fun commit ->
-      let fileName = fileNameFromCommit commit
+    |> Seq.iter (fun (commitHash,body) ->
+      let fileName = markdownFileName body
       let outFile = outDir </> "en" </> fileName
       let original = File.ReadAllLines outFile |> List.ofArray
       let contents = 
         original
-        |> fillSnippets commit
-        |> insertGithubCommit commit
-        |> insertGitDiff commit
+        |> fillSnippets commitHash
+        |> insertGithubCommit commitHash
+        |> insertGitDiff commitHash
       write (outFile, contents))
   | Some changedFile ->
     let original = File.ReadAllLines changedFile.FullName |> List.ofArray
-    let commit = commits |> Seq.tryFind (fun c -> outDir </> "en" </> fileNameFromCommit c |> File.Exists)
+    let commit = 
+      commits 
+      |> Seq.tryFind (fun (c,body) -> markdownFileName body = changedFile.Name)
     let fileName = changedFile.Name
     let outFile = outDir </> "en" </> fileName
     let contents = 
       match commit with
-      | Some commit ->
+      | Some (commitHash,body) ->
           original
-          |> fillSnippets commit
-          |> insertGithubCommit commit
-          |> insertGitDiff commit
+          |> fillSnippets commitHash
+          |> insertGithubCommit commitHash
+          |> insertGitDiff commitHash
       | None ->
         original
     write (outFile, contents)
@@ -354,10 +355,10 @@ Target "Preview" (fun _ ->
       ) //(TimeSpan.FromSeconds 10.)
   |> ignore
   
-  use watcher = 
+//  use watcher = 
   //  !! (repo </> ".git" </> "refs" </> "heads" </> "*.*")
-    !! ("en" </> "*.md") 
-    |> WatchChanges handleWatcherEvents
+//    !! ("en" </> "*.md") 
+//    |> WatchChanges handleWatcherEvents
 
   StartProcess (fun si ->
           si.FileName <- "node"
@@ -366,7 +367,7 @@ Target "Preview" (fun _ ->
     
   traceImportant "Waiting for git edits. Press any key to stop."
   System.Console.ReadKey() |> ignore
-  watcher.Dispose()
+  //watcher.Dispose()
 )
 
 Target "Publish" (fun _ ->

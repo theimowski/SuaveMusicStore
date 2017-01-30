@@ -3,9 +3,7 @@
 In addition to that static string path, we can specify route arguments.
 Suave comes with a cool feature called "typed routes", which gives you statically typed control over arguments for your route. As an example, let's see how we can add `id` of an album to the details route:
 
-```fsharp
-pathScan "/store/details/%d" (fun id -> OK (sprintf "Details: %d" id))
-```
+==> App.fs:11-11
 
 This might look familiar to print formatting from C++, but it's more powerful.
 What happens here is that the compiler checks the type for the `%d` argument and complains if you pass it a value which is not an integer.
