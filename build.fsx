@@ -4,6 +4,11 @@
 #r @"FakeLib.dll"
 #r @"System.Xml.Linq"
 
+#r "FakeLib.dll"
+
+#I @"packages/build/Suave/lib/net40"
+#r "Suave.dll"
+
 open System
 open System.IO
 open System.Text.RegularExpressions
@@ -14,6 +19,16 @@ open Fake
 open Fake.Git
 
 open FSharp.Literate
+
+open Suave
+open Suave.Web
+open Suave.Http
+open Suave.Operators
+open Suave.Sockets
+open Suave.Sockets.Control
+open Suave.Sockets.AsyncSocket
+open Suave.WebSocket
+
 let outDir = "out"
 
 let repo = getBuildParamOrDefault "repo" __SOURCE_DIRECTORY__
@@ -295,7 +310,8 @@ let generate (changedFile : FileInfo option) =
     [ "LANGS.md"
       "book.json"
       "custom.css"
-      "tips.js" ]
+      "tips.js"
+      "suave_reload.js" ]
     |> Copy outDir
     CopyDir (outDir </> "en") "en" (fun _ -> true)
     commits
@@ -331,13 +347,27 @@ let refresh (fi : FileInfo) =
   traceImportant <| sprintf "%s was changed." fi.FullName
   generate (Some fi)
 
+let refreshEvent = new Event<_>()
+
+let gitbook = Environment.ExpandEnvironmentVariables  @"%APPDATA%\npm\node_modules\gitbook-cli\bin\gitbook.js"
+
+
 let handleWatcherEvents (events:FileChange seq) =
-  events
-  |> Seq.map (fun e -> fileInfo e.FullPath)
-  |> Seq.filter (fun fi -> 
-    not (fi.Attributes.HasFlag FileAttributes.Hidden) && 
-    not (fi.Attributes.HasFlag FileAttributes.Directory))
-  |> Seq.iter refresh
+    events
+    |> Seq.map (fun e -> fileInfo e.FullPath)
+    |> Seq.filter (fun fi -> 
+      not (fi.Attributes.HasFlag FileAttributes.Hidden) && 
+      not (fi.Attributes.HasFlag FileAttributes.Directory))
+    |> Seq.iter refresh
+    
+    directExec (fun si ->
+            si.FileName <- "node"
+            si.Arguments <- sprintf "%s %s %s" gitbook "build" outDir
+    ) |> ignore
+
+    refreshEvent.Trigger()   
+    
+  
 
 Target "Generate" (fun _ ->
   CleanDir outDir
@@ -345,27 +375,68 @@ Target "Generate" (fun _ ->
   generate None
 )
 
+let socketHandler (webSocket : WebSocket) =
+  fun cx -> socket {
+    while true do
+      let! refreshed =
+        Control.Async.AwaitEvent(refreshEvent.Publish)
+        |> Suave.Sockets.SocketOp.ofAsync 
+      let byteResponse =
+        "refreshed"
+        |> System.Text.Encoding.ASCII.GetBytes
+        |> ByteSegment
+      do! webSocket.send Text byteResponse true
+  }
+
+let startWebServer () =
+    let rec findPort port =
+        let portIsTaken =
+            if isMono then false else
+            System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners()
+            |> Seq.exists (fun x -> x.Port = port)
+
+        if portIsTaken then findPort (port + 1) else port
+
+    let port = findPort 8083
+
+    let serverConfig = 
+        { defaultConfig with
+           homeFolder = Some (FullName <| outDir </> "_book")
+           bindings = [ HttpBinding.createSimple HTTP "127.0.0.1" port ]
+        }
+    let app =
+      choose [
+        Filters.path "/websocket" >=> handShake socketHandler
+        Writers.setHeader "Cache-Control" "no-cache, no-store, must-revalidate"
+        >=> Writers.setHeader "Pragma" "no-cache"
+        >=> Writers.setHeader "Expires" "0"
+        >=> Files.browseHome ]
+    startWebServerAsync serverConfig app |> snd |> Async.Start
+    Diagnostics.Process.Start (sprintf "http://localhost:%d/index.html" port) |> ignore
+
 Target "Preview" (fun _ ->
   
-  let gitbook = Environment.ExpandEnvironmentVariables @"%APPDATA%\npm\node_modules\gitbook-cli\bin\gitbook.js"
-
   directExec (fun si ->
           si.FileName <- "node"
           si.Arguments <- sprintf "%s %s %s" gitbook "install" outDir
       ) //(TimeSpan.FromSeconds 10.)
   |> ignore
   
-//  use watcher = 
+  use watcher = 
   //  !! (repo </> ".git" </> "refs" </> "heads" </> "*.*")
-//    !! ("en" </> "*.md") 
-//    |> WatchChanges handleWatcherEvents
+    !! ("en" </> "*.md") 
+    |> WatchChanges handleWatcherEvents
 
-  StartProcess (fun si ->
+
+  directExec (fun si ->
           si.FileName <- "node"
-          si.Arguments <- sprintf "%s %s %s" gitbook "serve" outDir
-      )
+          si.Arguments <- sprintf "%s %s %s" gitbook "build" outDir
+  ) |> ignore
     
-  traceImportant "Waiting for git edits. Press any key to stop."
+  startWebServer()
+  
+
+  //traceImportant "Waiting for git edits. Press any key to stop."
   System.Console.ReadKey() |> ignore
   //watcher.Dispose()
 )
