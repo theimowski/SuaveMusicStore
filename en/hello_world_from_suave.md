@@ -1,11 +1,29 @@
 # Hello World from Suave
 
-Suave application can be hosted as a standalone Console Application. 
-Let's start by creating a Console Application Project named `SuaveMusicStore` (to keep all the files in single folder, uncheck the option to create folder for solution).
-Now we can add NuGet reference to Suave. To do that, in Package Manager Console type: 
-```install-package Suave -version 1.0```. 
-Alternatively, you can use the NuGet GUI to find and install the Suave package.
-Rename the `Program.fs` file to `App.fs` to better reflect the purpose of the file, and replace its contents completely with the following code:
+Now we can add NuGet reference to Suave. To do that, add Suave package to paket.dependencies: 
+
+```
+nuget Suave 2.0.1
+```
+
+Note that we pin Suave version to the latest (as of the time of writing) version of package so that this tutorial doesn't get out of date.
+
+Also, add Suave package to your paket.references:
+
+```
+Suave
+```
+
+Rename the `SuaveMusicStore.fs` file to `App.fs` to better reflect the purpose of the file.
+With Forge we can rename the file using command:
+
+```
+> forge rename file --name .\SuaveMusicStore.fs --rename .\App.fs --project .\SuaveMusicStore.fsproj
+```
+
+Note: make sure you specify current directory (``.``) when giving files to Forge
+
+Replace its contents completely with the following code:
 
 ==> App.fs
 
