@@ -23,7 +23,7 @@ This means that we should be already able to build and run in command line:
 Windows
 
 ```
-> .\build.cmd && .\build\SuaveMusicStore.exe "Hello world"
+> .\build.cmd; .\build\SuaveMusicStore.exe "Hello world"
 ```
 
 Mac / Linux

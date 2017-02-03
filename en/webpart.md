@@ -12,6 +12,7 @@ This means that `WebPart` is actually a function, which takes objects of type `H
 
 `HttpContext` gathers information about the incoming request, outcoming response and other data.
 `Async`, which is often called "asynchronous workflow" is a concept like "promise" or "future" in some other programming languages. C# 5 introduces the Async / Await feature, which is somewhat similar to F# Async. [Here](http://fsharpforfunandprofit.com/posts/concurrency-async-and-parallel/) is a great F# resource on async workflows and asynchronous programming in general. 
+
 One of the biggest advantages F# has over C# is that it doesn't allow nulls. F# compiler prevents you from passing null as an argument, and as a result you will no longer have to deal with the infamous `NullReferenceException`. 
 But what do you do if you want to say that something may have a value or may not have any value at all?
 That's where the `Option` type comes in. Object of type `Option` might be: `None` or `Some x`.

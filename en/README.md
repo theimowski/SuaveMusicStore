@@ -14,7 +14,7 @@ For most of sections there will be a direct link to a specific commit that conta
 This allows you to follow along the process of creating the app, and get back on the track in case of any ambiguity.
 
 ----------------- TODO:
-I'll be using both win and linux / mac commands. $ vs ">" and slash vs backslash.
+I'll be using both win (powershell) and linux / mac commands. $ vs ">" and slash vs backslash.
 ----------------- TODO:
 
 You're more than welcome to create issues or pull requests for this tutorial.
