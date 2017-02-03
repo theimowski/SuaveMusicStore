@@ -1,7 +1,15 @@
-open Suave                 // always open suave
-open Suave.Successful      // for OK-result
-open Suave.Web             // for config
+open Suave
+open Suave.Filters
+open Suave.Operators
+open Suave.Successful
+open Suave.Web
 
-let webPart = OK "Hello World!"
+let webPart = 
+    choose [
+        path "/" >=> (OK "Home")
+        path "/store" >=> (OK "Store")
+        path "/store/browse" >=> (OK "Browse")
+        path "/store/details" >=> (OK "Details")
+    ]
 
 startWebServer defaultConfig webPart
