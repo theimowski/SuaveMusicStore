@@ -1,3 +1,5 @@
+module SuaveMusicStore.App
+
 open Suave
 open Suave.Filters
 open Suave.Operators

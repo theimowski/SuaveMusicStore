@@ -4,3 +4,4 @@ framework: >= net461
 nuget FAKE 4.63.2
 nuget FSharp.Core 4.2.3 redirects:force
 nuget Suave 2.2.1
+nuget Suave.Experimental 2.2.1
