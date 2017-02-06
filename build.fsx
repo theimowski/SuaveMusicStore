@@ -217,7 +217,8 @@ let fillSnippets commit msg =
     |> List.collect srcFileContent 
     |> List.append lines
 
-  let scriptOutName = Path.Combine ( __SOURCE_DIRECTORY__, "SuaveMusicStore" )
+  let projectName = "SuaveMusicStore"
+  let scriptOutName = Path.Combine ( __SOURCE_DIRECTORY__, projectName )
   let _,_,outName = parseFirstMsgLine (Seq.head msg)
   write(scriptOutName + ".fsx", lines)
   Literate.ProcessScriptFile(scriptOutName + ".fsx",lineNumbers = false)
@@ -233,7 +234,7 @@ let fillSnippets commit msg =
                           .Replace(""" <span class="k">end</span>""","")
                           |> regexReplace 
                               """class="t">(\w+)</span> <span class="o">=</span> <span class="k">begin</span>""" 
-                              ("""class="t">""" + scriptOutName + """.$1</span>"""))
+                              ("""class="t">""" + projectName + """.$1</span>"""))
     |> Seq.toList
     |> List.zip snippetOrder
     |> List.sortBy fst
