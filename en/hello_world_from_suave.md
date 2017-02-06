@@ -14,6 +14,12 @@ Also, add Suave package to your paket.references:
 Suave
 ```
 
+and invoke paket install:
+
+```
+> .paket\paket.exe install
+```
+
 Rename the `SuaveMusicStore.fs` file to `App.fs` to better reflect the purpose of the file.
 With Forge we can rename the file using command:
 
@@ -23,7 +29,9 @@ With Forge we can rename the file using command:
 >>                  --project .\SuaveMusicStore.fsproj
 ```
 
-> Note: make sure you specify current directory (``.``) when passing to Forge files from current directory.
+Make sure you specify current directory (``.``) when passing to Forge files from current directory.
+
+> Note: We can't just rename the *.fs file only, because the *.fsproj project file keeps track of sources to compile. That's why we need to make sure those are in sync by e.g. running Forge command.
 
 Replace contents of App.fs completely with following code:
 
