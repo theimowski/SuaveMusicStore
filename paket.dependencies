@@ -3,3 +3,4 @@ source https://www.nuget.org/api/v2
 nuget FAKE
 nuget FSharp.Core
 nuget Suave 2.0.1
+nuget Suave.Experimental 2.0.1

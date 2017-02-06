@@ -5,3 +5,6 @@ NUGET
     FSharp.Core (4.0.0.1)
     Suave (2.0.1)
       FSharp.Core (>= 4.0.0.1)
+    Suave.Experimental (2.0.1)
+      FSharp.Core (>= 4.0.0.1)
+      Suave (>= 2.0.1)
