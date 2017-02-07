@@ -11,7 +11,7 @@ let index =
         body [] [
             div ["id", "header"] [
                 tag "h1" [] [
-                    a "/" [] [Text "F# Suave Music Store"]
+                    a Path.home [] [Text "F# Suave Music Store"]
                 ]
             ]
 

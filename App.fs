@@ -14,10 +14,10 @@ let browse =
 
 let webPart = 
     choose [
-        path "/" >=> (OK View.index)
-        path "/store" >=> (OK "Store")
-        path "/store/browse" >=> browse
-        pathScan "/store/details/%d" (fun id -> OK (sprintf "Details: %d" id))
+        path Path.home >=> (OK View.index)
+        path Path.Store.overview >=> (OK "Store")
+        path Path.Store.browse >=> browse
+        pathScan Path.Store.details (fun id -> OK (sprintf "Details %d" id))
     ]
 
 startWebServer defaultConfig webPart
