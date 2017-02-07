@@ -15,7 +15,7 @@ let browse =
 
 let webPart = 
     choose [
-        path "/" >=> (OK "Home")
+        path "/" >=> (OK View.index)
         path "/store" >=> (OK "Store")
         path "/store/browse" >=> browse
         pathScan "/store/details/%d" 
