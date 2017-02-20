@@ -2,10 +2,13 @@ module SuaveMusicStore.View
 
 open Suave.Html
 
+let cssLink href = link [ "href", href; " rel", "stylesheet"; " type", "text/css" ]
+
 let index =
     html [] [
         head [] [
             title [] "Suave Music Store"
+            cssLink "/Site.css"
         ]
 
         body [] [

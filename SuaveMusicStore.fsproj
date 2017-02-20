@@ -9,6 +9,12 @@
     <Compile Include="View.fs" />
     <Compile Include="App.fs" />
     <Content Include="app.config" />
+    <Content Include="Site.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project=".paket\Paket.Restore.targets" />
 </Project>
