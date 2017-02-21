@@ -4,7 +4,23 @@ open Suave.Html
 
 let cssLink href = link [ "href", href; " rel", "stylesheet"; " type", "text/css" ]
 
-let index =
+let home = [
+    Text "Home"
+]
+
+let store = [
+    Text "Store"
+]
+
+let browse genre = [
+    Text (sprintf "Genre: %s" genre)
+]
+
+let details id = [
+    Text (sprintf "Details %d" id)
+]
+
+let index container =
     html [] [
         head [] [
             title [] "Suave Music Store"
@@ -17,6 +33,8 @@ let index =
                     a Path.home [] [Text "F# Suave Music Store"]
                 ]
             ]
+
+            div ["id", "main"] container
 
             div ["id", "footer"] [
                 Text "built with "
