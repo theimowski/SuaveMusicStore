@@ -18,40 +18,26 @@ nuget Npgsql 3.1.4
 
 Don't forget to both packages to `paket.references` as well as running `paket install`!
 
---- TODO below
-
 Having installed the SQLProvider, let's add `Db.fs` file to the beginning of our project - before any other `*.fs` file.
 
-In the newly created file, open `FSharp.Data.Sql` module:
+In the newly created file, first open `FSharp.Data.Sql` module:
 
-```fsharp
-module SuaveMusicStore.Db
-
-open FSharp.Data.Sql
-```
+==> Db.fs:1-3
 
 Next, comes the most interesting part:
 
-```fsharp
-type Sql = 
-    SqlDataProvider< 
-        "Server=(LocalDb)\\v11.0;Database=SuaveMusicStore;Trusted_Connection=True;MultipleActiveResultSets=true", 
-        DatabaseVendor=Common.DatabaseProviderTypes.MSSQLSERVER >
-```
+==> Db.fs:5-9
 
-You'll need to adjust the above connection string, so that it can access the `SuaveMusicStore` database. At least you need to make sure that the server instance part is correct. If you're not sure how to configure it, [here](https://www.connectionstrings.com/sql-server/) is a great resource on dealing with connection strings in SQL Server.
+You'll need to adjust the above connection string, so that it can access the `SuaveMusicStore` database. At least you need to make sure that the server instance part is correct - verify that the IP reflects you docker host machine.
 After the SQLProvider can access the database, it will generate a set of types in background - each for single database table, as well as each for single database view.
 This might be similar to how Entity Framework generates models for your tables, except there's no explicit code generation involved - all of the types reside under the `Sql` type defined.
 
+> Note: If using Visual Studio Code with Ionide, you might need to trigger `Reload Window` command before Type Provider can succesfully read from the DB.
+
 The generated types have a bit cumbersome names, but we can define type aliases to keep things simpler:
 
-```fsharp
-type DbContext = Sql.dataContext
-type Album = DbContext.``[dbo].[Albums]Entity``
-type Genre = DbContext.``[dbo].[Genres]Entity``
-type AlbumDetails = DbContext.``[dbo].[AlbumDetails]Entity``
-```
+==> Db.fs:11-14
 
-`DbContext` is our data context.
-`Album` and `Genre` reflect database tables.
-`AlbumDetails` reflects database view - it will prove useful when we'll need to display names for the album's genre and artist.
+* `DbContext` is our data context,
+* `Album` and `Genre` reflect database tables,
+* `AlbumDetails` reflects database view - it will prove useful when we'll need to display names for the album's genre and artist.

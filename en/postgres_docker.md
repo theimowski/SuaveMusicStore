@@ -49,3 +49,21 @@ Arguments to the above command are:
 * `-d` switch to indicate detached (background) mode,
 * mapped standard Postgres port 5432 from the container to host (`-p <hostPort>:<containerPort>`),
 * the tag of image (`theimowski/suavemusicstore_db:0.1`).
+
+If everything went fine, we should now be able to see two running containers with the `docker ps` command:
+
+```
+CONTAINER ID        IMAGE                               COMMAND                  CREATED             STATUS              PORTS                    NAMES
+a47a4917d6af        theimowski/suavemusicstore_db:0.1   "docker-entrypoint..."   47 hours ago        Up 4 seconds        0.0.0.0:5432->5432/tcp   suavemusicstore_db
+```
+
+To test the connection to database, we can either use a dedicated Postgres client such as `psql`, or verify that it's listening on the default Postgres port on destination host IP using e.g. `telnet`:
+
+```
+> telnet <host ip> 5432
+```
+
+where `host ip` stands for your Docker machine:
+
+* if you're running Docker natively use loopback IP address 127.0.0.1
+* if you're running Docker using Docker Toolbox, check IP of the docker host with `docker-machine ip <docker VM name>`
