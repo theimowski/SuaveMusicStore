@@ -20,6 +20,8 @@ type Album = DbContext.``public.albumsEntity``
 type Genre = DbContext.``public.genresEntity``
 type AlbumDetails = DbContext.``public.albumdetailsEntity``
 
+let getContext() = Sql.GetDataContext()
+
 let getGenres (ctx : DbContext) : Genre list = 
     ctx.Public.Genres |> Seq.toList
 
