@@ -25,8 +25,12 @@ let store genres = [
     ]
 ]
 
-let browse genre = [
+let browse genre (albums : Db.Album list) = [
     h2 (sprintf "Genre: %s" genre)
+    ul [
+        for album in albums ->
+            li [a (sprintf Path.Store.details album.Albumid) [] [Text album.Title]]
+    ]
 ]
 
 let details id = [
