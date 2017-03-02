@@ -45,6 +45,17 @@ let details (album : Db.AlbumDetails) = [
     ]
 ]
 
+let notFound = [
+    h2 "Page not found"
+    p [] [
+        Text "Could not find the requested resource"
+    ]
+    p [] [
+        Text "Back to "
+        a Path.home [] [Text "Home"]
+    ]
+]
+
 let index container =
     html [] [
         head [] [
