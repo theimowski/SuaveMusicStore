@@ -3,28 +3,11 @@
 It's time to read album's details from the database. 
 Start by adjusting the `details` in `View` module:
 
-```fsharp
-let details (album : Db.AlbumDetails) = [
-    h2 album.Title
-    p [ imgSrc album.AlbumArtUrl ]
-    divId "album-details" [
-        for (caption,t) in ["Genre:",album.Genre;"Artist:",album.Artist;"Price:",formatDec album.Price] ->
-            p [
-                em caption
-                text t
-            ]
-    ]
-]
-```
+==> View.fs:38-50
 
 Above snippet requires defining a few more helper functions in `View`:
 
-```fsharp
-let imgSrc src = imgAttr [ "src", src ]
-let em s = tag "em" [] (text s)
-
-let formatDec (d : Decimal) = d.ToString(Globalization.CultureInfo.InvariantCulture)
-```
+==> View.fs:7-9
 
 as well as opening the `System` namespace at the top of the file.
 
@@ -38,18 +21,9 @@ The `AlbumDetails` database view turns out to be handy now, because we can use a
 
 To read the album's details in `App` module we can do following:
 
-```fsharp
-let details id =
-    match Db.getAlbumDetails id (Db.getContext()) with
-    | Some album ->
-        html (View.details album)
-    | None ->
-        never
-```
+==> App.fs:29-34
 
-```fsharp
-    pathScan Path.Store.details details
-```
+==> App.fs:41-41
 
 A few remarks regarding above snippet:
 
@@ -64,33 +38,3 @@ No pipe operator was used this time, but as an exercise you can think of how you
 Before testing the app, add the "placeholder.gif" image asset. 
 You can download it from [here](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/placeholder.gif).
 Don't forget to set "Copy To Output Directory", as well as add new file extension to the `pathRegex` in `App` module.
-
-You might have noticed, that when you try to access a missing resource (for example entering album details url with arbitrary album id) then no response is sent.
-In order to fix that, let's add a "Page Not Found" handler to our main `choose` WebPart as a last resort:
-
-```fsharp
-let webPart = 
-    choose [
-        ...
-
-        html View.notFound
-    ]
-```
-
-the `View.notFound` can then look like:
-
-```fsharp
-let notFound = [
-    h2 "Page not found"
-    p [
-        text "Could not find the requested resource"
-    ]
-    p [
-        text "Back to "
-        aHref Path.home (text "Home")
-    ]
-]
-```
-
-Results of the section can be seen here: [Tag - Database](https://github.com/theimowski/SuaveMusicStore/tree/database)
-

@@ -21,3 +21,4 @@
    * [Genres list](genres_list.md)
    * [Genre](genre.md)
    * [Album details](album_details.md)
+   * [Page not found](page_not_found.md)
