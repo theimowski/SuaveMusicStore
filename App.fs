@@ -12,7 +12,11 @@ let html container =
 let browse =
     request (fun r ->
         match r.queryParam Path.Store.browseKey with
-        | Choice1Of2 genre -> html (View.browse genre)
+        | Choice1Of2 genre -> 
+            Db.getContext()
+            |> Db.getAlbumsForGenre genre
+            |> View.browse genre
+            |> html
         | Choice2Of2 msg -> BAD_REQUEST msg)
 
 let overview = warbler (fun _ ->
