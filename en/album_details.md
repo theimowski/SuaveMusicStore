@@ -3,15 +3,11 @@
 It's time to read album's details from the database. 
 Start by adjusting the `details` in `View` module:
 
-==> View.fs:38-50
+==> View.fs:34-46
 
-Above snippet requires defining a few more helper functions in `View`:
+Above snippet requires defining one more helper functions in `View`:
 
-==> View.fs:7-9
-
-as well as opening the `System` namespace at the top of the file.
-
-> Note: It's a good habit to open the `System` namespace every single time - in practice it usually turns out to be helpful.
+==> View.fs:5-5
 
 In the `details` function we used list comprehension syntax with an inline list of tuples (`["Genre:",album.Genre;...`).
 This is just to save us some time from typing the `p` element three times for all those properties.

@@ -28,7 +28,11 @@ Next, comes the most interesting part:
 
 ==> Db.fs:5-9
 
-You'll need to adjust the above connection string, so that it can access the `SuaveMusicStore` database. At least you need to make sure that the server instance part is correct - verify that the IP reflects you docker host machine.
+You'll need to adjust the above connection string, so that it can access the `SuaveMusicStore` database. At least you need to make sure that the server instance part is correct - verify that the IP reflects you docker host machine:
+
+* if you're running Docker natively use loopback IP address 127.0.0.1
+* if you're running Docker using Docker Toolbox (Win, Mac), check IP of the docker host with `docker-machine ip <docker VM name>`
+
 After the SQLProvider can access the database, it will generate a set of types in background - each for single database table, as well as each for single database view.
 This might be similar to how Entity Framework generates models for your tables, except there's no explicit code generation involved - all of the types reside under the `Sql` type defined.
 
