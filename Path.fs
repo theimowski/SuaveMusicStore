@@ -12,3 +12,6 @@ module Store =
     let details : IntPath = "/store/details/%d"
 
     let browseKey = "genre"
+
+module Admin =
+    let manage = "/admin/manage"

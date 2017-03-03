@@ -41,3 +41,8 @@ let getAlbumDetails id (ctx : DbContext) : AlbumDetails option =
             select album
     } 
     |> Seq.tryHead
+
+let getAlbumsDetails (ctx : DbContext) : AlbumDetails list = 
+    ctx.Public.Albumdetails
+    |> Seq.toList
+    |> List.sortBy (fun a -> a.Artist)

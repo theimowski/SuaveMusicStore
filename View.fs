@@ -7,6 +7,10 @@ let cssLink href = link [ "href", href; " rel", "stylesheet"; " type", "text/css
 let h2 s = tag "h2" [] [Text s]
 let ul nodes = tag "ul" [] nodes
 let li = tag "li" []
+let table x = tag "table" [] x
+let th x = tag "th" [] x
+let tr x = tag "tr" [] x
+let td x = tag "td" [] x
 
 let home = [
     h2 "Home"
@@ -45,6 +49,29 @@ let details (album : Db.AlbumDetails) = [
                 em caption
                 Text t
             ]
+    ]
+]
+
+let truncate k (s : string) =
+    if s.Length > k then
+        s.Substring(0, k - 3) + "..."
+    else s
+
+let manage (albums : Db.AlbumDetails list) = [ 
+    h2 "Index"
+    table [
+        yield tr [
+            for t in ["Artist";"Title";"Genre";"Price"] -> th [ Text t ]
+        ]
+
+        for album in albums -> 
+        tr [
+            for t in [ truncate 25 album.Artist
+                       truncate 25 album.Title
+                       album.Genre
+                       album.Price.ToString("0.##") ] ->
+                td [ Text t ]
+        ]
     ]
 ]
 
