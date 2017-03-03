@@ -11,6 +11,10 @@ let table x = tag "table" [] x
 let th x = tag "th" [] x
 let tr x = tag "tr" [] x
 let td x = tag "td" [] x
+let strong s = tag "strong" [] (text s)
+
+let form x = tag "form" ["method", "POST"] x
+let submitInput value = input ["type", "submit"; "value", value]
 
 let home = [
     h2 "Home"
@@ -72,6 +76,24 @@ let manage (albums : Db.AlbumDetails list) = [
                        album.Price.ToString("0.##") ] ->
                 td [ Text t ]
         ]
+    ]
+]
+
+let deleteAlbum albumTitle = [
+    h2 "Delete Confirmation"
+    p [] [
+        Text "Are you sure you want to delete the album titled"
+        br []
+        strong albumTitle
+        Text "?"
+    ]
+
+    form [
+        submitInput "Delete"
+    ]
+
+    div [] [
+        a Path.Admin.manage [] [Text "Back to list"]
     ]
 ]
 
