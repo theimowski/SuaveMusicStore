@@ -1,5 +1,6 @@
 module SuaveMusicStore.View
 
+open Suave.Form
 open Suave.Html
 
 let em s = tag "em" [] [Text s]
@@ -15,6 +16,41 @@ let strong s = tag "strong" [] (text s)
 
 let form x = tag "form" ["method", "POST"] x
 let submitInput value = input ["type", "submit"; "value", value]
+
+type Field<'a> = {
+    Label : string
+    Html : Form<'a> -> Suave.Html.Node
+}
+
+type Fieldset<'a> = {
+    Legend : string
+    Fields : Field<'a> list
+}
+
+type FormLayout<'a> = {
+    Fieldsets : Fieldset<'a> list
+    SubmitText : string
+    Form : Form<'a>
+}
+
+let renderForm (layout : FormLayout<_>) =    
+
+    form [
+        for set in layout.Fieldsets -> 
+            tag "fieldset" [] [
+                yield tag "legend" [] [Text set.Legend]
+
+                for field in set.Fields do
+                    yield div ["class", "editor-label"] [
+                        Text field.Label
+                    ]
+                    yield div ["class", "editor-field"] [
+                        field.Html layout.Form
+                    ]
+            ]
+
+        yield submitInput layout.SubmitText
+    ]
 
 let home = [
     h2 "Home"
