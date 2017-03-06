@@ -96,6 +96,9 @@ let truncate k (s : string) =
 
 let manage (albums : Db.AlbumDetails list) = [ 
     h2 "Index"
+    p [] [
+        a Path.Admin.createAlbum [] [Text "Create New"]
+    ]
     table [
         yield tr [
             for t in ["Artist";"Title";"Genre";"Price";"Action"] -> th [ Text t ]
@@ -128,6 +131,31 @@ let deleteAlbum albumTitle = [
     form [
         submitInput "Delete"
     ]
+
+    div [] [
+        a Path.Admin.manage [] [Text "Back to list"]
+    ]
+]
+
+let createAlbum genres artists = [ 
+    h2 "Create"
+
+    renderForm
+        { Form = Form.album
+          Fieldsets = 
+              [ { Legend = "Album"
+                  Fields = 
+                      [ { Label = "Genre"
+                          Xml = selectInput (fun f -> <@ f.GenreId @>) genres None }
+                        { Label = "Artist"
+                          Xml = selectInput (fun f -> <@ f.ArtistId @>) artists None }
+                        { Label = "Title"
+                          Xml = Suave.Form.input (fun f -> <@ f.Title @>) [] }
+                        { Label = "Price"
+                          Xml = Suave.Form.input (fun f -> <@ f.Price @>) [] }
+                        { Label = "Album Art Url"
+                          Xml = Suave.Form.input (fun f -> <@ f.ArtUrl @>) ["value", "/placeholder.gif"] } ] } ]
+          SubmitText = "Create" }
 
     div [] [
         a Path.Admin.manage [] [Text "Back to list"]
