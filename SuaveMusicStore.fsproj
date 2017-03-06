@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="Db.fs" />
     <Compile Include="Path.fs" />
+    <Compile Include="Form.fs" />
     <Compile Include="View.fs" />
     <Compile Include="App.fs" />
     <None Include="App.config" />
