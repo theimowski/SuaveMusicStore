@@ -61,3 +61,7 @@ let deleteAlbum (album : Album) (ctx : DbContext) =
 
 let getArtists (ctx : DbContext) : Artist list = 
     ctx.Public.Artists |> Seq.toList
+
+let createAlbum (artistId, genreId, price, title) (ctx : DbContext) =
+    ctx.Public.Albums.Create(artistId, genreId, price, title) |> ignore
+    ctx.SubmitUpdates()
