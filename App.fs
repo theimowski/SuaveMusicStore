@@ -2,6 +2,8 @@ module SuaveMusicStore.App
 
 open Suave
 open Suave.Filters
+open Suave.Form
+open Suave.Model.Binding
 open Suave.Operators
 open Suave.RequestErrors
 open Suave.Successful
@@ -39,6 +41,9 @@ let manage = warbler (fun _ ->
     |> View.manage
     |> html)
 
+let bindToForm form handler =
+    bindReq (bindForm form) handler BAD_REQUEST
+
 let createAlbum =
     let ctx = Db.getContext()
     choose [
@@ -50,6 +55,10 @@ let createAlbum =
                 Db.getArtists ctx
                 |> List.map (fun g -> decimal g.Artistid, g.Name)
             html (View.createAlbum genres artists))
+
+        POST >=> bindToForm Form.album (fun form ->
+            Db.createAlbum (int form.ArtistId, int form.GenreId, form.Price, form.Title) ctx
+            Redirection.FOUND Path.Admin.manage)
     ]
 
 let deleteAlbum id =
