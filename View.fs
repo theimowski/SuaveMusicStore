@@ -15,6 +15,7 @@ let td x = tag "td" [] x
 let strong s = tag "strong" [] (text s)
 
 let form x = tag "form" ["method", "POST"] x
+let formInput = Suave.Form.input
 let submitInput value = input ["type", "submit"; "value", value]
 
 type Field<'a> = {
@@ -99,6 +100,9 @@ let truncate k (s : string) =
 
 let manage (albums : Db.AlbumDetails list) = [ 
     h2 "Index"
+    p [] [
+        a Path.Admin.createAlbum [] [Text "Create New"]
+    ]
     table [
         yield tr [
             for t in ["Artist";"Title";"Genre";"Price";"Action"] -> th [ Text t ]
@@ -131,6 +135,33 @@ let deleteAlbum albumTitle = [
     form [
         submitInput "Delete"
     ]
+
+    div [] [
+        a Path.Admin.manage [] [Text "Back to list"]
+    ]
+]
+
+let createAlbum genres artists = [ 
+    h2 "Create"
+
+    renderForm
+        { Form = Form.album
+          Fieldsets = 
+              [ { Legend = "Album"
+                  Fields = 
+                      [ { Label = "Genre"
+                          Html = selectInput (fun f -> <@ f.GenreId @>) genres None }
+                        { Label = "Artist"
+                          Html = selectInput (fun f -> <@ f.ArtistId @>) artists None }
+                        { Label = "Title"
+                          Html = formInput (fun f -> <@ f.Title @>) [] }
+                        { Label = "Price"
+                          Html = formInput (fun f -> <@ f.Price @>) [] }
+                        { Label = "Album Art Url"
+                          Html = formInput 
+                                    (fun f -> <@ f.ArtUrl @>) 
+                                    ["value", "/placeholder.gif"] } ] } ]
+          SubmitText = "Create" }
 
     div [] [
         a Path.Admin.manage [] [Text "Back to list"]
