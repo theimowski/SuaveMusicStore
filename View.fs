@@ -62,7 +62,7 @@ let manage (albums : Db.AlbumDetails list) = [
     h2 "Index"
     table [
         yield tr [
-            for t in ["Artist";"Title";"Genre";"Price"] -> th [ Text t ]
+            for t in ["Artist";"Title";"Genre";"Price";"Action"] -> th [ Text t ]
         ]
 
         for album in albums -> 
@@ -72,6 +72,10 @@ let manage (albums : Db.AlbumDetails list) = [
                        album.Genre
                        album.Price.ToString("0.##") ] ->
                 td [ Text t ]
+            
+            yield td [
+                a (sprintf Path.Admin.deleteAlbum album.Albumid) [] [Text "Delete"]
+            ]
         ]
     ]
 ]

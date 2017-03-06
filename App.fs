@@ -40,9 +40,16 @@ let manage = warbler (fun _ ->
     |> html)
 
 let deleteAlbum id =
-    match Db.getAlbum id (Db.getContext()) with
+    let ctx = Db.getContext()
+    match Db.getAlbum id ctx with
     | Some album ->
-        html (View.deleteAlbum album.Title)
+        choose [ 
+            GET >=> warbler (fun _ -> 
+                html (View.deleteAlbum album.Title))
+            POST >=> warbler (fun _ -> 
+                Db.deleteAlbum album ctx; 
+                Redirection.FOUND Path.Admin.manage)
+        ]
     | None ->
         never
 
