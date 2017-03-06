@@ -27,3 +27,5 @@ Finally we can put following in the `App` module:
 ==> App.fs:42-47
 
 ==> App.fs:57-57
+
+This will let us display a prompt to delete an album, but without any action on the database yet.

@@ -26,5 +26,7 @@
    * [Manage albums](manage_albums.md)
    * [Delete album prompt](delete_album_prompt.md)
    * [Delete album action](delete_album_action.md)
-   * [Create album](create_album.md)
+   * [Form module](form_module.md)
+   * [Create album form](create_album_form.md)
+   * [Create album action](create_album_action.md)
    * [Update album](update_album.md)
