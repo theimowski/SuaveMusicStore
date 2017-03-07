@@ -56,3 +56,10 @@ let getArtists (ctx : DbContext) : Artist list =
 let createAlbum (artistId, genreId, price, title) (ctx : DbContext) =
     ctx.Public.Albums.Create(artistId, genreId, price, title) |> ignore
     ctx.SubmitUpdates()
+
+let updateAlbum (album : Album) (artistId, genreId, price, title) (ctx : DbContext) =
+    album.Artistid <- artistId
+    album.Genreid <- genreId
+    album.Price <- price
+    album.Title <- title
+    ctx.SubmitUpdates()
