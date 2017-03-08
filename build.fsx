@@ -60,16 +60,20 @@ module List =
 type Snippet =
 | SnippetWholeFile
 | SnippetLinesBounded of startLine : int * endLine : int
+| SnippetStartingWith of start : string
 
 let snipId = function
 | file, SnippetWholeFile -> file
 | file, SnippetLinesBounded (s, e) -> sprintf "%s_%d-%d" file s e
+| file, SnippetStartingWith s -> sprintf "%s_%s" file (s.Replace(" ", "_"))
 
 let tryParseSnippet = function
 | Regex "^==> ([\w\.]+):(\d+)-(\d+)$" [file; Int32 sl; Int32 el] -> 
   Some (file, SnippetLinesBounded(sl,el))
 | Regex "^==> ([\w\.]+)$" [file] -> 
   Some (file, SnippetWholeFile)
+| Regex "^==> ([\w\.]+):`(.+)`" [file; snipStart] ->
+  Some (file, SnippetStartingWith snipStart)
 | _ -> 
   None
 
@@ -100,6 +104,34 @@ let parseFirstMsgLine (firstLine: string) =
   let title = firstLine.Trim()
   level,title,markdownFileName title
 
+let startingToBounded srcFiles (fileName, snippet) =
+  let startsWith prefix (line: string) =
+    String.startsWith prefix (line.TrimStart())
+
+  let spacesLE spaces (line: string) =
+    line.Length - line.TrimStart().Length <= spaces
+
+  match snippet with
+  | SnippetStartingWith prefix ->
+    let contents =
+      List.find (fst >> ((=) fileName)) srcFiles |> snd
+    let (sL,line) =
+      contents
+      |> List.indexed
+      |> List.find (snd >> startsWith prefix)
+
+      // TODO: Handle find miss!
+
+    let spaces = line.IndexOf prefix
+    let eL =
+      contents
+      |> List.skip (sL + 1)
+      |> List.findIndex (spacesLE spaces)
+      |> ((+) (sL + 1))
+    fileName, SnippetLinesBounded (sL + 1, eL)
+  | _ ->
+    fileName, snippet
+
 let fillSnippets commit msg =
   let fsproj = 
     fileContentsAt commit "SuaveMusicStore.fsproj"
@@ -117,6 +149,10 @@ let fillSnippets commit msg =
         |> Seq.map (fun e -> e.Attribute(XName.op_Implicit "Include").Value)
         |> Seq.toList
         |> List.filter ((<>) "AssemblyInfo.fs")
+        |> List.map (fun src ->
+          src, fileContentsAt commit src
+               |> Seq.cast<string>
+               |> Seq.toList)
       let dlls = 
         fsproj.Root.XPathSelectElements ("//msbuild:Reference/msbuild:HintPath", ns)
         |> Seq.map (fun e -> repo </> e.Value |> normalizePath)
@@ -129,15 +165,12 @@ let fillSnippets commit msg =
   refDlls
   |> List.iter (fun path -> if not <| File.Exists path then failwithf "Cannot find '%s'" path)
 
-  let snippets = List.choose tryParseSnippet msg
-    
-  let snippetMap =
-    snippets
-    |> List.groupBy fst
-    |> List.map (fun (k, vs) -> (k,List.map snd vs))
-    |> Map.ofList
+  let snippets = 
+    List.choose tryParseSnippet msg
+    |> List.map (startingToBounded srcFiles)
 
   let snippetOrder =
+    let srcFiles = List.map fst srcFiles
     let f (_,(srcA,snipA)) (_,(srcB,snipB)) = 
       let indexA = List.findIndex ((=)srcA) srcFiles
       let indexB = List.findIndex ((=)srcB) srcFiles
@@ -145,7 +178,12 @@ let fillSnippets commit msg =
       if srcOrder <> 0 then
         srcOrder
       else
-        compare snipA snipB
+        match snipA, snipB with
+        | SnippetStartingWith _, _ 
+        | _, SnippetStartingWith _ ->
+          failwith "all SnippetStartingWith should be already converted here to SnippetLinesBounded"
+        | _ ->
+          compare snipA snipB
 
     snippets
     |> List.indexed
@@ -160,19 +198,13 @@ let fillSnippets commit msg =
     | _ ->
       lines
 
-  let srcFileContent src =
+  let srcFileContent (src, contents) =
     let snippets = 
-      match Map.tryFind src snippetMap with
-      | Some s -> s
-      | _ -> []
+      snippets
+      |> List.filter (fst >> ((=) src))
+      |> List.map snd
       |> List.sort
 
-    let contents = 
-      fileContentsAt commit src 
-      |> Seq.cast<string> 
-      |> Seq.toList
-      |> verboseTopLvlModule
-    
     let rec chunk line chunkAcc (contents, snippets) =
       match snippets,contents with
       | [SnippetWholeFile], contents ->
@@ -203,7 +235,7 @@ let fillSnippets commit msg =
           lines 
           [ sprintf "(*** include: %s ***)" (snipId (src,snippet)) ] ] |> List.concat
     
-    chunk 0 [] (contents, snippets)
+    chunk 0 [] (verboseTopLvlModule contents, snippets)
     |> List.collect formatChunk
 
   
