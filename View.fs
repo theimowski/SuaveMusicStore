@@ -7,6 +7,7 @@ let em s = tag "em" [] [Text s]
 let cssLink href = link [ "href", href; " rel", "stylesheet"; " type", "text/css" ]
 let h2 s = tag "h2" [] [Text s]
 let ul nodes = tag "ul" [] nodes
+let ulAttr attr nodes = tag "ul" attr nodes
 let li = tag "li" []
 let table x = tag "table" [] x
 let th x = tag "th" [] x
@@ -220,6 +221,13 @@ let notFound = [
     ]
 ]
 
+let partNav = 
+    ulAttr ["id", "navlist"] [ 
+        li [a Path.home [] [Text "Home"]]
+        li [a Path.Store.overview [] [Text "Store"]]
+        li [a Path.Admin.manage [] [Text "Admin"]]
+    ]
+
 let index container =
     html [] [
         head [] [
@@ -232,6 +240,7 @@ let index container =
                 tag "h1" [] [
                     a Path.home [] [Text "F# Suave Music Store"]
                 ]
+                partNav
             ]
 
             div ["id", "main"] container
