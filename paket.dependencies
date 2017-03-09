@@ -1,7 +1,7 @@
 framework: net462
 source https://www.nuget.org/api/v2
 nuget FAKE
-nuget FSharp.Core
+nuget FSharp.Core 4.0.0.1 redirects: force
 nuget Suave 2.0.1
 nuget Suave.Experimental 2.0.1
 nuget SQLProvider 1.0.43
