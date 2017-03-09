@@ -228,6 +228,16 @@ let partNav =
         li [a Path.Admin.manage [] [Text "Admin"]]
     ]
 
+let partUser (user : string option) = 
+    div ["id", "part-user"] [
+        match user with
+        | Some user -> 
+            yield Text (sprintf "Logged on as %s, " user)
+            yield a Path.Account.logoff [] [Text "Log off"]
+        | None ->
+            yield a Path.Account.logon [] [Text "Log on"]
+    ]
+
 let index container =
     html [] [
         head [] [
@@ -241,6 +251,7 @@ let index container =
                     a Path.home [] [Text "F# Suave Music Store"]
                 ]
                 partNav
+                partUser None
             ]
 
             div ["id", "main"] container
