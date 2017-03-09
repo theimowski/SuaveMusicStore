@@ -126,8 +126,9 @@ let startingToBounded srcFiles (fileName, snippet) =
     let eL =
       contents
       |> List.skip (sL + 1)
-      |> List.findIndex (spacesLE spaces)
-      |> ((+) (sL + 1))
+      |> List.tryFindIndex (spacesLE spaces)
+      |> Option.map ((+) (sL + 1))
+      |> fun o -> defaultArg o contents.Length
     fileName, SnippetLinesBounded (sL + 1, eL)
   | _ ->
     fileName, snippet
@@ -459,7 +460,6 @@ Target "Preview" (fun _ ->
   //  !! (repo </> ".git" </> "refs" </> "heads" </> "*.*")
     !! ("en" </> "*.md") 
     |> WatchChanges handleWatcherEvents
-
 
   directExec (fun si ->
           si.FileName <- "node"
