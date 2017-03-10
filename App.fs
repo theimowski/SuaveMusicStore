@@ -105,6 +105,10 @@ let deleteAlbum id =
     | None ->
         never
 
+let logon =
+    View.logon
+    |> html
+
 let webPart = 
     choose [
         path Path.home >=> html View.home
@@ -116,6 +120,8 @@ let webPart =
         path Path.Admin.createAlbum >=> createAlbum
         pathScan Path.Admin.editAlbum editAlbum
         pathScan Path.Admin.deleteAlbum deleteAlbum
+
+        path Path.Account.logon >=> logon
 
         pathRegex "(.*)\.(css|png|gif)" >=> Files.browseHome
         html View.notFound
