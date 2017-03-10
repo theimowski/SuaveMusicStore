@@ -123,7 +123,7 @@ let returnPathOrHome =
 
 let logon =
     choose [
-        GET >=> (View.logon |> html)
+        GET >=> (View.logon "" |> html)
         POST >=> bindToForm Form.logon (fun form ->
             let ctx = Db.getContext()
             let (Password password) = form.Password
@@ -136,7 +136,7 @@ let logon =
                         >=> store.set "role" user.Role)
                     >=> returnPathOrHome
             | _ ->
-                never
+                View.logon "Username or password is invalid." |> html
         )
     ]
 
