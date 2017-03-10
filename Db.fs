@@ -20,6 +20,7 @@ type Album = DbContext.``public.albumsEntity``
 type Genre = DbContext.``public.genresEntity``
 type AlbumDetails = DbContext.``public.albumdetailsEntity``
 type Artist = DbContext.``public.artistsEntity``
+type User = DbContext.``public.usersEntity``
 
 let getContext() = Sql.GetDataContext()
 
@@ -72,3 +73,10 @@ let updateAlbum (album : Album) (artistId, genreId, price, title) (ctx : DbConte
     album.Price <- price
     album.Title <- title
     ctx.SubmitUpdates()
+
+let validateUser (username, password) (ctx : DbContext) : User option =
+    query {
+        for user in ctx.Public.Users do
+            where (user.Username = username && user.Password = password)
+            select user
+    } |> Seq.tryHead
