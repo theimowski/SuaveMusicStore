@@ -35,5 +35,6 @@
    * [User partial](user_partial.md)
    * [Logon form](logon_form.md)
    * [Logon handler](logon_handler.md)
+   * [Invalid credentials](invalid_credentials.md)
    * [Session type](session_type.md)
    * [Admin authorization](admin_authorization.md)

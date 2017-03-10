@@ -214,12 +214,14 @@ let fillSnippets commit msg =
         List.rev chunkAcc
       | [], _ -> 
         List.rev ((None, contents) :: chunkAcc)
-      | SnippetLinesBounded (sL, eL) :: snippets, _ when sL = line + 1 ->
+      | SnippetLinesBounded (sL, eL) :: snippets, _ 
+          when sL = line + 1 && eL - line > 0 ->
         let lines = contents |> List.take (eL - line)
         let rest  = contents |> List.skip (eL - line)
         let s = Some (SnippetLinesBounded (sL, eL)), lines
         chunk eL (s :: chunkAcc) (rest,snippets)
-      | SnippetLinesBounded (sL, _) :: _, _ ->
+      | SnippetLinesBounded (sL, _) :: _, _
+          when sL - line - 1 > 0 ->
         let lines = contents |> List.take (sL - line - 1)
         let rest  = contents |> List.skip (sL - line - 1)
         let n = None, lines
