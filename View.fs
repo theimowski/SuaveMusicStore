@@ -210,10 +210,14 @@ let editAlbum (album : Db.Album) genres artists = [
     ]
 ]
 
-let logon = [
+let logon msg = [
     h2 "Log On"
     p [] [
         Text "Please enter your user name and password."
+    ]
+
+    div ["id", "logon-message"] [
+        Text msg
     ]
 
     renderForm
