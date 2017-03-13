@@ -21,6 +21,7 @@ type Genre = DbContext.``public.genresEntity``
 type AlbumDetails = DbContext.``public.albumdetailsEntity``
 type Artist = DbContext.``public.artistsEntity``
 type User = DbContext.``public.usersEntity``
+type CartDetails = DbContext.``public.cartdetailsEntity``
 
 let getContext() = Sql.GetDataContext()
 
