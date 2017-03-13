@@ -247,6 +247,7 @@ let partNav =
     ulAttr ["id", "navlist"] [ 
         li [a Path.home [] [Text "Home"]]
         li [a Path.Store.overview [] [Text "Store"]]
+        li [a Path.Cart.overview [] [Text "Cart"]]
         li [a Path.Admin.manage [] [Text "Admin"]]
     ]
 
@@ -259,6 +260,54 @@ let partUser (user : string option) =
         | None ->
             yield a Path.Account.logon [] [Text "Log on"]
     ]
+
+let emptyCart = [
+    h2 "Your cart is empty"
+    Text "Find some great music in our "
+    a Path.home [] [Text "store"]
+    Text "!"
+]
+
+let nonEmptyCart (carts : Db.CartDetails list) = [
+    h2 "Review your cart:"
+    table [
+        yield tr [
+            for h in ["Album Name"; "Price (each)"; "Quantity"; ""] ->
+            th [Text h]
+        ]
+        for cart in carts ->
+            tr [
+                td [
+                    a (sprintf Path.Store.details cart.Albumid) 
+                      [] 
+                      [Text cart.Albumtitle]
+                ]
+                td [
+                    Text (formatDec cart.Price)
+                ]
+                td [
+                    Text (cart.Count.ToString())
+                ]
+                td [
+                    a "#" 
+                      ["class", "removeFromCart"; 
+                       "data-id", cart.Albumid.ToString()] 
+                      [Text "Remove from cart"]
+                ]
+            ]
+        yield tr [
+            let total = 
+                carts 
+                |> List.sumBy (fun c -> c.Price * (decimal c.Count))
+            for d in ["Total"; ""; ""; formatDec total] ->
+                td [Text d]
+        ]
+    ]
+]
+
+let cart = function
+    | [] -> emptyCart
+    | list -> nonEmptyCart list
 
 let index partUser container =
     html [] [
