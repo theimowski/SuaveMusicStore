@@ -20,6 +20,7 @@ type UserLoggedOnSession = {
 
 type Session = 
     | NoSession
+    | CartIdOnly of string
     | UserLoggedOn of UserLoggedOnSession
 
 let session f = 
