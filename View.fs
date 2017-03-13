@@ -260,7 +260,7 @@ let partUser (user : string option) =
             yield a Path.Account.logon [] [Text "Log on"]
     ]
 
-let index container =
+let index partUser container =
     html [] [
         head [] [
             title [] "Suave Music Store"
@@ -273,7 +273,7 @@ let index container =
                     a Path.home [] [Text "F# Suave Music Store"]
                 ]
                 partNav
-                partUser None
+                partUser
             ]
 
             div ["id", "main"] container
