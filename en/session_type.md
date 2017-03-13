@@ -1,20 +1,13 @@
 # Session type
 
-Up to this point, we should be able to authenticate with "admin" -> "admin" credentials to our application.
+Up to this point, we should be able to authenticate with "admin" / "admin" credentials to our application.
 This is however not very useful, as there are no handlers that would demand user to be authenticated yet.
 
 To change that, let's define custom types to represent user state:
 
-```fsharp
-type UserLoggedOnSession = {
-    Username : string
-    Role : string
-}
+==> App.fs:`type UserLoggedOnSession`
 
-type Session = 
-    | NoSession
-    | UserLoggedOn of UserLoggedOnSession
-```
+==> App.fs:`type Session`
 
 `Session` type is so-called "Discriminated Union" in F#.
 It basically means that an instance of `Session` type is either `NoSession` or `UserLoggedOn`, and no other than that.
@@ -36,17 +29,7 @@ With these two types, we'll be able to distinguish from when a user is logged on
 
 As stated before, we'll now add a parameter to the `session` function:
 
-```fsharp
-let session f = 
-    statefulForSession
-    >=> context (fun x -> 
-        match x |> HttpContext.state with
-        | None -> f NoSession
-        | Some state ->
-            match state.get "username", state.get "role" with
-            | Some username, Some role -> f (UserLoggedOn {Username = username; Role = role})
-            | _ -> f NoSession)
-```
+==> App.fs:`let session`
 
 Type of `f` parameter is `Session -> WebPart`.
 You guessed it, it means we will be able to do different things including returning different responses, depending on the user session state.
@@ -56,13 +39,7 @@ In order to confirm that a user is logged on, session state store must contain b
 
 The only usage of `session` for now is in the `logon` POST handler - let's adjust it to new version:
 
-```fsharp
-...
-authenticated Cookie.CookieLife.Session false 
->=> session (fun _ -> succeed)
->=> sessionStore (fun store ->
-...
-```
+==> App.fs:`| Some user ->`
 
 Yes I know, I promised we'll pass something funky to the `session` function, but bear with with me - we will later.
 For the moment usage of `session` in `logon` doesn't require any custom action, but we still need to invoke it to "initalize" the user state.
