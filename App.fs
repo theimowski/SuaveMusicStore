@@ -4,6 +4,7 @@ open System
 
 open Suave
 open Suave.Authentication
+open Suave.Cookie
 open Suave.Filters
 open Suave.Form
 open Suave.Model.Binding
@@ -32,7 +33,13 @@ let session f =
             | _ -> f NoSession)
 
 let html container =
-    OK (View.index container)
+    let result user =
+        OK (View.index (View.partUser user) container)
+        >=> Writers.setMimeType "text/html; charset=utf-8"
+        
+    session (function
+    | UserLoggedOn { Username = username } -> result (Some username)
+    | _ -> result None)
 
 let browse =
     request (fun r ->
@@ -157,6 +164,31 @@ let logon =
         )
     ]
 
+let reset =
+    unsetPair SessionAuthCookie
+    >=> unsetPair StateCookie
+    >=> Redirection.FOUND Path.home
+
+let redirectWithReturnPath redirection =
+    request (fun x ->
+        let path = x.url.AbsolutePath
+        Redirection.FOUND (redirection |> Path.withParam ("returnPath", path)))
+
+let loggedOn f_success =
+    authenticate
+        Cookie.CookieLife.Session
+        false
+        (fun () -> Choice2Of2(redirectWithReturnPath Path.Account.logon))
+        (fun _ -> Choice2Of2 reset)
+        f_success
+
+let admin f_success =
+    loggedOn (session (function
+        | UserLoggedOn { Role = "admin" } -> f_success
+        | UserLoggedOn _ -> FORBIDDEN "Only for admin"
+        | _ -> UNAUTHORIZED "Not logged in"
+    ))
+
 let webPart = 
     choose [
         path Path.home >=> html View.home
@@ -164,12 +196,13 @@ let webPart =
         path Path.Store.browse >=> browse
         pathScan Path.Store.details details
 
-        path Path.Admin.manage >=> manage
-        path Path.Admin.createAlbum >=> createAlbum
-        pathScan Path.Admin.editAlbum editAlbum
-        pathScan Path.Admin.deleteAlbum deleteAlbum
+        path Path.Admin.manage >=> admin manage
+        path Path.Admin.createAlbum >=> admin createAlbum
+        pathScan Path.Admin.editAlbum (fun id -> admin (editAlbum id))
+        pathScan Path.Admin.deleteAlbum (fun id -> admin (deleteAlbum id))
 
         path Path.Account.logon >=> logon
+        path Path.Account.logoff >=> reset
 
         pathRegex "(.*)\.(css|png|gif)" >=> Files.browseHome
         html View.notFound
