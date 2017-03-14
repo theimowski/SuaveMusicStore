@@ -39,13 +39,20 @@ let session f =
                 f NoSession)
 
 let html container =
-    let result user =
-        OK (View.index (View.partUser user) container)
+    let ctx = Db.getContext()
+    let result cartItems user =
+        OK (View.index (View.partNav cartItems) (View.partUser user) container)
         >=> Writers.setMimeType "text/html; charset=utf-8"
         
     session (function
-    | UserLoggedOn { Username = username } -> result (Some username)
-    | _ -> result None)
+    | UserLoggedOn { Username = username } -> 
+        let items = Db.getCartsDetails username ctx |> List.sumBy (fun c -> c.Count)
+        result items (Some username)
+    | CartIdOnly cartId ->
+        let items = Db.getCartsDetails cartId ctx |> List.sumBy (fun c -> c.Count)
+        result items None
+    | NoSession ->
+        result 0 None)
 
 let browse =
     request (fun r ->

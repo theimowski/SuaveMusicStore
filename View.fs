@@ -247,11 +247,11 @@ let notFound = [
     ]
 ]
 
-let partNav = 
+let partNav cartItems = 
     ulAttr ["id", "navlist"] [ 
         li [a Path.home [] [Text "Home"]]
         li [a Path.Store.overview [] [Text "Store"]]
-        li [a Path.Cart.overview [] [Text "Cart"]]
+        li [a Path.Cart.overview [] [Text (sprintf "Cart (%d)" cartItems)]]
         li [a Path.Admin.manage [] [Text "Admin"]]
     ]
 
@@ -313,7 +313,7 @@ let cart = function
     | [] -> emptyCart
     | list -> nonEmptyCart list
 
-let index partUser container =
+let index partNav partUser container =
     html [] [
         head [] [
             title [] "Suave Music Store"
