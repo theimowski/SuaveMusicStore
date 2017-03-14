@@ -30,10 +30,13 @@ let session f =
         match x |> HttpContext.state with
         | None -> f NoSession
         | Some state ->
-            match state.get "username", state.get "role" with
-            | Some username, Some role -> 
+            match state.get "cartid", state.get "username", state.get "role" with
+            | Some cartId, None, None ->
+                f (CartIdOnly cartId)
+            | _, Some username, Some role ->
                 f (UserLoggedOn {Username = username; Role = role})
-            | _ -> f NoSession)
+            | _ -> 
+                f NoSession)
 
 let html container =
     let result user =
@@ -201,7 +204,12 @@ let admin f_success =
         | _ -> UNAUTHORIZED "Not logged in"
     ))
 
-let cart = View.cart [] |> html
+let cart = 
+    session (function
+    | NoSession -> View.emptyCart |> html
+    | UserLoggedOn { Username = cartId } | CartIdOnly cartId ->
+        let ctx = Db.getContext()
+        Db.getCartsDetails cartId ctx |> View.cart |> html)
 
 let addToCart albumId =
     let ctx = Db.getContext()
