@@ -82,3 +82,18 @@ let validateUser (username, password) (ctx : DbContext) : User option =
             where (user.Username = username && user.Password = password)
             select user
     } |> Seq.tryHead
+
+let getCart cartId albumId (ctx : DbContext) : Cart option =
+    query {
+        for cart in ctx.Public.Carts do
+            where (cart.Cartid = cartId && cart.Albumid = albumId)
+            select cart
+    } |> Seq.tryHead
+
+let addToCart cartId albumId (ctx : DbContext)  =
+    match getCart cartId albumId ctx with
+    | Some cart ->
+        cart.Count <- cart.Count + 1
+    | None ->
+        ctx.Public.Carts.Create(albumId, cartId, 1, System.DateTime.UtcNow) |> ignore
+    ctx.SubmitUpdates()

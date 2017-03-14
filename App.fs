@@ -203,6 +203,19 @@ let admin f_success =
 
 let cart = View.cart [] |> html
 
+let addToCart albumId =
+    let ctx = Db.getContext()
+    session (function
+            | NoSession -> 
+                let cartId = Guid.NewGuid().ToString("N")
+                Db.addToCart cartId albumId ctx
+                sessionStore (fun store ->
+                    store.set "cartid" cartId)
+            | UserLoggedOn { Username = cartId } | CartIdOnly cartId ->
+                Db.addToCart cartId albumId ctx
+                succeed)
+        >=> Redirection.FOUND Path.Cart.overview
+
 let webPart = 
     choose [
         path Path.home >=> html View.home
@@ -219,6 +232,7 @@ let webPart =
         path Path.Account.logoff >=> reset
 
         path Path.Cart.overview >=> cart
+        pathScan Path.Cart.addAlbum addToCart
 
         pathRegex "(.*)\.(css|png|gif)" >=> Files.browseHome
         html View.notFound
