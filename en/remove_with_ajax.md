@@ -39,55 +39,29 @@ We won't go into much details about the code itself, however it's important to k
 
 The `update-message` div should be added to the `nonEmptyCart` view, before the table:
 
-```fsharp
-    divId "update-message" [text " "]
-```
+==> View.fs:`div ["id", "update-message"]`
 
 We explicitly have to pass in non-empty text, because we cannot have an empty div element in HTML markup.
 With jQuery and our `script.js` files, we can now attach them to the end of `nonEmptyCart` view, just after the table:
 
-```fsharp
-scriptAttr [ "type", "text/javascript"; " src", "/jquery-1.11.3.min.js" ] [ text "" ]
-scriptAttr [ "type", "text/javascript"; " src", "/script.js" ] [ text "" ]
-```
+==> View.fs:285-286
 
 We also need to allow browsing for files with "js" extension in our handler:
 
-```fsharp
-pathRegex "(.*)\.(css|png|gif|js)" >=> Files.browseHome
-```
+==> App.fs:`pathRegex`
 
 The script tries to reach route that is not mapped to any handler yet.
 Let's change that by first adding `removeFromCart` to `Db` module:
 
-```fsharp
-let removeFromCart (cart : Cart) albumId (ctx : DbContext) = 
-    cart.Count <- cart.Count - 1
-    if cart.Count = 0 then cart.Delete()
-    ctx.SubmitUpdates()
-```
+==> Db.fs:`let removeFromCart`
 
 then adding the `removeFromCart` handler in `App` module:
 
-```fsharp
-let removeFromCart albumId =
-    session (function
-    | NoSession -> never
-    | UserLoggedOn { Username = cartId } | CartIdOnly cartId ->
-        let ctx = Db.getContext()
-        match Db.getCart cartId albumId ctx with
-        | Some cart -> 
-            Db.removeFromCart cart albumId ctx
-            Db.getCartsDetails cartId ctx |> View.cart |> Html.flatten |> Html.xmlToString |> OK
-        | None -> 
-            never)
-```
+==> App.fs:`let removeFromCart`
 
 and finally mapping the route to the handler in main `choose` WebPart:
 
-```fsharp
-pathScan Path.Cart.removeAlbum removeFromCart
-```
+==> App.fs:`pathScan Path.Cart.removeAlbum`
 
 A few comments to the `removeFromCart` WebPart:
 

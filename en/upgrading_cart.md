@@ -3,42 +3,13 @@
 If user logs on, we have his user name - so we can "upgrade" all his carts from GUID to the actual user's name.
 Add necessary functions to the `Db` module:
 
-```fsharp
-let getCarts cartId (ctx : DbContext) : Cart list =
-    query {
-        for cart in ctx.``[dbo].[Carts]`` do
-            where (cart.CartId = cartId)
-            select cart
-    } |> Seq.toList
-```
+==> Db.fs:`let getCarts`
 
-```fsharp
-let upgradeCarts (cartId : string, username :string) (ctx : DbContext) =
-    for cart in getCarts cartId ctx do
-        match getCart username cart.AlbumId ctx with
-        | Some existing ->
-            existing.Count <- existing.Count +  cart.Count
-            cart.Delete()
-        | None ->
-            cart.CartId <- username
-    ctx.SubmitUpdates()
-```
+==> Db.fs:`let upgradeCarts`
 
 and update the `logon` handler in `App` module:
 
-```fsharp
-authenticated Cookie.CookieLife.Session false 
->=> session (function
-    | CartIdOnly cartId ->
-        let ctx = Db.getContext()
-        Db.upgradeCarts (cartId, user.UserName) ctx
-        sessionStore (fun store -> store.set "cartid" "")
-    | _ -> succeed)
->=> sessionStore (fun store ->
-    store.set "username" user.UserName
-    >=> store.set "role" user.Role)
->=> returnPathOrHome
-```
+==> App.fs:`| Some user ->`
 
 Remarks:
 
@@ -49,5 +20,3 @@ Remarks:
 - `logon` handler now recognizes `CartIdOnly` case, for which it has to invoke `Db.upgradeCarts`. In addition it wipes out the `cartId` key from session store, as from now on `username` will be used as a cart id.
 
 Whoa, we now have the cart functionality in our Music Store! 
-See the following link to browse the code: [Tag - cart](https://github.com/theimowski/SuaveMusicStore/tree/cart)
-

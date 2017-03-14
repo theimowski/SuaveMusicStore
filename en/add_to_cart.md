@@ -2,24 +2,9 @@
 
 To implement `App` handler, we need the following `Db` module functions:
 
-```fsharp
-let getCart cartId albumId (ctx : DbContext) : Cart option =
-    query {
-        for cart in ctx.``[dbo].[Carts]`` do
-            where (cart.CartId = cartId && cart.AlbumId = albumId)
-            select cart
-    } |> firstOrNone
-```
+==> Db.fs:`let getCart`
 
-```fsharp
-let addToCart cartId albumId (ctx : DbContext)  =
-    match getCart cartId albumId ctx with
-    | Some cart ->
-        cart.Count <- cart.Count + 1
-    | None ->
-        ctx.``[dbo].[Carts]``.Create(albumId, cartId, 1, DateTime.UtcNow) |> ignore
-    ctx.SubmitUpdates()
-```
+==> Db.fs:`let addToCart`
 
 `addToCart` takes `cartId` and `albumId`. 
 If there's already such cart entry in the database, we do increment the `Count` column, otherwise we create a new row.
@@ -27,32 +12,13 @@ To check if a cart entry exists in database, we use `getCart` - it does a standa
 
 Now open up the `View` module and find the `details` function to append a new button "Add to cart", at the very bottom of "album-details" div:
 
-```fsharp
-yield pAttr ["class", "button"] [
-    aHref (sprintf Path.Cart.addAlbum album.AlbumId) (text "Add to cart")
-]
-```
+==> View.fs:`div ["id", "album-details"]`
 
 With above in place, we're ready to define the handler in `App` module:
 
-```fsharp
-let addToCart albumId =
-    let ctx = Db.getContext()
-    session (function
-            | NoSession -> 
-                let cartId = Guid.NewGuid().ToString("N")
-                Db.addToCart cartId albumId ctx
-                sessionStore (fun store ->
-                    store.set "cartid" cartId)
-            | UserLoggedOn { Username = cartId } | CartIdOnly cartId ->
-                Db.addToCart cartId albumId ctx
-                succeed)
-        >=> Redirection.FOUND Path.Cart.overview
-```
+==> App.fs:`let addToCart`
 
-```fsharp
-pathScan Path.Cart.addAlbum addToCart
-```
+==> App.fs:`pathScan Path.Cart.addAlbum`
 
 `addToCart` invokes our `session` function with two flavors:
 
