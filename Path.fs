@@ -22,7 +22,8 @@ module Admin =
 module Account =
     let logon = "/account/logon"
     let logoff = "/account/logoff"
-
+    let register = "/account/register"
+    
 module Cart =
     let overview = "/cart"
     let addAlbum : IntPath = "/cart/add/%d"

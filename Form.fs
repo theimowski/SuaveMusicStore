@@ -23,3 +23,21 @@ type Logon = {
 }
 
 let logon : Form<Logon> = Form ([],[])
+
+type Register = {
+    Username : string
+    Email : string
+    Password : Password
+    ConfirmPassword : Password
+}
+
+let pattern = passwordRegex @"(\w){6,20}"
+
+let passwordsMatch = 
+    (fun f -> f.Password = f.ConfirmPassword), "Passwords must match"
+
+let register : Form<Register> = 
+    Form ([ TextProp ((fun f -> <@ f.Username @>), [ maxLength 30 ] )
+            PasswordProp ((fun f -> <@ f.Password @>), [ pattern ] )
+            PasswordProp ((fun f -> <@ f.ConfirmPassword @>), [ pattern ] )
+            ],[ passwordsMatch ])

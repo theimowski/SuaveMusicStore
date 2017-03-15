@@ -191,6 +191,11 @@ let logon =
         )
     ]
 
+let register =
+    choose [
+        GET >=> (View.register "" |> html)
+    ]
+
 let reset =
     unsetPair SessionAuthCookie
     >=> unsetPair StateCookie
@@ -266,6 +271,7 @@ let webPart =
 
         path Path.Account.logon >=> logon
         path Path.Account.logoff >=> reset
+        path Path.Account.register >=> register
 
         path Path.Cart.overview >=> cart
         pathScan Path.Cart.addAlbum addToCart
