@@ -1,5 +1,7 @@
 module SuaveMusicStore.Form
 
+open System.Net.Mail
+
 open Suave.Form
 
 type Album = {
@@ -23,3 +25,21 @@ type Logon = {
 }
 
 let logon : Form<Logon> = Form ([],[])
+
+type Register = {
+    Username : string
+    Email : MailAddress
+    Password : Password
+    ConfirmPassword : Password
+}
+
+let pattern = @"(\w){6,20}"
+
+let passwordsMatch = 
+    (fun f -> f.Password = f.ConfirmPassword), "Passwords must match"
+
+let register : Form<Register> = 
+    Form ([ TextProp ((fun f -> <@ f.Username @>), [ maxLength 30 ] )
+            PasswordProp ((fun f -> <@ f.Password @>), [ passwordRegex pattern ] )
+            PasswordProp ((fun f -> <@ f.ConfirmPassword @>), [ passwordRegex pattern ] )
+            ],[ passwordsMatch ])
