@@ -370,6 +370,18 @@ let checkout = [
         }
 ]
 
+let checkoutComplete = [
+    h2 "Checkout Complete"
+    p [] [
+        Text "Thanks for your order!"
+    ]
+    p [] [
+        Text "How about shopping for some more music in our "
+        a Path.home [] [Text "store"]
+        Text "?"
+    ]
+]
+
 let index partNav partUser container =
     html [] [
         head [] [

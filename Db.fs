@@ -138,3 +138,20 @@ let newUser (username, password, email) (ctx : DbContext) =
     let user = ctx.Public.Users.Create(email, password, "user", username)
     ctx.SubmitUpdates()
     user
+
+let placeOrder (username : string) (ctx : DbContext) =
+    let carts = getCartsDetails username ctx
+    let total = carts |> List.sumBy (fun c -> (decimal) c.Count * c.Price)
+    let order = ctx.Public.Orders.Create(System.DateTime.UtcNow, total)
+    order.Username <- username
+    ctx.SubmitUpdates()
+    for cart in carts do
+        let orderDetails = 
+            ctx.Public.Orderdetails.Create(
+                cart.Albumid, 
+                order.Orderid, 
+                cart.Count, 
+                cart.Price)
+        getCart cart.Cartid cart.Albumid ctx
+        |> Option.iter (fun cart -> cart.Delete())
+    ctx.SubmitUpdates()

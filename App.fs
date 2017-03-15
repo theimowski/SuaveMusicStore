@@ -211,7 +211,7 @@ let register =
                 authenticateUser user
         )
     ]
-    
+
 let reset =
     unsetPair SessionAuthCookie
     >=> unsetPair StateCookie
@@ -279,6 +279,10 @@ let checkout =
     | UserLoggedOn {Username = username } ->
         choose [
             GET >=> (View.checkout |> html)
+            POST >=> warbler (fun _ ->
+                let ctx = Db.getContext()
+                Db.placeOrder username ctx
+                View.checkoutComplete |> html)
         ])
 
 let webPart = 
