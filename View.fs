@@ -276,6 +276,9 @@ let emptyCart = [
 
 let nonEmptyCart (carts : Db.CartDetails list) = [
     h2 "Review your cart:"
+    p ["class", "button"] [
+        a Path.Cart.checkout [] [Text "Checkout >>"]
+    ]
     div ["id", "update-message"] [Text " "]
     table [
         yield tr [
@@ -343,6 +346,28 @@ let register msg = [
                           Html = formInput (fun f -> <@ f.ConfirmPassword @>) [] }
                         ] } ]
           SubmitText = "Register" }
+]
+
+let checkout = [
+    h2 "Address And Payment"
+    renderForm
+        { Form = Form.checkout 
+          Fieldsets = 
+              [ { Legend = "Shipping Information"
+                  Fields = 
+                      [ { Label = "First Name"
+                          Html = formInput (fun f -> <@ f.FirstName @>) [] }
+                        { Label = "Last Name"
+                          Html = formInput (fun f -> <@ f.LastName @>) [] }
+                        { Label = "Address"
+                          Html = formInput (fun f -> <@ f.Address @>) [] } ] }
+
+                { Legend = "Payment"
+                  Fields = 
+                      [ { Label = "Promo Code"
+                          Html = formInput (fun f -> <@ f.PromoCode @>) [] } ] } ]
+          SubmitText = "Submit Order"
+        }
 ]
 
 let index partNav partUser container =

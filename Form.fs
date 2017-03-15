@@ -41,3 +41,12 @@ let register : Form<Register> =
             PasswordProp ((fun f -> <@ f.Password @>), [ pattern ] )
             PasswordProp ((fun f -> <@ f.ConfirmPassword @>), [ pattern ] )
             ],[ passwordsMatch ])
+
+type Checkout = {
+    FirstName : string
+    LastName : string
+    Address : string
+    PromoCode : string option
+}
+
+let checkout : Form<Checkout> = Form ([], [])

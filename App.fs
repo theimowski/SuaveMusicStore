@@ -273,6 +273,14 @@ let removeFromCart albumId =
         | None -> 
             never)
 
+let checkout =
+    session (function
+    | NoSession | CartIdOnly _ -> never
+    | UserLoggedOn {Username = username } ->
+        choose [
+            GET >=> (View.checkout |> html)
+        ])
+
 let webPart = 
     choose [
         path Path.home >=> html View.home
@@ -292,6 +300,7 @@ let webPart =
         path Path.Cart.overview >=> cart
         pathScan Path.Cart.addAlbum addToCart
         pathScan Path.Cart.removeAlbum removeFromCart
+        path Path.Cart.checkout >=> loggedOn checkout
 
         pathRegex "(.*)\.(css|png|gif|js)" >=> Files.browseHome
         html View.notFound
