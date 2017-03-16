@@ -4,11 +4,7 @@ open Suave.Form
 open Suave.Html
 
 let em s = tag "em" [] [Text s]
-let cssLink href = link [ "href", href; " rel", "stylesheet"; " type", "text/css" ]
 let h2 s = tag "h2" [] [Text s]
-let ul nodes = tag "ul" [] nodes
-let ulAttr attr nodes = tag "ul" attr nodes
-let li = tag "li" []
 let table x = tag "table" [] x
 let th x = tag "th" [] x
 let tr x = tag "tr" [] x
@@ -57,22 +53,25 @@ let home = [
     h2 "Home"
 ]
 
+let ul = tag "ul"
+let li = tag "li"
+
 let store genres = [
     h2 "Browse Genres"
     p [] [
         Text (sprintf "Select from %d genres:" (List.length genres))
     ]
-    ul [
+    ul [] [
         for g in genres -> 
-            li [a (Path.Store.browse |> Path.withParam (Path.Store.browseKey, g)) [] [Text g]]
+            li [] [a (Path.Store.browse |> Path.withParam (Path.Store.browseKey, g)) [] [Text g]]
     ]
 ]
 
 let browse genre (albums : Db.Album list) = [
     h2 (sprintf "Genre: %s" genre)
-    ul [
+    ul [] [
         for album in albums ->
-            li [a (sprintf Path.Store.details album.Albumid) [] [Text album.Title]]
+            li [] [a (sprintf Path.Store.details album.Albumid) [] [Text album.Title]]
     ]
 ]
 
@@ -231,23 +230,7 @@ let notFound = [
     ]
 ]
 
-let partNav cartItems = 
-    ulAttr ["id", "navlist"] [ 
-        li [a Path.home [] [Text "Home"]]
-        li [a Path.Store.overview [] [Text "Store"]]
-        li [a Path.Cart.overview [] [Text (sprintf "Cart (%d)" cartItems)]]
-        li [a Path.Admin.manage [] [Text "Admin"]]
-    ]
 
-let partUser (user : string option) = 
-    div ["id", "part-user"] [
-        match user with
-        | Some user -> 
-            yield Text (sprintf "Logged on as %s, " user)
-            yield a Path.Account.logoff [] [Text "Log off"]
-        | None ->
-            yield a Path.Account.logon [] [Text "Log on"]
-    ]
 
 let emptyCart = [
     h2 "Your cart is empty"
@@ -354,31 +337,3 @@ let checkoutComplete = [
         Text "?"
     ]
 ]
-
-let index partNav partUser container =
-    html [] [
-        head [] [
-            title [] "Suave Music Store"
-            cssLink "/Site.css"
-        ]
-
-        body [] [
-            div ["id", "header"] [
-                tag "h1" [] [
-                    a Path.home [] [Text "F# Suave Music Store"]
-                ]
-                partNav
-                partUser
-            ]
-
-            div ["id", "main"] container
-
-            div ["id", "footer"] [
-                Text "built with "
-                a "http://fsharp.org" [] [Text "F#"]
-                Text " and "
-                a "http://suave.io" [] [Text "Suave.IO"]
-            ]
-        ]
-    ]
-    |> htmlToString

@@ -13,53 +13,6 @@ open Suave.RequestErrors
 open Suave.State.CookieStateStore
 open Suave.Successful
 
-type UserLoggedOnSession = {
-    Username : string
-    Role : string
-}
-
-type Session = 
-    | NoSession
-    | CartIdOnly of string
-    | UserLoggedOn of UserLoggedOnSession
-
-let session f = 
-    statefulForSession
-    >=> context (fun x -> 
-        match x |> HttpContext.state with
-        | None -> f NoSession
-        | Some state ->
-            match state.get "cartid", state.get "username", state.get "role" with
-            | Some cartId, None, None -> f (CartIdOnly cartId)
-            | _, Some username, Some role -> f (UserLoggedOn {Username = username; Role = role})
-            | _ -> f NoSession)
-
-let html container =
-    let ctx = Db.getContext()
-    let result cartItems user =
-        OK (View.index (View.partNav cartItems) (View.partUser user) container)
-        >=> Writers.setMimeType "text/html; charset=utf-8"
-        
-    session (function
-    | UserLoggedOn { Username = username } -> 
-        let items = Db.getCartsDetails username ctx |> List.sumBy (fun c -> c.Count)
-        result items (Some username)
-    | CartIdOnly cartId ->
-        let items = Db.getCartsDetails cartId ctx |> List.sumBy (fun c -> c.Count)
-        result items None
-    | NoSession ->
-        result 0 None)
-
-let browse =
-    request (fun r ->
-        match r.queryParam Path.Store.browseKey with
-        | Choice1Of2 genre -> 
-            Db.getContext()
-            |> Db.getAlbumsForGenre genre
-            |> View.browse genre
-            |> html
-        | Choice2Of2 msg -> BAD_REQUEST msg)
-
 let overview = warbler (fun _ ->
     Db.getContext() 
     |> Db.getGenres 
@@ -67,160 +20,12 @@ let overview = warbler (fun _ ->
     |> View.store 
     |> html)
 
-let details id =
-    match Db.getAlbumDetails id (Db.getContext()) with
-    | Some album ->
-        html (View.details album)
-    | None ->
-        never
 
-let manage = warbler (fun _ ->
-    Db.getContext()
-    |> Db.getAlbumsDetails
-    |> View.manage
-    |> html)
 
-let bindToForm form handler =
-    bindReq (bindForm form) handler BAD_REQUEST
 
-let createAlbum =
-    let ctx = Db.getContext()
-    choose [
-        GET >=> warbler (fun _ -> 
-            let genres = 
-                Db.getGenres ctx 
-                |> List.map (fun g -> decimal g.Genreid, g.Name)
-            let artists = 
-                Db.getArtists ctx
-                |> List.map (fun g -> decimal g.Artistid, g.Name)
-            html (View.createAlbum genres artists))
 
-        POST >=> bindToForm Form.album (fun form ->
-            Db.createAlbum (int form.ArtistId, int form.GenreId, form.Price, form.Title) ctx
-            Redirection.FOUND Path.Admin.manage)
-    ]
 
-let editAlbum id =
-    let ctx = Db.getContext()
-    match Db.getAlbum id ctx with
-    | Some album ->
-        choose [
-            GET >=> warbler (fun _ ->
-                let genres = 
-                    Db.getGenres ctx 
-                    |> List.map (fun g -> decimal g.Genreid, g.Name)
-                let artists = 
-                    Db.getArtists ctx
-                    |> List.map (fun g -> decimal g.Artistid, g.Name)
-                html (View.editAlbum album genres artists))
-            POST >=> bindToForm Form.album (fun form ->
-                Db.updateAlbum album (int form.ArtistId, int form.GenreId, form.Price, form.Title) ctx
-                Redirection.FOUND Path.Admin.manage)
-        ]
-    | None -> 
-        never
 
-let deleteAlbum id =
-    let ctx = Db.getContext()
-    match Db.getAlbum id ctx with
-    | Some album ->
-        choose [ 
-            GET >=> warbler (fun _ -> 
-                html (View.deleteAlbum album.Title))
-            POST >=> warbler (fun _ -> 
-                Db.deleteAlbum album ctx; 
-                Redirection.FOUND Path.Admin.manage)
-        ]
-    | None ->
-        never
-
-let passHash (pass: string) =
-    use sha = Security.Cryptography.SHA256.Create()
-    Text.Encoding.UTF8.GetBytes(pass)
-    |> sha.ComputeHash
-    |> Array.map (fun b -> b.ToString("x2"))
-    |> String.concat ""
-
-let sessionStore setF = context (fun x ->
-    match HttpContext.state x with
-    | Some state -> setF state
-    | None -> never)
-
-let returnPathOrHome = 
-    request (fun x -> 
-        let path = 
-            match (x.queryParam "returnPath") with
-            | Choice1Of2 path -> path
-            | _ -> Path.home
-        Redirection.FOUND path)
-
-let authenticateUser (user : Db.User) =
-    authenticated Cookie.CookieLife.Session false 
-    >=> session (function
-        | CartIdOnly cartId ->
-            let ctx = Db.getContext()
-            Db.upgradeCarts (cartId, user.Username) ctx
-            sessionStore (fun store -> store.set "cartid" "")
-        | _ -> succeed)
-    >=> sessionStore (fun store ->
-        store.set "username" user.Username
-        >=> store.set "role" user.Role)
-    >=> returnPathOrHome
-
-let logon =
-    choose [
-        GET >=> (View.logon "" |> html)
-        POST >=> bindToForm Form.logon (fun form ->
-            let ctx = Db.getContext()
-            let (Password password) = form.Password
-            match Db.validateUser(form.Username, passHash password) ctx with
-            | Some user ->
-                    authenticateUser user
-            | _ ->
-                View.logon "Username or password is invalid." |> html
-        )
-    ]
-
-let register =
-    choose [
-        GET >=> (View.register "" |> html)
-        POST >=> bindToForm Form.register (fun form ->
-            let ctx = Db.getContext()
-            match Db.getUser form.Username ctx with
-            | Some existing -> 
-                View.register "Sorry this username is already taken. Try another one." |> html
-            | None ->
-                let (Password password) = form.Password
-                let email = form.Email.Address
-                let user = Db.newUser (form.Username, passHash password, email) ctx
-                authenticateUser user
-        )
-    ]
-
-let reset =
-    unsetPair SessionAuthCookie
-    >=> unsetPair StateCookie
-    >=> Redirection.FOUND Path.home
-
-let redirectWithReturnPath redirection =
-    request (fun x ->
-        let path = x.url.AbsolutePath
-        Redirection.FOUND (redirection |> Path.withParam ("returnPath", path)))
-
-let loggedOn f_success =
-    authenticate
-        Cookie.CookieLife.Session
-        false
-        (fun () -> Choice2Of2(redirectWithReturnPath Path.Account.logon))
-        (fun _ -> Choice2Of2 reset)
-        f_success
-
-let admin f_success =
-    loggedOn (session (function
-        | UserLoggedOn { Role = "admin" } -> f_success
-        | UserLoggedOn _ -> FORBIDDEN "Only for admin"
-        | _ -> UNAUTHORIZED "Not logged in"
-    ))
 
 let cart = 
     session (function
@@ -272,20 +77,14 @@ let checkout =
 
 let webPart = 
     choose [
+        Store.webPart
         path Path.home >=> html View.home
         path Path.Store.overview >=> overview
-        path Path.Store.browse >=> browse
-        pathScan Path.Store.details details
 
-        path Path.Admin.manage >=> admin manage
-        path Path.Admin.createAlbum >=> admin createAlbum
-        pathScan Path.Admin.editAlbum (fun id -> admin (editAlbum id))
-        pathScan Path.Admin.deleteAlbum (fun id -> admin (deleteAlbum id))
+        Admin.webPart
 
-        path Path.Account.logon >=> logon
-        path Path.Account.logoff >=> reset
-        path Path.Account.register >=> register
-
+        Account.webPart
+        
         path Path.Cart.overview >=> cart
         pathScan Path.Cart.addAlbum addToCart
         pathScan Path.Cart.removeAlbum removeFromCart
