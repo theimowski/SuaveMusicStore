@@ -4,34 +4,35 @@ open Suave
 open Suave.Filters
 open Suave.Operators
 open Suave.RequestErrors
-let getAlbum id (ctx : Db.DbContext) : Db.Album option =
+
+let getAlbum id (ctx : DbContext) : Album option =
     query {
         for album in ctx.Public.Albums do
             where (album.Albumid = id)
             select album
     } |> Seq.tryHead
 
-let updateAlbum (album : Db.Album) (artistId, genreId, price, title) (ctx : Db.DbContext) =
+let updateAlbum (album : Album) (artistId, genreId, price, title) (ctx : DbContext) =
     album.Artistid <- artistId
     album.Genreid <- genreId
     album.Price <- price
     album.Title <- title
     ctx.SubmitUpdates()
 let manage = warbler (fun _ ->
-    Db.getContext()
-    |> Db.getAlbumsDetails
+    getContext()
+    |> getAlbumsDetails
     |> View.manage
     |> html)
 
 let createAlbum =
-    let ctx = Db.getContext()
+    let ctx = getContext()
     choose [
         GET >=> warbler (fun _ -> 
             let genres = 
-                Db.getGenres ctx 
+                getGenres ctx 
                 |> List.map (fun g -> decimal g.Genreid, g.Name)
             let artists = 
-                Db.getArtists ctx
+                getArtists ctx
                 |> List.map (fun g -> decimal g.Artistid, g.Name)
             html (View.createAlbum genres artists))
 
@@ -41,16 +42,16 @@ let createAlbum =
             Redirection.FOUND Path.Admin.manage)
     ]
 let editAlbum id =
-    let ctx = Db.getContext()
+    let ctx = getContext()
     match getAlbum id ctx with
     | Some album ->
         choose [
             GET >=> warbler (fun _ ->
                 let genres = 
-                    Db.getGenres ctx 
+                    getGenres ctx 
                     |> List.map (fun g -> decimal g.Genreid, g.Name)
                 let artists = 
-                    Db.getArtists ctx
+                    getArtists ctx
                     |> List.map (fun g -> decimal g.Artistid, g.Name)
                 html (View.editAlbum album genres artists))
             POST >=> bindToForm Form.album (fun form ->
@@ -61,7 +62,7 @@ let editAlbum id =
         never
 
 let deleteAlbum id =
-    let ctx = Db.getContext()
+    let ctx = getContext()
     match getAlbum id ctx with
     | Some album ->
         choose [ 

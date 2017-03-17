@@ -23,12 +23,23 @@ let returnPathOrHome =
             | Choice1Of2 path -> path
             | _ -> Path.home
         Redirection.FOUND path)
-let authenticateUser (user : Db.User) =
+
+let upgradeCarts (cartId : string, username :string) (ctx : DbContext) =
+    for cart in getCarts cartId ctx do
+        match getCart username cart.Albumid ctx with
+        | Some existing ->
+            existing.Count <- existing.Count +  cart.Count
+            cart.Delete()
+        | None ->
+            cart.Cartid <- username
+    ctx.SubmitUpdates()
+
+let authenticateUser (user : User) =
     authenticated Cookie.CookieLife.Session false 
     >=> session (function
         | CartIdOnly cartId ->
-            let ctx = Db.getContext()
-            Db.upgradeCarts (cartId, user.Username) ctx
+            let ctx = getContext()
+            upgradeCarts (cartId, user.Username) ctx
             sessionStore (fun store -> store.set "cartid" "")
         | _ -> succeed)
     >=> sessionStore (fun store ->
@@ -36,13 +47,20 @@ let authenticateUser (user : Db.User) =
         >=> store.set "role" user.Role)
     >=> returnPathOrHome
 
+let validateUser (username, password) (ctx : DbContext) : User option =
+    query {
+        for user in ctx.Public.Users do
+            where (user.Username = username && user.Password = password)
+            select user
+    } |> Seq.tryHead
+
 let logon =
     choose [
         GET >=> (View.logon "" |> html)
         POST >=> bindToForm Form.logon (fun form ->
-            let ctx = Db.getContext()
+            let ctx = getContext()
             let (Password password) = form.Password
-            match Db.validateUser(form.Username, passHash password) ctx with
+            match validateUser(form.Username, passHash password) ctx with
             | Some user ->
                     authenticateUser user
             | _ ->
@@ -54,14 +72,14 @@ let register =
     choose [
         GET >=> (View.register "" |> html)
         POST >=> bindToForm Form.register (fun form ->
-            let ctx = Db.getContext()
-            match Db.getUser form.Username ctx with
+            let ctx = getContext()
+            match getUser form.Username ctx with
             | Some existing -> 
                 View.register "Sorry this username is already taken. Try another one." |> html
             | None ->
                 let (Password password) = form.Password
                 let email = form.Email.Address
-                let user = Db.newUser (form.Username, passHash password, email) ctx
+                let user = newUser (form.Username, passHash password, email) ctx
                 authenticateUser user
         )
     ]

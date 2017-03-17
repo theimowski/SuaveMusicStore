@@ -1,16 +1,79 @@
 [<AutoOpen>]
 module SuaveMusicStore.Common
 
+open System
 open Suave
 open Suave.Authentication
 open Suave.Cookie
 open Suave.Html
 open Suave.Successful
 open Suave.Form
-open Suave.Model.Binding
 open Suave.Operators
 open Suave.RequestErrors
 open Suave.State.CookieStateStore
+
+open FSharp.Data.Sql
+
+type IntPath = PrintfFormat<(int -> string),unit,string,string,int>
+
+type Sql = 
+    SqlDataProvider< 
+        ConnectionString      = "Server=192.168.99.100;Database=suavemusicstore;User Id=suave;Password=1234;",
+        DatabaseVendor        = Common.DatabaseProviderTypes.POSTGRESQL,
+        CaseSensitivityChange = Common.CaseSensitivityChange.ORIGINAL >
+
+type DbContext = Sql.dataContext
+type Album = DbContext.``public.albumsEntity``
+type Genre = DbContext.``public.genresEntity``
+type AlbumDetails = DbContext.``public.albumdetailsEntity``
+type Artist = DbContext.``public.artistsEntity``
+type User = DbContext.``public.usersEntity``
+type CartDetails = DbContext.``public.cartdetailsEntity``
+type Cart = DbContext.``public.cartsEntity``
+
+let getContext() = Sql.GetDataContext()
+
+let getGenres (ctx : DbContext) : Genre list = 
+    ctx.Public.Genres |> Seq.toList
+
+let getArtists (ctx : DbContext) : Artist list = 
+    ctx.Public.Artists |> Seq.toList
+
+let getAlbumsDetails (ctx : DbContext) : AlbumDetails list = 
+    ctx.Public.Albumdetails |> Seq.toList
+
+let getUser username (ctx : DbContext) : User option = 
+    query {
+        for user in ctx.Public.Users do
+        where (user.Username = username)
+        select user
+    } |> Seq.tryHead
+
+let newUser (username, password, email) (ctx : DbContext) =
+    let user = ctx.Public.Users.Create(email, password, "user", username)
+    ctx.SubmitUpdates()
+    user
+
+let getCart cartId albumId (ctx : DbContext) : Cart option =
+    query {
+        for cart in ctx.Public.Carts do
+            where (cart.Cartid = cartId && cart.Albumid = albumId)
+            select cart
+    } |> Seq.tryHead
+
+let getCarts cartId (ctx : DbContext) : Cart list =
+    query {
+        for cart in ctx.Public.Carts do
+            where (cart.Cartid = cartId)
+            select cart
+    } |> Seq.toList
+
+let getCartsDetails cartId (ctx : DbContext) : CartDetails list =
+    query {
+        for cart in ctx.Public.Cartdetails do
+            where (cart.Cartid = cartId)
+            select cart
+    } |> Seq.toList
 
 type UserLoggedOnSession = {
     Username : string
@@ -34,7 +97,7 @@ let session f =
             | _ -> f NoSession)
 
 let bindToForm form handler =
-    bindReq (bindForm form) handler BAD_REQUEST
+    Model.Binding.bindReq (bindForm form) handler BAD_REQUEST
 
 let reset =
     unsetPair SessionAuthCookie
@@ -107,18 +170,20 @@ let partUser (user : string option) =
         | None ->
             yield a Path.Account.logon [] [Text "Log on"]
     ]
+
+
 let html container =
-    let ctx = Db.getContext()
+    let ctx = getContext()
     let result cartItems user =
         OK (index (partNav cartItems) (partUser user) container)
         >=> Writers.setMimeType "text/html; charset=utf-8"
         
     session (function
     | UserLoggedOn { Username = username } -> 
-        let items = Db.getCartsDetails username ctx |> List.sumBy (fun c -> c.Count)
+        let items = getCartsDetails username ctx |> List.sumBy (fun c -> c.Count)
         result items (Some username)
     | CartIdOnly cartId ->
-        let items = Db.getCartsDetails cartId ctx |> List.sumBy (fun c -> c.Count)
+        let items = getCartsDetails cartId ctx |> List.sumBy (fun c -> c.Count)
         result items None
     | NoSession ->
         result 0 None)

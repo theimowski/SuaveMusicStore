@@ -42,7 +42,6 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Db.fs" />
     <Compile Include="Path.fs" />
     <Compile Include="Common.fs" />
     <Compile Include="Form.fs" />

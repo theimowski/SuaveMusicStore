@@ -67,7 +67,7 @@ let store genres = [
     ]
 ]
 
-let browse genre (albums : Db.Album list) = [
+let browse genre (albums : Album list) = [
     h2 (sprintf "Genre: %s" genre)
     ul [] [
         for album in albums ->
@@ -75,7 +75,7 @@ let browse genre (albums : Db.Album list) = [
     ]
 ]
 
-let details (album : Db.AlbumDetails) = [
+let details (album : AlbumDetails) = [
     h2 album.Title
     p [] [ img ["src", album.Albumarturl] ]
     div ["id", "album-details"] [
@@ -98,7 +98,7 @@ let truncate k (s : string) =
         s.Substring(0, k - 3) + "..."
     else s
 
-let manage (albums : Db.AlbumDetails list) = [ 
+let manage (albums : AlbumDetails list) = [ 
     h2 "Index"
     p [] [
         a Path.Admin.createAlbum [] [Text "Create New"]
@@ -170,7 +170,7 @@ let createAlbum genres artists = [
     ]
 ]
 
-let editAlbum (album : Db.Album) genres artists = [ 
+let editAlbum (album : Album) genres artists = [ 
     h2 "Edit"
 
     renderForm
@@ -239,7 +239,7 @@ let emptyCart = [
     Text "!"
 ]
 
-let nonEmptyCart (carts : Db.CartDetails list) = [
+let nonEmptyCart (carts : CartDetails list) = [
     h2 "Review your cart:"
     p ["class", "button"] [
         a Path.Cart.checkout [] [Text "Checkout >>"]
