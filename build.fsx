@@ -133,6 +133,22 @@ let startingToBounded srcFiles (fileName, snippet) =
   | _ ->
     fileName, snippet
 
+type MyFsiEvaluator() =
+  let inner = FsiEvaluator()
+  do inner.EvaluationFailed.Add(fun err -> 
+    failwithf "Evaluating: %A\nError: %A" err.Text err.Exception)
+  let innerInt = inner :> IFsiEvaluator
+  interface IFsiEvaluator with
+    member x.Format(result, kind) = 
+      innerInt.Format(result, kind)
+    member x.Evaluate(text:string, asExpression, ?file) =
+      // Evaluate cannot invoke startWebServer as it is a blocking call
+      // instead comment this out - if it appears it is probably the last line of a file anyway 
+      let text = text.Replace("startWebServer", "//startWebServer")
+      innerInt.Evaluate(text, asExpression, file)
+
+let fsi = MyFsiEvaluator()
+
 let fillSnippets commit msg =
   let fsproj = 
     fileContentsAt commit "SuaveMusicStore.fsproj"
@@ -256,7 +272,7 @@ let fillSnippets commit msg =
   let scriptOutName = Path.Combine ( __SOURCE_DIRECTORY__, projectName )
   let _,_,outName = parseFirstMsgLine (Seq.head msg)
   write(scriptOutName + ".fsx", lines)
-  Literate.ProcessScriptFile(scriptOutName + ".fsx",lineNumbers = false)
+  Literate.ProcessScriptFile(scriptOutName + ".fsx",lineNumbers = false, fsiEvaluator = fsi)
   let rawHtml = File.ReadAllText (scriptOutName + ".html")
 
   let html = XDocument.Parse ("<root>" + rawHtml + "</root>", LoadOptions.PreserveWhitespace)
