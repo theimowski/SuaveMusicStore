@@ -136,7 +136,7 @@ let startingToBounded srcFiles (fileName, snippet) =
 type MyFsiEvaluator() =
   let inner = FsiEvaluator()
   do inner.EvaluationFailed.Add(fun err -> 
-    failwithf "Evaluating: %A\nError: %A" err.Text err.Exception)
+    traceImportant (sprintf "Evaluation failed: %A" err.Text))
   let innerInt = inner :> IFsiEvaluator
   interface IFsiEvaluator with
     member x.Format(result, kind) = 
@@ -397,7 +397,14 @@ let generate (changedFile : FileInfo option) =
   
 let refresh (fi : FileInfo) = 
   traceImportant <| sprintf "%s was changed." fi.FullName
-  generate (Some fi)
+  try
+    generate (Some fi)
+    true
+  with e ->
+    traceError "Reload failed: "
+    traceError e.Message
+    traceError e.StackTrace
+    false
 
 let refreshEvent = new Event<_>()
 
@@ -405,21 +412,21 @@ let gitbook = Environment.ExpandEnvironmentVariables  @"%APPDATA%\npm\node_modul
 
 
 let handleWatcherEvents (events:FileChange seq) =
-    events
-    |> Seq.map (fun e -> fileInfo e.FullPath)
-    |> Seq.filter (fun fi -> 
-      not (fi.Attributes.HasFlag FileAttributes.Hidden) && 
-      not (fi.Attributes.HasFlag FileAttributes.Directory))
-    |> Seq.iter refresh
+    let succeed = 
+      events
+      |> Seq.map (fun e -> fileInfo e.FullPath)
+      |> Seq.filter (fun fi -> 
+        not (fi.Attributes.HasFlag FileAttributes.Hidden) && 
+        not (fi.Attributes.HasFlag FileAttributes.Directory))
+      |> Seq.forall refresh
     
-    directExec (fun si ->
-            si.FileName <- "node"
-            si.Arguments <- sprintf "%s %s %s" gitbook "build" outDir
-    ) |> ignore
+    if succeed then
+      directExec (fun si ->
+              si.FileName <- "node"
+              si.Arguments <- sprintf "%s %s %s" gitbook "build" outDir
+      ) |> ignore
 
-    refreshEvent.Trigger()   
-    
-  
+      refreshEvent.Trigger()
 
 Target "Generate" (fun _ ->
   CleanDir outDir
