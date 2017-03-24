@@ -149,6 +149,30 @@ type MyFsiEvaluator() =
 
 let fsi = MyFsiEvaluator()
 
+let ensureNoOverlaping (snippets: list<string * Snippet>) =
+  let noOverlap (src,snipsInFile) =
+    if snipsInFile |> List.contains SnippetWholeFile &&
+       snipsInFile.Length > 1 then
+       failwithf "%s: SnippetWholeFile and something else: %A" src snipsInFile
+    
+    let lines = 
+      snipsInFile
+      |> List.choose (function SnippetLinesBounded (s,e) -> Some (s,e) | _ -> None)
+      |> List.sort
+      |> List.pairwise
+      |> List.tryFind (fun ((_,e1),(s2,_)) -> e1 >= s2)
+    
+    match lines with
+    | Some ((s1,e1),(s2,e2)) -> 
+      failwithf "%s: Overlapping lines: %d-%d and %d-%d" src s1 e1 s2 e2 
+    | _ ->
+      ()
+
+  snippets
+  |> List.groupBy fst
+  |> List.map (fun (k, vs) -> k,List.map snd vs)
+  |> List.iter noOverlap
+
 let fillSnippets commit msg =
   let fsproj = 
     fileContentsAt commit "SuaveMusicStore.fsproj"
@@ -185,6 +209,8 @@ let fillSnippets commit msg =
   let snippets = 
     List.choose tryParseSnippet msg
     |> List.map (startingToBounded srcFiles)
+
+  ensureNoOverlaping snippets
 
   let snippetOrder =
     let srcFiles = List.map fst srcFiles
