@@ -29,7 +29,7 @@ open Suave.Sockets.Control
 open Suave.Sockets.AsyncSocket
 open Suave.WebSocket
 
-let outDir = "out"
+let outDir = Path.Combine ( __SOURCE_DIRECTORY__,  "out")
 
 let repo = getBuildParamOrDefault "repo" __SOURCE_DIRECTORY__
 let githubAccount = "theimowski"
@@ -200,7 +200,7 @@ let fillSnippets commit msg =
         |> Seq.toList
       files, dlls
     | None ->
-      tracef "No fsproj for commit %s\n" commit
+      tracefn "No fsproj for commit %s" commit
       [], []
 
   refDlls
@@ -295,10 +295,12 @@ let fillSnippets commit msg =
     |> List.append lines
 
   let projectName = "SuaveMusicStore"
-  let scriptOutName = Path.Combine ( __SOURCE_DIRECTORY__, projectName )
   let _,_,outName = parseFirstMsgLine (Seq.head msg)
+  let scriptOutName = Path.Combine ( __SOURCE_DIRECTORY__, "temp", outName, projectName )
+  CleanDir (Path.GetDirectoryName scriptOutName)
   write(scriptOutName + ".fsx", lines)
-  Literate.ProcessScriptFile(scriptOutName + ".fsx",lineNumbers = false, fsiEvaluator = fsi)
+  tracefn "processing %s.fsx..." scriptOutName
+  Literate.ProcessScriptFile(scriptOutName + ".fsx",lineNumbers = false)
   let rawHtml = File.ReadAllText (scriptOutName + ".html")
 
   let html = XDocument.Parse ("<root>" + rawHtml + "</root>", LoadOptions.PreserveWhitespace)
@@ -392,6 +394,7 @@ let generate (changedFile : FileInfo option) =
       "suave_reload.js" ]
     |> Copy outDir
     CopyDir (outDir </> "en") "en" (fun _ -> true)
+    CleanDir "temp"
     commits
     |> Seq.iter (fun (commitHash,body) ->
       let fileName = markdownFileName body
