@@ -115,21 +115,24 @@ let startingToBounded srcFiles (fileName, snippet) =
   | SnippetStartingWith prefix ->
     let contents =
       List.find (fst >> ((=) fileName)) srcFiles |> snd
-    let (sL,line) =
+    let line =
       contents
       |> List.indexed
-      |> List.find (snd >> startsWith prefix)
+      |> List.tryFind (snd >> startsWith prefix)
 
-      // TODO: Handle find miss!
+    match line with
+    | Some (sL,line) ->
+      let spaces = line.IndexOf prefix
+      let eL =
+        contents
+        |> List.skip (sL + 1)
+        |> List.tryFindIndex (spacesLE spaces)
+        |> Option.map ((+) (sL + 1))
+        |> fun o -> defaultArg o contents.Length
+      fileName, SnippetLinesBounded (sL + 1, eL)
+    | None ->
+      failwithf "Couldn't find fragment starting with `%s` in %s" prefix fileName
 
-    let spaces = line.IndexOf prefix
-    let eL =
-      contents
-      |> List.skip (sL + 1)
-      |> List.tryFindIndex (spacesLE spaces)
-      |> Option.map ((+) (sL + 1))
-      |> fun o -> defaultArg o contents.Length
-    fileName, SnippetLinesBounded (sL + 1, eL)
   | _ ->
     fileName, snippet
 
