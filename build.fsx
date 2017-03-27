@@ -109,7 +109,10 @@ let startingToBounded srcFiles (fileName, snippet) =
     String.startsWith prefix (line.TrimStart())
 
   let spacesLE spaces (line: string) =
-    line.Length - line.TrimStart().Length <= spaces
+    let trimmed = line.TrimStart()
+    line.Length - trimmed.Length <= spaces &&
+    trimmed <> String.Empty &&
+    Char.IsLetter (trimmed.[0])
 
   match snippet with
   | SnippetStartingWith prefix ->
