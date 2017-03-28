@@ -348,41 +348,13 @@ let fillSnippets commit msg =
   |> insertTips
   
 let insertGithubCommit commit code = 
-  sprintf "GitHub commit: [%s](https://github.com/%s/%s/commit/%s)"
-          commit
+  sprintf "Show code from this section on [GitHub](https://github.com/%s/%s/commit/%s)"
           githubAccount
           githubRepo
           commit
   |> List.singleton
   |> List.append ["";"---";""]
   |> List.append code
-
-let numStat line =
-  let split = function
-  | Regex "^(\w)\s+(.*)$" [status; name] -> status,name
-  | _ -> failwithf "split cannot parse: %s" line
-
-  let human = function
-  | "A" -> "added"
-  | "D" -> "deleted"
-  | "M" -> "modified"
-  | x -> failwithf "human: %s" x
-
-  let (stat,name) = split line
-  sprintf "* %s (%s)" name (human stat)
-
-let insertGitDiff commit code =
-  let filesChanged =
-    Git.CommandHelper.getGitResult repo (sprintf "diff %s^..%s --name-status" commit commit)
-    |> Seq.toList
-  
-  if filesChanged = List.empty then 
-    code
-  else
-    filesChanged
-    |> List.map numStat
-    |> List.append ["";"Files changed:";""]
-    |> List.append code
 
 let generate (changedFile : FileInfo option) =
   let hashLen = 40
@@ -410,7 +382,6 @@ let generate (changedFile : FileInfo option) =
         original
         |> fillSnippets commitHash
         |> insertGithubCommit commitHash
-        |> insertGitDiff commitHash
       write (outFile, contents))
   | Some changedFile ->
     let original = File.ReadAllLines changedFile.FullName |> List.ofArray
@@ -425,7 +396,6 @@ let generate (changedFile : FileInfo option) =
           original
           |> fillSnippets commitHash
           |> insertGithubCommit commitHash
-          |> insertGitDiff commitHash
       | None ->
         original
     write (outFile, contents)
