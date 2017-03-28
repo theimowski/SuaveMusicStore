@@ -306,12 +306,12 @@ let fillSnippets commit msg =
   CleanDir (Path.GetDirectoryName scriptOutName)
   write(scriptOutName + ".fsx", lines)
   tracefn "processing %s.fsx..." scriptOutName
-  Literate.ProcessScriptFile(scriptOutName + ".fsx",lineNumbers = false)
+  Literate.ProcessScriptFile(scriptOutName + ".fsx",lineNumbers = true)
   let rawHtml = File.ReadAllText (scriptOutName + ".html")
 
   let html = XDocument.Parse ("<root>" + rawHtml + "</root>", LoadOptions.PreserveWhitespace)
   let snippets =
-    html.Root.XPathSelectElements "pre"
+    html.Root.XPathSelectElements "table"
     |> Seq.map (fun x -> x.ToString(SaveOptions.DisableFormatting)
                           .Replace("<code", "<div")
                           .Replace("</code", "</div")
