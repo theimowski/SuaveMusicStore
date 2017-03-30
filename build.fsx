@@ -17,6 +17,7 @@ open System.Xml.XPath
 
 open Fake
 open Fake.Git
+open Fake.StringHelper
 
 open FSharp.Literate
 
@@ -34,7 +35,7 @@ let outDir = Path.Combine ( __SOURCE_DIRECTORY__,  "out")
 let repo = getBuildParamOrDefault "repo" __SOURCE_DIRECTORY__
 let githubAccount = "theimowski"
 let githubRepo = "SuaveMusicStore"
-let branch = "v2.0_src"
+let branch = "v2.0_src_err"
 
 let write (path, lines: list<String>) =
   if not (File.Exists path && File.ReadAllLines path |> Array.toList = lines) then
@@ -61,6 +62,9 @@ type Snippet =
 | SnippetWholeFile
 | SnippetLinesBounded of startLine : int * endLine : int
 | SnippetStartingWith of start : string
+
+let formatSnip = function
+| file, _ -> sprintf "`%s`" file
 
 let snipId = function
 | file, SnippetWholeFile -> file
@@ -237,7 +241,6 @@ let fillSnippets commit msg =
     snippets
     |> List.indexed
     |> List.sortWith f
-    |> List.map fst
 
   let verboseTopLvlModule lines =
     match lines with
@@ -310,6 +313,25 @@ let fillSnippets commit msg =
   let rawHtml = File.ReadAllText (scriptOutName + ".html")
 
   let html = XDocument.Parse ("<root>" + rawHtml + "</root>", LoadOptions.PreserveWhitespace)
+  
+  let changeLineNums ((_,(srcFile, snippet)), rawHtml) =
+    match snippet with
+    | SnippetWholeFile ->
+      rawHtml
+    | SnippetLinesBounded (sL, _) ->
+      rawHtml
+      |> splitStr """<span class="l">"""
+      |> List.mapi (fun i s ->
+        match (i,s) with
+        | 0, _ -> s
+        | _, Regex "^(\d+): ((?:.|\n)*)$" [Int32 line; rest] -> 
+          sprintf "%d: %s" (sL + line - 1) rest
+        | _, _ -> 
+          failwithf "unexpected case: '%d' '%s'" i s)
+      |> String.concat """<span class="l">"""
+    | SnippetStartingWith _ ->
+      failwith "SnippetStartingWith should not be present here"
+  
   let snippets =
     html.Root.XPathSelectElements "table"
     |> Seq.map (fun x -> x.ToString(SaveOptions.DisableFormatting)
@@ -323,7 +345,7 @@ let fillSnippets commit msg =
     |> Seq.toList
     |> List.zip snippetOrder
     |> List.sortBy fst
-    |> List.map snd
+    |> List.map changeLineNums
 
   let tips =
     html.Root.XPathSelectElements "div[@class='tip']"
@@ -333,8 +355,8 @@ let fillSnippets commit msg =
   let rec insertSnippets acc snippets content =
     match content,snippets with
       | [],[] -> List.rev acc
-      | Snip _ :: t, s :: ss ->
-        insertSnippets (s :: acc) ss t
+      | Snip snip :: t, s :: ss ->
+        insertSnippets (s :: "" :: formatSnip snip :: "" :: acc) ss t
       | h :: t, s -> 
         insertSnippets (h :: acc) s t
       | _ ->
