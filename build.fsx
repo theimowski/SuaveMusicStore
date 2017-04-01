@@ -64,7 +64,7 @@ type Snippet =
 | SnippetStartingWith of start : string
 
 let formatSnip = function
-| file, _ -> sprintf "`%s`" file
+| file, _ -> sprintf """<p style="text-align:center;"><b>%s</b></p>""" file
 
 let snipId = function
 | file, SnippetWholeFile -> file
@@ -313,7 +313,6 @@ let fillSnippets commit msg =
   let rawHtml = File.ReadAllText (scriptOutName + ".html")
 
   let html = XDocument.Parse ("<root>" + rawHtml + "</root>", LoadOptions.PreserveWhitespace)
-  
   let changeLineNums ((_,(srcFile, snippet)), rawHtml) =
     match snippet with
     | SnippetWholeFile ->
@@ -324,8 +323,8 @@ let fillSnippets commit msg =
       |> List.mapi (fun i s ->
         match (i,s) with
         | 0, _ -> s
-        | _, Regex "^(\d+): ((?:.|\n)*)$" [Int32 line; rest] -> 
-          sprintf "%d: %s" (sL + line - 1) rest
+        | _, Regex "^(\s*)(\d+): ((?:.|\n)*)$" [white; Int32 line; rest] -> 
+          sprintf "%4d: %s" (sL + line - 1) rest
         | _, _ -> 
           failwithf "unexpected case: '%d' '%s'" i s)
       |> String.concat """<span class="l">"""
@@ -356,7 +355,7 @@ let fillSnippets commit msg =
     match content,snippets with
       | [],[] -> List.rev acc
       | Snip snip :: t, s :: ss ->
-        insertSnippets (s :: "" :: formatSnip snip :: "" :: acc) ss t
+        insertSnippets (s :: formatSnip snip :: acc) ss t
       | h :: t, s -> 
         insertSnippets (h :: acc) s t
       | _ ->

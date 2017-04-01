@@ -36,3 +36,4 @@ We can however see how the `emptyCart` view looks like if we add proper handler 
 A navigation menu item can also appear handy:
 
 ==> View.fs:`let partNav`
+

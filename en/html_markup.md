@@ -42,3 +42,4 @@ Things worth commenting in the above snippet:
 To use `View.store` from `App` module, let's simply pass a hardcoded list for `genres` like following:
 
 ==> App.fs:21-21
+

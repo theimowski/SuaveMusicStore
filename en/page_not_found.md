@@ -7,4 +7,5 @@ In order to fix that, let's add a "Page Not Found" handler to our main `choose` 
 
 the `View.notFound` can then look like:
 
-==> View.fs:52-61
+==> View.fs:`let notFound`
+

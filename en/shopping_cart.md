@@ -10,3 +10,4 @@ Before we move to the `View`, add new type annotation for yet another database v
 `CartDetails` is a view that joins `Cart` with its corresponding `Album` in order to contain album's title and its price.
 
 ==> Db.fs:`type CartDetails`
+
