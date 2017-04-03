@@ -35,7 +35,7 @@ let outDir = Path.Combine ( __SOURCE_DIRECTORY__,  "out")
 let repo = getBuildParamOrDefault "repo" __SOURCE_DIRECTORY__
 let githubAccount = "theimowski"
 let githubRepo = "SuaveMusicStore"
-let branch = "v2.0_src_err"
+let branch = "v2.0_src"
 
 let write (path, lines: list<String>) =
   if not (File.Exists path && File.ReadAllLines path |> Array.toList = lines) then
@@ -314,22 +314,23 @@ let fillSnippets commit msg =
 
   let html = XDocument.Parse ("<root>" + rawHtml + "</root>", LoadOptions.PreserveWhitespace)
   let changeLineNums ((_,(srcFile, snippet)), rawHtml) =
-    match snippet with
-    | SnippetWholeFile ->
-      rawHtml
-    | SnippetLinesBounded (sL, _) ->
-      rawHtml
-      |> splitStr """<span class="l">"""
-      |> List.mapi (fun i s ->
-        match (i,s) with
-        | 0, _ -> s
-        | _, Regex "^(\s*)(\d+): ((?:.|\n)*)$" [white; Int32 line; rest] -> 
-          sprintf "%4d: %s" (sL + line - 1) rest
-        | _, _ -> 
-          failwithf "unexpected case: '%d' '%s'" i s)
-      |> String.concat """<span class="l">"""
-    | SnippetStartingWith _ ->
-      failwith "SnippetStartingWith should not be present here"
+    let sL = 
+      match snippet with 
+      | SnippetWholeFile -> 1
+      | SnippetLinesBounded (x, _) -> x
+      | SnippetStartingWith _ ->
+        failwith "SnippetStartingWith should not be present here"
+    
+    rawHtml
+    |> splitStr """<span class="l">"""
+    |> List.mapi (fun i s ->
+      match (i,s) with
+      | 0, _ -> s
+      | _, Regex "^(\s*)(\d+): ((?:.|\n)*)$" [white; Int32 line; rest] -> 
+        sprintf "%4d: %s" (sL + line - 1) rest
+      | _, _ -> 
+        failwithf "unexpected case: '%d' '%s'" i s)
+    |> String.concat """<span class="l">"""
   
   let snippets =
     html.Root.XPathSelectElements "table"
