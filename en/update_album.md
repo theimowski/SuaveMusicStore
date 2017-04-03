@@ -5,7 +5,7 @@ This one will be fairly easy, as it's gonna be very similar to create (we can re
 
 `editAlbum` in `View`:
 
-==> View.fs:169-187
+==> View.fs:`let editAlbum`
 
 Path:
 
@@ -13,19 +13,19 @@ Path:
 
 Link in `manage` view to edit the album, also with additional link to details and pipe separators (Text):
 
-==> View.fs:115-121
+==> View.fs:`yield td`
 
 `updateAlbum` in `Db` module:
 
-==> Db.fs:60-65
+==> Db.fs:`let updateAlbum`
 
 `editAlbum` WebPart in `App` module:
 
-==> App.fs:64-82
+==> App.fs:`let editAlbum`
 
 and finally `pathScan` in main `choose` WebPart:
 
-==> App.fs:107-107
+==> App.fs:`pathScan Path.Admin.editAlbum`
 
 Comments to above snippets:
 

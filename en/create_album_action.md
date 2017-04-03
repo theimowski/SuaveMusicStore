@@ -24,6 +24,6 @@ We need `createAlbum` for the `Db` module (the created album is piped to `ignore
 
 as well as POST handler inside the `createAlbum` WebPart:
 
-==> App.fs:47-62
+==> App.fs:`let createAlbum`
 
 

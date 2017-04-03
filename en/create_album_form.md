@@ -2,7 +2,9 @@
 
 To define a form for album creation, we can invoke `renderForm` like this:
 
-==> View.fs:140-163
+==> View.fs:`let formInput`
+
+==> View.fs:`let createAlbum`
 
 We can see that for the `Xml` values we can invoke `selectInput` or `input` functions.
 Both of them take as first argument function which directs to field for which the input should be generated.
@@ -15,9 +17,9 @@ As third argument, `selectInput` takes an optional selected value - in case of `
 Now that we have the `createAlbum` view, we can write the appropriate WebPart handler.
 Start by adding `getArtists` to `Db`:
 
-==> Db.fs:15-15
+==> Db.fs:`type Artist`
 
-==> Db.fs:53-54
+==> Db.fs:`let getArtists`
 
 Then proper entry in `Path` module:
 
@@ -32,6 +34,6 @@ and WebPart in `App` module:
 Once again, `warbler` will prevent from eager evaluation of the WebPart - it's vital here.
 To our `View.manage` we can add a link to `createAlbum`:
 
-==> View.fs:97-101
+==> View.fs:`let manage`
 
 This allows us to navigate to "/admin/create", however we're still lacking the actual POST handler.

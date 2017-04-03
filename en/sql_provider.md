@@ -26,7 +26,7 @@ In the newly created file, first open `FSharp.Data.Sql` module:
 
 Next, comes the most interesting part:
 
-==> Db.fs:5-9
+==> Db.fs:5-16
 
 You'll need to adjust the above connection string, so that it can access the `SuaveMusicStore` database. At least you need to make sure that the server instance part is correct - verify that the IP reflects you docker host machine:
 
@@ -40,7 +40,7 @@ This might be similar to how Entity Framework generates models for your tables, 
 
 The generated types have a bit cumbersome names, but we can define type aliases to keep things simpler:
 
-==> Db.fs:11-14
+==> Db.fs:18-21
 
 * `DbContext` is our data context,
 * `Album` and `Genre` reflect database tables,

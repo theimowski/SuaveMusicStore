@@ -31,7 +31,7 @@ Now, add the following for working with the unordered list (`ul`) and list item 
 
 The actual container for `store` can now look like the following:
 
-==> View.fs:14-23
+==> View.fs:`let store`
 
 Things worth commenting in the above snippet:
 
