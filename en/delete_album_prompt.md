@@ -3,11 +3,11 @@
 We can't make any operation on an album yet.
 To fix this, let's first add the delete functionality:
 
-==> View.fs:79-95
+==> View.fs:`let deleteAlbum`
 
 `deleteAlbum` is to be placed in the `View` module. It requires new markup functions:
 
-==> View.fs:14-17
+==> View.fs:`let strong`-`let submitInput`
 
 - `strong` is just an emphasis
 - `form` is HTML element for a form with it's "method" attribute set to "POST"
@@ -15,17 +15,17 @@ To fix this, let's first add the delete functionality:
 
 A couple of snippets to handle `deleteAlbum` are still needed, starting with `Db`:
 
-==> Db.fs:41-46
+==> Db.fs:`let getAlbum`
 
 for getting `Album option` (not `AlbumDetails`). 
 New route in `Path`:
 
-==> Path.fs:16-18
+==> Path.fs:`module Admin`
 
 Finally we can put following in the `App` module:
 
-==> App.fs:42-47
+==> App.fs:`let deleteAlbum`
 
-==> App.fs:57-57
+==> App.fs:`pathScan Path.Admin.deleteAlbum`
 
 This will let us display a prompt to delete an album, but without any action on the database yet.

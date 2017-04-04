@@ -3,7 +3,7 @@
 Let's move on to configuring a few routes in our application. 
 Before we do that, we'll need to open up two more modules at the beginning of `App.fs`:
 
-==> App.fs:1-4
+==> App.fs:`open Suave`-`open Suave.Successful`
 
 Now, let's create a couple of routing rules, so that our application responds with different content for different paths.
 To achieve that, we can use the `choose` function, which takes a list of WebParts, and chooses the first one that applies (returns `Some`), or if none WebPart applies, then choose will also return `None`:

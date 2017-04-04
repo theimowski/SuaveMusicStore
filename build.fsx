@@ -62,6 +62,7 @@ type Snippet =
 | SnippetWholeFile
 | SnippetLinesBounded of startLine : int * endLine : int
 | SnippetStartingWith of start : string
+| SnippetFromTo of start : string * ending : string
 
 let formatSnip = function
 | file, _ -> sprintf """<p style="text-align:center;"><b>%s</b></p>""" file
@@ -70,13 +71,16 @@ let snipId = function
 | file, SnippetWholeFile -> file
 | file, SnippetLinesBounded (s, e) -> sprintf "%s_%d-%d" file s e
 | file, SnippetStartingWith s -> sprintf "%s_%s" file (s.Replace(" ", "_"))
+| file, SnippetFromTo (s, e) -> sprintf "%s_%s-%s" file (s.Replace(" ", "_")) (e.Replace(" ", "_"))
 
 let tryParseSnippet = function
 | Regex "^==> ([\w\.]+):(\d+)-(\d+)$" [file; Int32 sl; Int32 el] -> 
   Some (file, SnippetLinesBounded(sl,el))
 | Regex "^==> ([\w\.]+)$" [file] -> 
   Some (file, SnippetWholeFile)
-| Regex "^==> ([\w\.]+):`(.+)`" [file; snipStart] ->
+| Regex "^==> ([\w\.]+):`(.+?)`-`(.+?)`$" [file; s; e] ->
+  Some (file, SnippetFromTo (s,e))
+| Regex "^==> ([\w\.]+):`(.+?)`$" [file; snipStart] ->
   Some (file, SnippetStartingWith snipStart)
 | _ -> 
   None
@@ -119,27 +123,41 @@ let startingToBounded srcFiles (fileName, snippet) =
     Char.IsLetter (trimmed.[0])
 
   match snippet with
-  | SnippetStartingWith prefix ->
+  | SnippetStartingWith prefix
+  | SnippetFromTo (prefix, _) ->
     let contents =
       List.find (fst >> ((=) fileName)) srcFiles |> snd
-    let line =
-      contents
-      |> List.indexed
-      |> List.tryFind (snd >> startsWith prefix)
-
-    match line with
-    | Some (sL,line) ->
-      let spaces = line.IndexOf prefix
-      let eL =
+    
+    let (sL,line) =
+      let line =
         contents
-        |> List.skip (sL + 1)
-        |> List.tryFindIndex (spacesLE spaces)
-        |> Option.map ((+) (sL + 1))
-        |> fun o -> defaultArg o contents.Length
-      fileName, SnippetLinesBounded (sL + 1, eL)
-    | None ->
-      failwithf "Couldn't find fragment starting with `%s` in %s" prefix fileName
+        |> List.indexed
+        |> List.tryFind (snd >> startsWith prefix)
+      match line with
+      | Some (sL,line) -> (sL + 1, line)
+      | None ->
+        failwithf "Couldn't find fragment starting with `%s` in %s" prefix fileName
 
+    let eL =
+      let spaces = line.IndexOf prefix
+      match snippet with
+      | SnippetStartingWith _ ->
+        contents
+        |> List.skip sL
+        |> List.tryFindIndex (spacesLE spaces)
+        |> Option.map ((+) sL)
+        |> fun o -> defaultArg o contents.Length
+      | SnippetFromTo (_, suffix) ->
+        let line = 
+          contents
+          |> List.indexed
+          |> List.tryFind (snd >> startsWith suffix)
+        match line with
+        | Some (eL,_) -> eL + 1
+        | None -> 
+          failwithf "Couldn't find fragment ending with `%s` in %s" suffix fileName
+
+    fileName, SnippetLinesBounded (sL, eL)
   | _ ->
     fileName, snippet
 
@@ -233,8 +251,10 @@ let fillSnippets commit msg =
       else
         match snipA, snipB with
         | SnippetStartingWith _, _ 
-        | _, SnippetStartingWith _ ->
-          failwith "all SnippetStartingWith should be already converted here to SnippetLinesBounded"
+        | _, SnippetStartingWith _ 
+        | SnippetFromTo _, _ 
+        | _, SnippetFromTo _ ->
+          failwith "all SnippetStartingWith and SnippetFromTo should be already converted here to SnippetLinesBounded"
         | _ ->
           compare snipA snipB
 
@@ -320,6 +340,8 @@ let fillSnippets commit msg =
       | SnippetLinesBounded (x, _) -> x
       | SnippetStartingWith _ ->
         failwith "SnippetStartingWith should not be present here"
+      | SnippetFromTo _ ->
+        failwith "SnippetFromTo should not be present here"
     
     rawHtml
     |> splitStr """<span class="l">"""

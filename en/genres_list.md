@@ -2,13 +2,13 @@
 
 For more convenient instantiation of `DbContext`, let's introduce a small helper function in `Db` module:
 
-==> Db.fs:16-16
+==> Db.fs:`let getContext`
 
 Now we're ready to finally read real data in the `App` module:
 
-==> App.fs:18-23
+==> App.fs:`let overview`
 
-==> App.fs:28-28
+==> App.fs:`path Path.Store.overview`
 
 `overview` is a WebPart that... 
 Hold on, do I really need to explain it?

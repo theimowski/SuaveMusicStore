@@ -2,7 +2,7 @@
 
 Moving to our next WebPart "browse", let's first adjust it in `View` module:
 
-==> View.fs:25-31
+==> View.fs:`let browse`
 
 so that it takes two arguments: name of the genre (string) and a list of albums for that genre.
 For each album we'll display a list item with a direct link to album's details.
@@ -11,7 +11,7 @@ For each album we'll display a list item with a direct link to album's details.
 
 Now, we can modify the `browse` WebPart itself:
 
-==> App.fs:12-20
+==> App.fs:`let browse`
 
 Again, usage of pipe operator makes it clear what happens in case the `genre` is resolved from the query parameter.
 

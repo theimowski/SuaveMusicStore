@@ -3,7 +3,7 @@
 There are a few more helper functions needed before we can set up proper authorization for "/admin" handlers.
 Add following to `App` module:
 
-==> App.fs:7-7
+==> App.fs:`open Suave.Cookie`
 
 ==> App.fs:`let reset`
 
@@ -30,7 +30,7 @@ Remarks:
 
 That was quite long, but worth it. Finally we're able to guard the "/admin" actions:
 
-==> App.fs:199-202
+==> App.fs:`path Path.Admin.manage`-`pathScan Path.Admin.deleteAlbum`
 
 Go and have a look what happens when you try to navigate to "/admin/manage" route.
 

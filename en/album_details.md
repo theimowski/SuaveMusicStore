@@ -3,11 +3,11 @@
 It's time to read album's details from the database. 
 Start by adjusting the `details` in `View` module:
 
-==> View.fs:34-46
+==> View.fs:`let details`
 
 Above snippet requires defining one more helper functions in `View`:
 
-==> View.fs:5-5
+==> View.fs:`let em`
 
 In the `details` function we used list comprehension syntax with an inline list of tuples (`["Genre:",album.Genre;...`).
 This is just to save us some time from typing the `p` element three times for all those properties.
@@ -17,9 +17,9 @@ The `AlbumDetails` database view turns out to be handy now, because we can use a
 
 To read the album's details in `App` module we can do following:
 
-==> App.fs:29-34
+==> App.fs:`let details`
 
-==> App.fs:41-41
+==> App.fs:`pathScan Path.Store.details`
 
 A few remarks regarding above snippet:
 
