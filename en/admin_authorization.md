@@ -5,13 +5,7 @@ Add following to `App` module:
 
 ==> App.fs:`open Suave.Cookie`
 
-==> App.fs:`let reset`
-
-==> App.fs:`let redirectWithReturnPath`
-
-==> App.fs:`let loggedOn`
-
-==> App.fs:`let admin`
+==> App.fs:`let reset`-`))`
 
 Remarks:
 
@@ -37,9 +31,7 @@ Go and have a look what happens when you try to navigate to "/admin/manage" rout
 We still need to update the `partUser`, when a user is logged on (remember we hardcoded `None` for username).
 To do this, we can pass `partUser` as parameter to `View.index`:
 
-==> View.fs:245-245
-
-==> View.fs:`div ["id", "header"]`
+==> View.fs:`let index`-`partUser`
 
 and determine whether a user is logged on in the `html` WebPart in `App` module:
 

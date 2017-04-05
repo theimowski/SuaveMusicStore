@@ -2,12 +2,11 @@
 
 Before we define the handler, let's add another helper function to `App` module:
 
-==> App.fs:44-45
+==> App.fs:`let bindToForm`
 
 It requires a few modules to be open, namely:
 
-==> App.fs:5-5
-==> App.fs:6-6
+==> App.fs:`open Suave.Form`-`open Suave.Model.Binding`
 
 What `bindToForm` does is:
 
@@ -20,7 +19,7 @@ There are just 2 more things before we're good to go with creating album functio
 
 We need `createAlbum` for the `Db` module (the created album is piped to `ignore` function, because we don't need it afterwards):
 
-==> Db.fs:56-58
+==> Db.fs:`let deleteAlbum`
 
 as well as POST handler inside the `createAlbum` WebPart:
 

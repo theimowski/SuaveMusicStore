@@ -23,13 +23,13 @@ Start by adding `getArtists` to `Db`:
 
 Then proper entry in `Path` module:
 
-==> Path.fs:18-18
+==> Path.fs:`module Admin`
 
 and WebPart in `App` module:
 
-==> App.fs:42-53
+==> App.fs:`let createAlbum`
 
-==> App.fs:77-77
+==> App.fs:`path Path.Admin.createAlbum`
 
 Once again, `warbler` will prevent from eager evaluation of the WebPart - it's vital here.
 To our `View.manage` we can add a link to `createAlbum`:

@@ -40,7 +40,7 @@ For server side we will use an utility WebPart that will parse the form field va
 
 To see how we can use the form in `View` module, add `open Suave.Form` to the beginning:
 
-==> View.fs:1-4
+==> View.fs:`module SuaveMusicStore.View`-`open Suave.Html`
 
 Next, add this block of code:
 

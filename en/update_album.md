@@ -9,7 +9,7 @@ This one will be fairly easy, as it's gonna be very similar to create (we can re
 
 Path:
 
-==> Path.fs:19-19
+==> Path.fs:`module Admin`
 
 Link in `manage` view to edit the album, also with additional link to details and pipe separators (Text):
 

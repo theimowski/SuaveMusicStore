@@ -6,13 +6,13 @@ For the moment both GET and POST requests will do the same, which is return HTML
 
 In order to implement the deletion, add `deleteAlbum` to `Db` module:
 
-==> Db.fs:48-50
+==> Db.fs:`let getAlbum `
 
 The snippet takes an `Album` as a parameter - instance of this type comes from database, and we can invoke `Delete()` member on it - SQLProvider keeps track of such changes, and upon `ctx.SubmitUpdates()` executes necessary SQL commands. This is somewhat similar to the "Active Record" concept.
 
 Now, in `App` module we can distinguish between GET and POST requests:
 
-==> App.fs:42-54
+==> App.fs:`let deleteAlbum`
 
 - `deleteAlbum` WebPart delegates the request to `choose` with two possible WebParts (GET or POST requests). 
 - `GET` and `POST` are WebParts that succeed (return `Some x`) only if the incoming HTTP request is of GET or POST verb respectively.
@@ -22,7 +22,7 @@ Now, in `App` module we can distinguish between GET and POST requests:
 
 The grid can now contain a column with link to delete the album in question:
 
-==> View.fs:61-81
+==> View.fs:`let manage`
 
 - there's a new "Action" column header in the first row
 - in the last column of each album row comes a cell with link to delete the album
