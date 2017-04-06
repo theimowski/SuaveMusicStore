@@ -19,7 +19,7 @@ In order to reuse the logic from logon POST handler, extract a separate function
 
 after extraction, `logon` POST handler looks like this:
 
-==> App.fs:`POST >=> bindToForm Form.logon`
+==> App.fs:`POST >=> bindToForm Form.logon`-`View.logon "Username or password is invalid."`
 
 Finally, the full register handler can be implemented following:
 

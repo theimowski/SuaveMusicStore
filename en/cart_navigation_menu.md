@@ -8,7 +8,7 @@ To do that, let's parametrize the `partNav` view:
 
 as well as add the `partNav` parameter to the main `index` view:
 
-==> View.fs:290-290
+==> View.fs:`let index partNav`-`let index partNav`
 
 In order to create the navigation menu, we now need to pass `cartItems` parameter.
 It has to be resolved in the `html` function from `App` module, which can now look like following:

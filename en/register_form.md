@@ -4,13 +4,7 @@ Register feature will be based on a standard form, so let's add one to the `Form
 
 ==> Form.fs:`open System.Net.Mail`
 
-==> Form.fs:`type Register`
-
-==> Form.fs:`let pattern`
-
-==> Form.fs:`let passwordsMatch`
-
-==> Form.fs:`let register`
+==> Form.fs:`type Register`-`],[ passwordsMatch`
 
 In the above snippet:
 
@@ -42,7 +36,7 @@ The rest of the snippet is rather self-explanatory.
 
 We're now left with proper `Path.Account` entry:
 
-==> Path.fs:`let register`
+==> Path.fs:`module Account`
 
 GET handler for registration in `App`:
 
@@ -52,6 +46,6 @@ GET handler for registration in `App`:
 
 and a direct link from the `View.logon` :
 
-==> View.fs:199-205
+==> View.fs:`let logon`-`div ["id", "logon-message"]`
 
 This allows us to navigate to the registration form.

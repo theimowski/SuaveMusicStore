@@ -1,8 +1,10 @@
 # Create album form
 
-To define a form for album creation, we can invoke `renderForm` like this:
+Because of possible namespace conflicts between `Suave.Form.input` and `Suave.Html.input`, let's define a helper function to the former:
 
 ==> View.fs:`let formInput`
+
+To define a form for album creation, we can invoke `renderForm` like this:
 
 ==> View.fs:`let createAlbum`
 

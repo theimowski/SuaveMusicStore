@@ -9,7 +9,7 @@ Add necessary functions to the `Db` module:
 
 and update the `logon` handler in `App` module:
 
-==> App.fs:`| Some user ->`
+==> App.fs:`| Some user ->`-`View.logon "Username or password is invalid."`
 
 Remarks:
 

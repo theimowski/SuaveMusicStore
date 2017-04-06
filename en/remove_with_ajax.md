@@ -37,14 +37,12 @@ We won't go into much details about the code itself, however it's important to k
     - message, to indicate which album has been removed
     - navigation menu to decrement count of albums
 
-The `update-message` div should be added to the `nonEmptyCart` view, before the table:
+==> View.fs:`let nonEmptyCart`
 
-==> View.fs:`div ["id", "update-message"]`
+The `update-message` div should be added to the `nonEmptyCart` view, just before the table.
 
 We explicitly have to pass in non-empty text, because we cannot have an empty div element in HTML markup.
-With jQuery and our `script.js` files, we can now attach them to the end of `nonEmptyCart` view, just after the table:
-
-==> View.fs:285-286
+With jQuery and our `script.js` files, we can now attach them to the end of `nonEmptyCart` view, just after the table.
 
 We also need to allow browsing for files with "js" extension in our handler:
 

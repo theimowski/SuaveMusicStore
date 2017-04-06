@@ -17,11 +17,11 @@ Thanks to multiple fieldsets we can group fields that have something in common.
 
 Now let's add a route for checkout (`Path.Cart`):
 
-==> Path.fs:`let checkout`
+==> Path.fs:`module Cart`
 
 a navigation button in `View.nonEmptyCart` :
 
-==> View.fs:259-263
+==> View.fs:`let nonEmptyCart`-`div ["id", "update-message"]`
 
 and GET handler for checkout in `App` module:
 
