@@ -8,7 +8,7 @@ To define a form for album creation, we can invoke `renderForm` like this:
 
 ==> View.fs:`let createAlbum`
 
-We can see that for the `Xml` values we can invoke `selectInput` or `input` functions.
+We can see that for the `Html` values we can invoke `selectInput` or `input` functions.
 Both of them take as first argument function which directs to field for which the input should be generated.
 `input` takes as second argument a list of optional attributes (of type `string * string` - key and value).
 `selectInput` takes as second argument list of options (of type `decimal * string` - value and display name).

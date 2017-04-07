@@ -61,7 +61,7 @@ The `Fieldset` type defines a layout for a fieldset:
 The `Field` type has:
 
 - a `Label` string
-- `Xml` - function which takes `Form` and returns `Xml` (object model for HTML markup). It might seem cumbersome, but the signature is deliberate in order to make use of partial application
+- `Html` - function which takes `Form` and returns `Node` (object model for HTML markup). It might seem cumbersome, but the signature is deliberate in order to make use of partial application
 
 > Note: all of above types are generic, meaning they can accept any type of form, but the form's type must be consistent with the `FormLayout` hierarchy.
 
