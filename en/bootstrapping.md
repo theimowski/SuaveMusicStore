@@ -1,23 +1,37 @@
 # Bootstrapping
 
-For development purposes, Suave application can be hosted as a standalone console app. 
-Let's start by creating a console app project named `SuaveMusicStore`.
-With help of Forge, we can do this first by creating a new directory for the project and then  invoking following command in the newly created directory:
+For development purposes, Suave application can be hosted as a standalone console app.
+Let's start by spinning up an instance of Visual Studio Code.
+If Ionide extension is installed correctly, you should be able to create new F# project from Command Pallete (Ctrl+Shift+P).
+
+* Open Command Pallete, find `F#: New Project` and click Enter
+* Choose `suave` from available templates
+* Specify root directory for the project to be created
+* Name the project `SuaveMusicStore`
+* Wait for the project to be initialized - see note below
+
+> Note: as of the time of writing, there's no easy way to restrict downloaded dependencies to target only .NET Framework and omit dependencies for dotnet core. That's why the process of initializing the project might take several minutes to complete. To track the progress you can view Output pane (`View` -> `Output`) and select `Forge` from dropdown. The process should end with `Done!` message entry.
+
+When the project is initialized, we can restrict the dependencies to be resolved only for .NET fromework, which this tutorial is targetted at by adding line to the very top of `paket.dependencies` file:
 
 ```
-$ forge new project --name SuaveMusicStore --template console --folder .
+framework: net46
 ```
 
-Depending on tool of your choice, creating F# console project may vary.
+and invoking `paket install`:
+
+```
+> .\.paket\paket.exe install
+```
 
 As we'll be using just a single project, I prefer to keep all my files, including \*.fsproj and \*.fs in root directory.
-Above Forge command creates a directory for the project, so we'll need to move contents of that directory one level above:
+Ionide command creates a directory for the project, so we'll need to move contents of that directory one level above:
 
 ```
-$ mv SuaveMusicStore/* .
+> mv SuaveMusicStore/* .
 ```
 
-Upon creation of new project, Forge adds by default Paket and FAKE scripts for us to use.
+Upon creation of new project, we'll have already [Paket](http://fsprojects.github.io/Paket/) and [FAKE](http://fsharp.github.io/FAKE/) scripts integration for us to use.
 This means that we should be already able to build and run in command line:
 
 Windows

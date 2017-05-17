@@ -10,12 +10,8 @@ You can still benefit from the tutorial if you don't have C# / .NET background, 
 No prior experience with F# is required - the tutorial will cover basic concepts of the language.
 The tutorial is going to have plenty of references to the awesome [fsharpforfunandprofit.com](http://fsharpforfunandprofit.com) WebSite, which includes plenty of articles about F# written by Scott Wlaschin.
 
-For most of sections there will be a direct link to a specific commit that contains implementation of the application up to the point.
+Every section which concerns changes in code will contain a direct link to a specific commit that reflects those changes.
 This allows you to follow along the process of creating the app, and get back on the track in case of any ambiguity.
-
------------------ TODO:
-I'll be using both win (powershell) and linux / mac commands. $ vs ">" and slash vs backslash.
------------------ TODO:
 
 You're more than welcome to create issues or pull requests for this tutorial.
 Contents for this book are published on [GitHub](https://github.com/theimowski/SuaveMusicStore).
