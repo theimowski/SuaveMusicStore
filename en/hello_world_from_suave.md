@@ -1,41 +1,38 @@
 # Hello World from Suave
 
-Now we can add NuGet reference to Suave. To do that, add Suave package to paket.dependencies: 
+
+Upon creation of new project, we'll have already [Paket](http://fsprojects.github.io/Paket/) and [FAKE](http://fsharp.github.io/FAKE/) scripts integration for us to use.
+This means that we should be already able to build and run in command line:
+
+Windows
 
 ```
-nuget Suave 2.0.1
+> .\build.cmd; .\build\SuaveMusicStore.exe
 ```
 
-> Note: we pin Suave version to the latest (as of the time of writing) version of package so that this tutorial doesn't get out of date when newer versions of Suave arrive.
-
-Also, add Suave package to your paket.references:
+Mac / Linux
 
 ```
-Suave
+$ ./build.sh && mono ./build/SuaveMusicStore.exe
 ```
 
-and invoke paket install:
+The genereted boilerplate spins up a web server with default Suave configuration, so if everything works fine we should see following output:
 
 ```
-> .paket\paket.exe install
+[06:19:25 INF] Smooth! Suave listener started in 91.979 with binding 127.0.0.1:8080
 ```
 
-Rename the `SuaveMusicStore.fs` file to `App.fs` to better reflect the purpose of the file.
-With Forge we can rename the file using command:
+and all HTTP requests againsts that URL should end with following response:
 
 ```
-> forge rename file --name .\SuaveMusicStore.fs `
->>                  --rename .\App.fs `
->>                  --project .\SuaveMusicStore.fsproj
+HTTP/1.1 200 OK
+Server: Suave (https://suave.io)
+Date: Tue, 22 Aug 2017 04:22:34 GMT
+Content-Type: text/html
+Content-Length: 12
+
+Hello World!
 ```
-
-Make sure you specify current directory (``.``) when passing to Forge files from current directory.
-
-> Note: We can't just rename the *.fs file only, because the *.fsproj project file keeps track of sources to compile. That's why we need to make sure those are in sync by e.g. running Forge command.
-
-Replace contents of App.fs completely with following code:
-
-==> App.fs
 
 Guess what - you already have a working web app!
 Just invoke the build script and run the executable again and you should see:
