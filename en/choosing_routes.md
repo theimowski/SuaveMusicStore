@@ -15,4 +15,4 @@ What it means is that if we give it a string, it will return a WebPart.
 Under the hood, the function looks at the incoming request and returns `Some` if the path matches, and `None` otherwise.
 The `>=>` operator comes also from Suave library. It composes two WebParts into one by first evaluating the WebPart on the left, and applying the WebPart on the right only if the first one returned `Some`.
 
-After applying the change try out all paths from the snippet by appending them to `localhost:8083`.
+After applying the change try out all paths from the snippet by appending them to localhost URL your application is running under.

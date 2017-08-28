@@ -21,17 +21,9 @@ Before we start defining views, let's organize our `App.fs` source file by addin
 
 The line means that whatever we define in the file will be placed in `SuaveMusicStore.App` module.
 Read [here](http://fsharpforfunandprofit.com/posts/recipe-part3/) for more info about organizing and structuring F# code.
-Now let's add a new file `View.fs` to the project:
+Now let's add a new file `View.fs` to the project. With Ionide you can simply create the file and then having it open in editor, trigger `F#: Add Current File To Project` command.
 
-```
-> forge new file --name View --project .\SuaveMusicStore.fsproj --template fs
-```
-
-We need to move the newly created file just before the `App.fs` in the \*.fsproj project, e.g. by invoking **twice** following Forge command:
-
-```
-> forge move file --project .\SuaveMusicStore.fsproj --name .\View.fs --up
-```
+We need to move the newly created file just before the `App.fs` in the \*.fsproj project, e.g. by invoking **twice** following Ionide command: `F#: Move File Up`
 
 Now let's place following module definition at the very top:
 

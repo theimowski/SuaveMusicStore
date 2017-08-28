@@ -7,7 +7,7 @@ Suave comes with a cool feature called "typed routes", which gives you staticall
 
 This might look familiar to print formatting from C++, but it's more powerful.
 What happens here is that the compiler checks the type for the `%d` argument and complains if you pass it a value which is not an integer.
-The WebPart will apply for requests like `http://localhost:8083/store/details/28`
+The WebPart will apply for requests like `$rootUrl/store/details/28`
 In the above example, there are a few important aspects:
 - `sprintf "Details: %d" id` is statically typed string formatting function, expecting the id as an integer 
 - `(fun id -> OK ...)` is an anonymous function or lambda expression if you like, of type `int -> WebPart`
@@ -19,6 +19,6 @@ To clear things up, here is another example of how one could use typed routes in
 
 ==> App.fs:12-14
 
-for request `http://localhost:8083/store/details/abba/1`
+for request `$rootUrl/store/details/abba/1`
 
 For more information on working with strings in a statically typed way, visit [this site](http://fsharpforfunandprofit.com/posts/printf/)

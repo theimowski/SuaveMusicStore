@@ -7,6 +7,7 @@ Adjusting those snippets for *nix terminals should not be a big deal though.
 
 Following is a list of required software to work with throughout the tutorial:
 
+* [F#](http://fsharp.org) - can be installed by following instructions on Ionide site
 * [Visual Studio Code](https://code.visualstudio.com/) - x-plat editor from Microsoft
 * [Ionide](http://ionide.io/) - great F# extension for Visual Studio Code
 * [Docker](https://www.docker.com/) - container platform, in this tutorial used for hosting a Postgres Database

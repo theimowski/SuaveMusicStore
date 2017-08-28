@@ -1,7 +1,7 @@
 # Query parameters
 
 Apart from passing arguments in the route itself, we can use the query part of url:
-`localhost:8083/store/browse?genre=Disco`.
+`$rootUrl/store/browse?genre=Disco`.
 To do this, let's create a separate WebPart:
 
 ==> App.fs:7-11
