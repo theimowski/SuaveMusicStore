@@ -49,13 +49,14 @@ Now we can add NuGet reference to Suave. To do that, add Suave package to paket.
 nuget Suave 2.0.1
 ```
 
-> Note: we pin Suave version to the latest (as of the time of writing) version of package so that this tutorial doesn't get out of date when newer versions of Suave arrive.
-
 Next, let's also pin the version of FSharp.Core, and apply binding redirects:
 
 ```
 nuget FSharp.Core 4.0.0.1 redirects:force
 ```
+
+> Note: we'll deliberately pin all dependency versions so that this tutorial doesn't get out of date when newer versions of Suave arrive.
+The [binding redirects](https://fsprojects.github.io/Paket/dependencies-file.html#Controlling-assembly-binding-redirects) for FSharp.Core is a good practice when creating apps, and should prevent unwanted .net binary binding issues.
 
 Also, add Suave package to paket.references file:
 

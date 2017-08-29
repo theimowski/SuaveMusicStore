@@ -3,22 +3,15 @@
 It's high time we added some CSS styles to our HTML markup.
 We'll not deep-dive into the details about the styles itself, as this is not a tutorial on Web Design.
 The stylesheet can be downloaded [from here](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/Site.css) in its final shape.
-Add the `Site.css` stylesheet to the project:
-
-```
-> forge add file --project .\SuaveMusicStore.fsproj `
-                 --name .\Site.css `
-                 --build-action Content
-```
-
-and to set the `Copy To Output Directory` property to `Copy If Newer`.
-In IDE such as Visual Studio this can be achieved from a context menu on that file, but we can also manually manipulate the XML by specifying `CopyToOutputDirectory` element with `PreserveNewest` value:
+Place the `Site.css` stylesheet in the root directory of the project, and manually add following to the `SuaveMusicStore.fsproj`:
 
 ```xml
 <Content Include="Site.css">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 </Content>
 ```
+
+> Note: Specifying `CopyToOutputDirectory` element with `PreserveNewest` value makes sure the stylesheet is accessible after the program has been compiled.
 
 In order to include the stylesheet in our HTML markup, let's add the following to our `View`:
 
@@ -28,15 +21,13 @@ This enables us to output the link HTML element with `href` attribute pointing t
 
 The CSS depends on `logo.png` asset, which can be downloaded from [here](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/logo.png).
 
-Add `logo.png` to the project:
+Again, place the `logo.png` in root directory, and add an entry to fsproj:
 
+```xml
+<Content Include="logo.png">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+</Content>
 ```
-> forge add file --project .\SuaveMusicStore.fsproj `
-                 --name .\logo.png `
-                 --build-action Content
-```
-
-and again don't forget to select `Copy If Newer` for `Copy To Output Directory` (`PreserveNewest`) property for the asset.
 
 A browser, when asked to include a CSS file, sends back a request to the server with the given url.
 In similar fashion, when the browser wants to render an image asset, it needs to GET it from the server.
