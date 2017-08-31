@@ -41,9 +41,13 @@ let session f =
 let html container =
     let ctx = Db.getContext()
     let result cartItems user =
-        OK (View.index (View.partNav cartItems) (View.partUser user) container)
+        OK (View.index 
+                (View.partNav cartItems) 
+                (View.partUser user) 
+                (View.partGenres (Db.getGenres ctx))
+                container)
         >=> Writers.setMimeType "text/html; charset=utf-8"
-        
+
     session (function
     | UserLoggedOn { Username = username } -> 
         let items = Db.getCartsDetails username ctx |> List.sumBy (fun c -> c.Count)
@@ -53,6 +57,11 @@ let html container =
         result items None
     | NoSession ->
         result 0 None)
+
+let home = warbler (fun _ ->
+    let ctx = Db.getContext()
+    let bestsellers = Db.getBestSellers ctx
+    View.home bestsellers |> html)
 
 let browse =
     request (fun r ->
@@ -287,7 +296,7 @@ let checkout =
 
 let webPart = 
     choose [
-        path Path.home >=> html View.home
+        path Path.home >=> home
         path Path.Store.overview >=> overview
         path Path.Store.browse >=> browse
         pathScan Path.Store.details details

@@ -23,6 +23,7 @@ type Artist = DbContext.``public.artistsEntity``
 type User = DbContext.``public.usersEntity``
 type CartDetails = DbContext.``public.cartdetailsEntity``
 type Cart = DbContext.``public.cartsEntity``
+type BestSeller = DbContext.``public.bestsellersEntity``
 
 let getContext() = Sql.GetDataContext()
 
@@ -57,6 +58,9 @@ let getAlbum id (ctx : DbContext) : Album option =
             where (album.Albumid = id)
             select album
     } |> Seq.tryHead
+
+let getBestSellers (ctx : DbContext) : BestSeller list  =
+    ctx.Public.Bestsellers |> Seq.toList
 
 let deleteAlbum (album : Album) (ctx : DbContext) = 
     album.Delete()

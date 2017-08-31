@@ -54,8 +54,17 @@ let renderForm (layout : FormLayout<_>) =
         yield submitInput layout.SubmitText
     ]
 
-let home = [
-    h2 "Home"
+let home (bestSellers : Db.BestSeller list) = [
+    img ["src", "/home-showcase.png"]
+    h2 "Fresh off the grill"
+    ulAttr ["id", "album-list"] [
+            for album in bestSellers ->
+                li [a  
+                        (sprintf Path.Store.details album.Albumid)
+                        [] 
+                        [ img ["src", album.Albumarturl]
+                          span [] [Text album.Title]]]
+        ]
 ]
 
 let store genres = [
@@ -73,10 +82,16 @@ let store genres = [
 ]
 
 let browse genre (albums : Db.Album list) = [
-    h2 (sprintf "Genre: %s" genre)
-    ul [
-        for album in albums ->
-            li [a (sprintf Path.Store.details album.Albumid) [] [Text album.Title]]
+    div ["class", "genre"] [ 
+        h2 (sprintf "Genre: %s" genre)
+
+        ulAttr ["id", "album-list"] [
+            for album in albums ->
+                li [a (sprintf Path.Store.details album.Albumid) 
+                      [] 
+                      [img ["src", album.Albumarturl]
+                       Text album.Title]]
+        ]
     ]
 ]
 
@@ -267,6 +282,15 @@ let partUser (user : string option) =
             yield a Path.Account.logon [] [Text "Log on"]
     ]
 
+let partGenres (genres : Db.Genre list) =
+    ulAttr ["id", "categories"] [
+        for genre in genres -> 
+            li [a (Path.Store.browse 
+                   |> Path.withParam (Path.Store.browseKey, genre.Name)) 
+                  []
+                  [Text genre.Name]]
+    ]
+
 let emptyCart = [
     h2 "Your cart is empty"
     Text "Find some great music in our "
@@ -382,7 +406,7 @@ let checkoutComplete = [
     ]
 ]
 
-let index partNav partUser container =
+let index partNav partUser partGenres container =
     html [] [
         head [] [
             title [] "Suave Music Store"
@@ -397,6 +421,8 @@ let index partNav partUser container =
                 partNav
                 partUser
             ]
+
+            partGenres
 
             div ["id", "main"] container
 
