@@ -1,9 +1,8 @@
 # Postgres Docker
 
-TODO:
+First we'll need to create a docker image for our database.
 
-* Install Docker
-* Configure docker
+> Note: If you're not familiar with Docker, and have [pluralsight](https://www.pluralsight.com/) subscription, I highly recommend watching [this](https://www.pluralsight.com/courses/docker-deep-dive) docker deep-dive course by [Nigel Poulton](https://twitter.com/nigelpoulton). This is a really great course and it gives a quick ramp up on docker, just enough to get started. There is also a plenty of other learning docker resources available. Anyway even without basic docker knowledge, you should be able to proceed with the tutorial.
 
 Let's create a separate `postgres` directory inside project's root folder to keep track of database-related files.
 Now we can download [`postgres_create.sql` script](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/docker/postgres/postgres_create.sql) and save it under newly created `postgres` directory.
@@ -50,7 +49,7 @@ Arguments to the above command are:
 * mapped standard Postgres port 5432 from the container to host (`-p <hostPort>:<containerPort>`),
 * the tag of image (`theimowski/suavemusicstore_db:0.1`).
 
-If everything went fine, we should now be able to see two running containers with the `docker ps` command:
+If everything went fine, we should be able to see a running container with the `docker ps` command:
 
 ```
 CONTAINER ID        IMAGE                               COMMAND                  CREATED             STATUS              PORTS                    NAMES
