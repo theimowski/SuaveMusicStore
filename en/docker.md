@@ -1,15 +1,15 @@
 # Docker
 
-It's time to do what all cool kids do - run Suave Music Store web app on [docker](https://www.docker.com/)!
+We already have the database running in Docker, why don't we do the same with the web app?
 
-Let's just briefly go through the overall architecture of Suave Music Store running on docker:
+Let's briefly go through the overall architecture of Suave Music Store running on Docker (the database part is already configured):
 
 * We'll use two separate docker images:
   * First image for the database,
   * Second image for the actual F# app,
 * The db image will be build on top of the [official postgres image](https://hub.docker.com/_/postgres/),
 * The db image, upon build initialization, will create our `suavemusicstore` database from script,
-* The app image will extend the [official fsharp image](https://hub.docker.com/r/fsharp/fsharp/),
+* The app image will extend the [official fsharp image](https://hub.docker.com/_/fsharp/),
 * The app image will copy **compiled** binaries to the image (more on that in later course),
 * The app image will depend on the db container, that's why we'll provide a link between those.
 
@@ -18,26 +18,13 @@ That's the big picture, let's now go straight to essential configuration:
 ## Database connection string
 
 To run on docker, we'll have to provide a proper connection string.
-Up until now, function `getContext` in Db module worked as expected:
-
-```fsharp
-let getContext() = Sql.GetDataContext()
-``` 
-
-That's because we accessed it via `localhost` (127.0.0.1) - the same host where we compiled our Sql type provider:
-
-```fsharp
-type Sql = 
-    SqlDataProvider< 
-        ConnectionString      = "Server=127.0.0.1;Database=suavemusicstore;User Id=suave;Password=1234;",
-        ...
-```
+Up until now, function `getContext` in Db module utilized the same connection string that was used for type provider.
 
 But as we'll run the app container in isolation, we have to specify a proper connection string:
 
-```fsharp
-let getContext() = Sql.GetDataContext("Server=suavemusicstore_db;Database=suavemusicstore;User Id=suave;Password=1234;")
-```
+==> Db.fs:`let DockerConnectionString = `
+
+==> Db.fs:`let getContext()`
 
 Server `suavemusicstore_db` is the docker link name that we'll apply when firing up containers.
 Docker networking infrastructure takes care of matching the link name with destination host, which will be run in a separate container.
@@ -46,44 +33,22 @@ Docker networking infrastructure takes care of matching the link name with desti
 
 ## Server http binding
 
-At the moment last line of App module looks like following:
-
-```fsharp
-startWebServer defaultConfig webPart
-```
-
-This uses the `defaultConfig`, which in turn uses binding to `127.0.0.1:8083` by default.
+At the moment starting web server (last line of App module) uses `defaultConfig`, which in turn uses binding to `127.0.0.1:8083` by default.
 From [this](http://stackoverflow.com/a/27818259) Stack Overflow answer we can read that *"binding inside container to localhost usually prevent from accepting connections"*.
 Solution here is to accept requests from all IPs instead.
 This can be done by providing `0.0.0.0` address:
 
-```fsharp
-let cfg =
-  { defaultConfig with
-      bindings = [ HttpBinding.mk HTTP (System.Net.IPAddress.Parse "0.0.0.0") 8083us  ] }
+==> App.fs:`let cfg`
 
-startWebServer cfg webPart
-```
+==> App.fs:`startWebServer`
 
-The snippet above copies all fields from the `defaultConfig` and overrides the binding to `0.0.0.0:8083`.
-
-## Database image
-
-As stated above, the db image will be based on the official postgres image.
-On top of that, we'll run our postgres_create.sql script.
-This can be declared in the lines of following Dockerfile (create `Dockerfile` under `postgres` directory):
-
-```bash
-FROM postgres
-
-COPY postgres_create.sql /docker-entrypoint-initdb.d/postgres_create.sql
-```
-
-The `COPY` instruction will place the script in a special directory inside the container, from which all scripts are run when the image is being built.
+The snippets above copies all fields from the `defaultConfig` and overrides the binding to `0.0.0.0:8083`.
 
 ## Server image
 
-The second image on the other hand will make use of the official fsharp image:
+Database Docker image is already in place, under `postgres` directory.
+The second image on the other hand will .
+It will make use of the official fsharp image:
 
 ```bash
 FROM fsharp/fsharp:latest
@@ -140,42 +105,42 @@ Now that we have the images in place, it's finally time to run the containers ba
 To do so, we can help ourselves with by writing following script (I called it just `run.sh`):
 
 ```bash
-    #!/usr/bin/env bash
+#!/usr/bin/env bash
 
-    # set up variables
-    export DB_CNTNR_NAME=suavemusicstore_db
-    export DB_CNTNR_ID=`docker ps -aq -f name=$DB_CNTNR_NAME`
+# set up variables
+export DB_CNTNR_NAME=suavemusicstore_db
+export DB_CNTNR_ID=`docker ps -aq -f name=$DB_CNTNR_NAME`
 
-    export APP_CNTNR_NAME=suavemusicstore_app
-    export APP_CNTNR_ID=`docker ps -aq -f name=$APP_CNTNR_NAME`
+export APP_CNTNR_NAME=suavemusicstore_app
+export APP_CNTNR_ID=`docker ps -aq -f name=$APP_CNTNR_NAME`
 
-    # stop and remove containers with the same name
-    if [ -n "$APP_CNTNR_ID" ]; then
-    docker stop $APP_CNTNR_ID
-    docker rm $APP_CNTNR_ID
-    fi
+# stop and remove containers with the same name
+if [ -n "$APP_CNTNR_ID" ]; then
+docker stop $APP_CNTNR_ID
+docker rm $APP_CNTNR_ID
+fi
 
-    if [ -n "$DB_CNTNR_ID" ]; then
-    docker stop $DB_CNTNR_ID
-    docker rm $DB_CNTNR_ID
-    fi
+if [ -n "$DB_CNTNR_ID" ]; then
+docker stop $DB_CNTNR_ID
+docker rm $DB_CNTNR_ID
+fi
 
-    # run db container
-    docker run \
-    --name $DB_CNTNR_NAME \
-    -e POSTGRES_PASSWORD=mysecretpassword \
-    -d theimowski/suavemusicstore_db:0.1
+# run db container
+docker run \
+--name $DB_CNTNR_NAME \
+-e POSTGRES_PASSWORD=mysecretpassword \
+-d theimowski/suavemusicstore_db:0.1
 
-    # wait for the postgres to init
-    docker inspect --format '{{ .NetworkSettings.IPAddress }}:5453' $DB_CNTNR_NAME \
-    | xargs wget --retry-connrefused --tries=5 -q --waitretry=3 --spider
+# wait for the postgres to init
+docker inspect --format {% raw %}'{{ .NetworkSettings.IPAddress }}:5453'{% endraw %} $DB_CNTNR_NAME \
+| xargs wget --retry-connrefused --tries=5 -q --waitretry=3 --spider
 
-    # run server container
-    docker run \
-    -p 8083:8083 -d \
-    --name $APP_CNTNR_NAME \
-    --link $DB_CNTNR_NAME:$DB_CNTNR_NAME \
-    theimowski/suavemusicstore_app:0.1
+# run server container
+docker run \
+-p 8083:8083 -d \
+--name $APP_CNTNR_NAME \
+--link $DB_CNTNR_NAME:$DB_CNTNR_NAME \
+theimowski/suavemusicstore_app:0.1
 ```
 
 The script above consists of a few parts:
