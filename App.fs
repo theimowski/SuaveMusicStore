@@ -319,4 +319,8 @@ let webPart =
         html View.notFound
     ]
 
-startWebServer defaultConfig webPart
+let cfg =
+  { defaultConfig with
+      bindings = [ HttpBinding.createSimple HTTP "0.0.0.0" 8083  ] }
+
+startWebServer cfg webPart

@@ -3,7 +3,7 @@ module SuaveMusicStore.Db
 open FSharp.Data.Sql
 
 [<Literal>]
-let ConnectionString = 
+let TPConnectionString = 
     "Server=192.168.99.100;"    + 
     "Database=suavemusicstore;" + 
     "User Id=suave;"            + 
@@ -11,7 +11,7 @@ let ConnectionString =
 
 type Sql = 
     SqlDataProvider< 
-        ConnectionString      = ConnectionString,
+        ConnectionString      = TPConnectionString,
         DatabaseVendor        = Common.DatabaseProviderTypes.POSTGRESQL,
         CaseSensitivityChange = Common.CaseSensitivityChange.ORIGINAL >
 
@@ -25,7 +25,14 @@ type CartDetails = DbContext.``public.cartdetailsEntity``
 type Cart = DbContext.``public.cartsEntity``
 type BestSeller = DbContext.``public.bestsellersEntity``
 
-let getContext() = Sql.GetDataContext()
+[<Literal>]
+let DockerConnectionString = 
+    "Server=suavemusicstore_db;" + 
+    "Database=suavemusicstore;"  + 
+    "User Id=suave;"             + 
+    "Password=1234;"
+
+let getContext() = Sql.GetDataContext(DockerConnectionString)
 
 let getGenres (ctx : DbContext) : Genre list = 
     ctx.Public.Genres |> Seq.toList
