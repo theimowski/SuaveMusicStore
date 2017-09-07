@@ -5,7 +5,7 @@ First we'll need to create a docker image for our database.
 > Note: If you're not familiar with Docker, and have [pluralsight](https://www.pluralsight.com/) subscription, I highly recommend watching [this](https://www.pluralsight.com/courses/docker-deep-dive) docker deep-dive course by [Nigel Poulton](https://twitter.com/nigelpoulton). This is a really great course and it gives a quick ramp up on docker, just enough to get started. There is also a plenty of other learning docker resources available. Anyway even without basic docker knowledge, you should be able to proceed with the tutorial.
 
 Let's create a separate `postgres` directory inside project's root folder to keep track of database-related files.
-Now we can download [`postgres_create.sql` script](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/docker/postgres/postgres_create.sql) and save it under newly created `postgres` directory.
+Now we can download [`postgres_create.sql` script](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/v{{book.version}}_src/postgres/postgres_create.sql) and save it under newly created `postgres` directory.
 
 The db image will be based on the official `postgres` Docker image. On top of that, we'll run our `postgres_create.sql` script. This can be declared in the lines of following Dockerfile (create `Dockerfile` under `postgres` directory):
 

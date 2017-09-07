@@ -32,5 +32,5 @@ A few remarks regarding above snippet:
 No pipe operator was used this time, but as an exercise you can think of how you could apply it to the `details` WebPart.
 
 Before testing the app, add the "placeholder.gif" image asset. 
-You can download it from [here](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/placeholder.gif).
+You can download it from [here](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/v{{book.version}}_src/placeholder.gif).
 Don't forget to set "Copy To Output Directory", as well as add new file extension to the `pathRegex` in `App` module.

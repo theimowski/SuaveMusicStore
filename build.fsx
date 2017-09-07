@@ -35,18 +35,27 @@ let outDir = Path.Combine ( __SOURCE_DIRECTORY__,  "out")
 let repo = getBuildParamOrDefault "repo" __SOURCE_DIRECTORY__
 let githubAccount = "theimowski"
 let githubRepo = "SuaveMusicStore"
-let branch = "v2.0_src"
-
-let write (path, lines: list<String>) =
-  if not (File.Exists path && File.ReadAllLines path |> Array.toList = lines) then
-    tracefn "Writing file '%s'" path
-    File.WriteAllLines (path, lines)
 
 let (|Regex|_|) pattern input =
   let m = Regex.Match(input, pattern)
   if m.Success then Some(List.tail [ for g in m.Groups -> g.Value ])
   else None
   
+let version =
+  "book.json"
+  |> File.ReadAllLines
+  |> Seq.pick (function 
+    | Regex "\"version\": (\"\d+\.\d+\")," [version] -> Some version
+    | _ -> None)
+let srcBranch = sprintf "v%s_src" version
+let contentsBranch = sprintf "v%s" version
+let gitBookPubBranch = contentsBranch
+
+let write (path, lines: list<String>) =
+  if not (File.Exists path && File.ReadAllLines path |> Array.toList = lines) then
+    tracefn "Writing file '%s'" path
+    File.WriteAllLines (path, lines)
+
 let (|Int32|_|) input =
   match Int32.TryParse input with
   | true, x -> Some x
@@ -403,7 +412,7 @@ let insertGithubCommit commit code =
 let generate (changedFile : FileInfo option) =
   let hashLen = 40
   let commits = 
-    Git.CommandHelper.getGitResult repo ("log --reverse --pretty=oneline " + branch)
+    Git.CommandHelper.getGitResult repo ("log --reverse --pretty=oneline " + srcBranch)
     |> Seq.map (fun log -> log.Substring(0,hashLen), log.Substring(hashLen + 1))
 
   match changedFile with
@@ -520,7 +529,7 @@ let startWebServer () =
         >=> Writers.setHeader "Expires" "0"
         >=> Files.browseHome ]
     startWebServerAsync serverConfig app |> snd |> Async.Start
-    Diagnostics.Process.Start (sprintf "http://localhost:%d/index.html" port) |> ignore
+    Diagnostics.Process.Start (sprintf "http://localhost:%d/en/index.html" port) |> ignore
 
 Target "Preview" (fun _ ->
   
@@ -552,11 +561,10 @@ Target "Publish" (fun _ ->
   let gitbookAccount = "theimowski"
   let gitbookRepo = "suave-music-store"
   let publishRepo = sprintf "https://git.gitbook.com/%s/%s.git" gitbookAccount gitbookRepo
-  let publishBranch = "v2.0"
   let publishDir = "publish"
 
   CleanDir publishDir
-  cloneSingleBranch "" publishRepo publishBranch publishDir
+  cloneSingleBranch "" publishRepo gitBookPubBranch publishDir
 
   fullclean publishDir
   CopyRecursive outDir publishDir true |> printfn "%A"
@@ -565,9 +573,12 @@ Target "Publish" (fun _ ->
   Branches.push publishDir
 )
 
+Target "Idle" DoNothing
 Target "All" DoNothing
 
-"Generate"
+"Idle"
+  // use cached version by default if output is already generated
+  =?> ("Generate", hasBuildParam "gen") 
   ==> "Preview"
   ==> "All"
 

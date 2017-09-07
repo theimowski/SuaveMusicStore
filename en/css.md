@@ -2,7 +2,7 @@
 
 It's high time we added some CSS styles to our HTML markup.
 We'll not deep-dive into the details about the styles itself, as this is not a tutorial on Web Design.
-The stylesheet can be downloaded [from here](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/Site.css) in its final shape.
+The stylesheet can be downloaded [from here](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/v{{book.version}}_src/Site.css) in its final shape.
 Place the `Site.css` stylesheet in the root directory of the project, and manually add following to the `SuaveMusicStore.fsproj`:
 
 ```xml
@@ -19,7 +19,7 @@ In order to include the stylesheet in our HTML markup, let's add the following t
 
 This enables us to output the link HTML element with `href` attribute pointing to the CSS stylesheet.
 
-The CSS depends on `logo.png` asset, which can be downloaded from [here](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/master/logo.png).
+The CSS depends on `logo.png` asset, which can be downloaded from [here](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/v{{book.version}}_src/logo.png).
 
 Again, place the `logo.png` in root directory, and add an entry to fsproj:
 
