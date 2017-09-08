@@ -45,7 +45,7 @@ let version =
   "book.json"
   |> File.ReadAllLines
   |> Seq.pick (function 
-    | Regex "\"version\": (\"\d+\.\d+\")," [version] -> Some version
+    | Regex "\"version\": (\"\d+\.\d+\")" [version] -> Some version
     | _ -> None)
 let srcBranch = sprintf "v%s_src" version
 let contentsBranch = sprintf "v%s" version

@@ -68,7 +68,7 @@ Because we're going to bind to port 8083, we need to declare that in the Dockerf
 I chose to copy compiled binaries to the image instead of compiling the app inside docker. 
 If desired however, one should be able to do the opposite and compile sources within the F# image itself.
 
-## Building docker images
+## Building the image
 
 To build the docker image, we can invoke following commands:
 

@@ -9,5 +9,3 @@ Current branches:
 * contents of this book: [v{{book.version}}](https://github.com/theimowski/SuaveMusicStore/tree/v{{book.version}}).
 
 Take care!
-
-{{book.language}}

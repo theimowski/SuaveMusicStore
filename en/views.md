@@ -11,7 +11,9 @@ In this application we'll use server-side HTML templating with the help of a sep
 
 To use the package, we need to take a dependency on the following NuGet (add to paket.dependencies):
 
-```nuget Suave.Experimental 2.0.1```
+```
+nuget Suave.Experimental 2.2.1
+```
 
 Also as was the case with `Suave` package, make sure to add `Suave.Experimental` to paket.references file and invoke paket install.
 

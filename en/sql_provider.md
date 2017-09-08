@@ -10,8 +10,8 @@ Because we'll be using Postgres, we'll also need a .NET driver to Postgres - `Np
 We can install both SQLProvider and Npgsql with Paket:
 
 ```
-nuget SQLProvider 1.0.43
-nuget Npgsql 3.1.4
+nuget SQLProvider 1.1.8
+nuget Npgsql 3.1.9
 ```
 
 > Note: Once again, we pin versions so that this tutorial doesn't get outdated with newer versions of packages.

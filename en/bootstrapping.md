@@ -46,13 +46,13 @@ framework: net461
 Now we can add NuGet reference to Suave. To do that, add Suave package to paket.dependencies:
 
 ```
-nuget Suave 2.0.1
+nuget Suave 2.2.1
 ```
 
 Next, let's also pin the version of FSharp.Core, and apply binding redirects:
 
 ```
-nuget FSharp.Core 4.0.0.1 redirects:force
+nuget FSharp.Core 4.2.3 redirects:force
 ```
 
 > Note: we'll deliberately pin all dependency versions so that this tutorial doesn't get out of date when newer versions of Suave arrive.
