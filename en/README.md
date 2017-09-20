@@ -1,6 +1,6 @@
 # Introduction
 
-This is a tutorial on how to create an application with [F#](http://fsharp.org) and [Suave.IO](http://suave.io) framework. 
+This is a tutorial on how to create an application with [F#](http://fsharp.org) and [Suave.IO](http://suave.io) library. 
 It's inspired by the Music Store tutorial created by the ASP.NET team [available here](http://www.asp.net/mvc/overview/older-versions/mvc-music-store/mvc-music-store-part-1).
 Check out this link if you want to find out what the application is going to offer.
 
@@ -13,5 +13,8 @@ The tutorial is going to have plenty of references to the awesome [fsharpforfuna
 Every section which concerns changes in code will contain a direct link to a specific commit that reflects those changes.
 This allows you to follow along the process of creating the app, and get back on the track in case of any ambiguity.
 
-You're more than welcome to create issues or pull requests for this tutorial.
-Contents for this book are published on [GitHub](https://github.com/theimowski/SuaveMusicStore).
+You're more than welcome to create issues or pull requests for this tutorial, but please read the [contribution guidelines](https://github.com/theimowski/SuaveMusicStore/blob/v{{book.version}}/CONTRIBUTING.md) first.
+
+Contents for this book are published on GitHub, and the current branches are:
+* source code of the app: [v{{book.version}}_src](https://github.com/theimowski/SuaveMusicStore/tree/v{{book.version}}_src),
+* contents of this book: [v{{book.version}}](https://github.com/theimowski/SuaveMusicStore/tree/v{{book.version}}).
