@@ -1,16 +1,16 @@
 # Bootstrapping
 
-For development purposes, Suave application can be hosted as a standalone console app.
+For development purposes, Suave applications can be hosted as a standalone console app.
 Let's start by spinning up an instance of Visual Studio Code.
 If Ionide extension is installed correctly, you should be able to create new F# project from Command Pallete (Ctrl+Shift+P).
 
 * Open Command Pallete, find `F#: New Project` and click Enter
-* Choose `console` from available templates (we deliberately skip the `suave` template for now to prevent installing unnecessary packages as we'll see soon)
+* Choose `console` from available templates (we deliberately skip the `suave` template for now to prevent installing unnecessary packages - more on that in later course)
 * Specify root directory for the project to be created
 * Name the project `SuaveMusicStore`
 * Wait for the project to be initialized - see note below
 
-> Note: as of the time of writing, there's no easy way to restrict downloaded dependencies to target only .NET Framework and omit dependencies for dotnet core. That's why the process of initializing the project might take several minutes to complete. To track the progress you can view Output pane (`View` -> `Output`) and select `Forge` from dropdown. The process should end with `Done!` message entry.
+> Note: as of the time of writing, there's no easy way to restrict downloaded dependencies to target only .NET Framework and omit dependencies for .NET Core. That's why the process of initializing the project might take several minutes to complete. To track the progress you can view Output pane (`View` -> `Output`) and select `Forge` from dropdown. The process should end with `Done!` message entry.
 
 Rename `SuaveMusicStore.fs` file to `App.fs` to make things simpler. 
 Using Ionide and Visual Studio Code, you can do this with `F# Project Explorer`: 
@@ -35,7 +35,7 @@ Optionally remove the remaining empty directory:
 > rmdir SuaveMusicStore
 ```
 
-When the project is initialized, we can restrict the dependencies to be resolved only for .NET fromework (which this tutorial is targetted at) by adding line to the very top of `paket.dependencies` file:
+When the project is initialized, we can restrict the dependencies to be resolved only for .NET framework (tutorial targets just .NET framework) by adding line to the very top of `paket.dependencies` file:
 
 ```
 framework: net461
@@ -43,20 +43,20 @@ framework: net461
 
 > Note: It's important to restrict to the same .NET version that is specified in `.fsproj` file. Make sure `TargetFrameworkVersion` node in `.fsproj` contains same .NET framework version as the one to specify in `paket.dependencies`.
 
+Next, let's pin the version of FSharp.Core, and apply binding redirects:
+
+```
+nuget FSharp.Core 4.2.3 redirects:force
+```
+
 Now we can add NuGet reference to Suave. To do that, add Suave package to paket.dependencies:
 
 ```
 nuget Suave 2.2.1
 ```
 
-Next, let's also pin the version of FSharp.Core, and apply binding redirects:
-
-```
-nuget FSharp.Core 4.2.3 redirects:force
-```
-
-> Note: we'll deliberately pin all dependency versions so that this tutorial doesn't get out of date when newer versions of Suave arrive.
-The [binding redirects](https://fsprojects.github.io/Paket/dependencies-file.html#Controlling-assembly-binding-redirects) for FSharp.Core is a good practice when creating apps, and should prevent unwanted .net binary binding issues.
+> Note: we'll deliberately pin all dependency versions so that this tutorial doesn't get out of date when newer versions of Suave or other dependencies arrive.
+The [binding redirects](https://fsprojects.github.io/Paket/dependencies-file.html#Controlling-assembly-binding-redirects) for FSharp.Core is a [good practice when creating apps](https://fsharp.github.io/2015/04/18/fsharp-core-notes.html#use-binding-redirects-for-applications), and should prevent unwanted version compatiblity issues.
 
 Also, add Suave package to paket.references file:
 

@@ -5,7 +5,7 @@ Replace contents of App.fs completely with following code:
 ==> App.fs
 
 * The `open` statements at the top of the file are the same as `using` statements in C#.
-* Note there is no `Main` method defined in `App.fs` - what happens here is that the `startWebServer` function is invoked immediately after the program is run and Suave starts listening for incoming request till the process is killed (which is fine as long as we're hosting in console).
+* Note there is no `Main` method defined in `App.fs` - what happens here is that the `startWebServer` function is invoked immediately after the program is run and Suave starts listening for incoming requests untill the process is killed (which is fine as long as we're hosting in console).
 
 Upon creation of new project, we'll have already [Paket](http://fsprojects.github.io/Paket/) and [FAKE](http://fsharp.github.io/FAKE/) scripts integration for us to use.
 This means that we should be already able to build and run in command line:
