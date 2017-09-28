@@ -13,6 +13,8 @@ The tutorial is going to have plenty of references to the awesome [fsharpforfuna
 Every section which concerns changes in code will contain a direct link to a specific commit that reflects those changes.
 This allows you to follow along the process of creating the app, and get back on the track in case of any ambiguity.
 
+Also, each F# snippet comes with tool tips for defined symbols, as well as line numbers corresponding to the source code.
+
 You're more than welcome to create issues or pull requests for this tutorial, but please read the [contribution guidelines](https://github.com/theimowski/SuaveMusicStore/blob/v{{book.version}}/CONTRIBUTING.md) first.
 
 Contents for this book are published on GitHub, and the current branches are:
