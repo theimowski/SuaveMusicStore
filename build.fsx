@@ -210,6 +210,16 @@ let ensureNoOverlaping (snippets: list<string * Snippet>) =
   |> List.map (fun (k, vs) -> k,List.map snd vs)
   |> List.iter noOverlap
 
+
+// hardcode - to refresh run paket generate-load-scripts and populate
+let packages =
+  [
+    "Suave", "Suave/lib/net40/Suave.dll"
+    "Npgsql", "Npgsql/lib/net451/Npgsql.dll"
+    "SQLProvider", "SQLProvider/lib/FSharp.Data.SqlProvider.dll" 
+    "Suave.Experimental", "Suave.Experimental/lib/net40/Suave.Experimental.dll" 
+  ]
+
 let fillSnippets commit msg =
   let fsproj = 
     fileContentsAt commit "SuaveMusicStore.fsproj"
@@ -220,10 +230,8 @@ let fillSnippets commit msg =
   let srcFiles,refDlls =
     match fsproj with
     | Some fsproj ->
-      let ns = System.Xml.XmlNamespaceManager(System.Xml.NameTable())
-      ns.AddNamespace("msbuild", "http://schemas.microsoft.com/developer/msbuild/2003")
       let files = 
-        fsproj.Root.XPathSelectElements ("//msbuild:Compile", ns)
+        fsproj.Root.XPathSelectElements ("//Compile")
         |> Seq.map (fun e -> e.Attribute(XName.op_Implicit "Include").Value)
         |> Seq.toList
         |> List.filter ((<>) "AssemblyInfo.fs")
@@ -231,10 +239,15 @@ let fillSnippets commit msg =
           src, fileContentsAt commit src
                |> Seq.cast<string>
                |> Seq.toList)
-      let dlls = 
-        fsproj.Root.XPathSelectElements ("//msbuild:Reference/msbuild:HintPath", ns)
-        |> Seq.map (fun e -> repo </> e.Value |> normalizePath)
-        |> Seq.toList
+      let paket = fileContentsAt commit "paket.dependencies"
+      let inPaket (package : string) =
+        paket
+        |> Seq.exists 
+          (fun line -> line.ToLower().Contains (package.ToLower()))
+      let dlls =
+        packages
+        |> List.filter (fst >> inPaket)
+        |> List.map (snd >> (sprintf "%s/packages/%s" repo))
       files, dlls
     | None ->
       tracefn "No fsproj for commit %s" commit
