@@ -16,11 +16,11 @@ We'll see in a moment how we can use `details` in `App` and `View` modules, with
 
 Let's use the routes from `Path` module in our `App`:
 
-==> App.fs:15-21
+==> App.fs:`let webPart`
 
 as well as in our `View` for `aHref` to `home`:
 
-==> View.fs:12-16
+==> View.fs:`div ["id", "header"]`
 
 Note, that in `App` module we still benefit from the static typed routes feature that Suave gives us - the `id` parameter is inferred by the compiler to be of integer type.
 If you're not familiar with type inference mechanism, you can follow up [this link](http://fsharpforfunandprofit.com/posts/type-inference/).

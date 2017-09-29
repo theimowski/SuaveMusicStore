@@ -23,6 +23,6 @@ In this very case it simply means: invoke the `htmlToString` function on the HTM
 
 Let's test the `index` view in our `App.fs`:
 
-==> App.fs:15-17
+==> App.fs:`path "/"`
 
 If you navigate to the root url of the application, you should see that proper HTML is now being returned.

@@ -3,7 +3,7 @@
 It's high time we added some CSS styles to our HTML markup.
 We'll not deep-dive into the details about the styles itself, as this is not a tutorial on Web Design.
 The stylesheet can be downloaded [from here](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/v{{book.version}}_src/Site.css) in its final shape.
-Place the `Site.css` stylesheet in the root directory of the project, and manually add following to the `SuaveMusicStore.fsproj`:
+Place the `Site.css` stylesheet in the root directory of the project, and manually add following to the `SuaveMusicStore.fsproj`, inside `<ItemGroup>` element:
 
 ```xml
 <Content Include="Site.css">
@@ -15,7 +15,7 @@ Place the `Site.css` stylesheet in the root directory of the project, and manual
 
 In order to include the stylesheet in our HTML markup, let's add the following to our `View`:
 
-==> View.fs:5-12
+==> View.fs:`let cssLink`-`]`
 
 This enables us to output the link HTML element with `href` attribute pointing to the CSS stylesheet.
 
@@ -35,9 +35,9 @@ In similar fashion, when the browser wants to render an image asset, it needs to
 If we have a look at our main `WebPart` we'll notice that there's really no handler capable of serving this file.
 That's why we need to add another alternative to our `choose` `WebPart`:
 
-==> App.fs:21-21
+==> App.fs:`pathRegex`-`pathRegex`
 
-The `pathRegex` `WebPart` returns `Some` if an incoming request concerns path that matches the regular expression pattern. 
+The `pathRegex` `WebPart` returns `Some` if an incoming request specifies path matching the regular expression pattern. 
 If that's the case, the `Files.browseHome` WebPart will be applied.
 The given pattern matches every file with either `.css` or `.png` extension, which protects us from accessing other (e.g. binary or config) files.
 `Files.browseHome` is a `WebPart` from Suave that serves static files from the root application directory.

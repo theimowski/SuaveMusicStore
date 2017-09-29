@@ -2,9 +2,13 @@
 
 Apart from passing arguments in the route itself, we can use the query part of url:
 `$rootUrl/store/browse?genre=Disco`.
-To do this, let's create a separate WebPart:
+For this section we need to open following module:
 
-==> App.fs:7-11
+==> App.fs:`open Suave.RequestErrors`
+
+Now, let's create a separate WebPart:
+
+==> App.fs:`let browse`
 
 `request` is a function that takes as parameter a function of type `HttpRequest -> WebPart`.
 A function which takes as an argument another function is often called "Higher order function".
@@ -23,14 +27,11 @@ In addition to that, F# compiler will issue an warning in case we don't provide 
 There's actually much more for pattern matching than that, as we'll discover later.
 
 `BAD_REQUEST` is a function from Suave library which returns WebPart with 400 Bad Request status code response with given message in its body.
-In order to be able to use we need to open following module:
-
-==> App.fs:4-4
 
 We can summarize the `browse` WebPart as following:
 If there is a "genre" parameter in the url query, return 200 OK with the value of the "genre", otherwise return 400 Bad Request with error message.
 
 Now we can compose the `browse` WebPart with routing WebPart like this:
 
-==> App.fs:17-17
+==> App.fs:`path "/store/browse"`
 
