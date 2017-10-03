@@ -38,4 +38,4 @@ To our `View.manage` we can add a link to `createAlbum`:
 
 ==> View.fs:`let manage`
 
-This allows us to navigate to "/admin/create", however we're still lacking the actual POST handler.
+This allows us to navigate to `/admin/create`, however we're still lacking the actual POST handler.

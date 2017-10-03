@@ -1,6 +1,6 @@
 # Genre
 
-Moving to our next WebPart "browse", let's first adjust it in `View` module:
+Moving to our next WebPart `browse`, let's first adjust it in `View` module:
 
 ==> View.fs:`let browse`
 

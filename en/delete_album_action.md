@@ -1,6 +1,6 @@
 # Delete album action
 
-Note that the code from previous section allows us to navigate to to "/admin/delete/%d", but we still are not able to actually delete an album.
+Note that the code from previous section allows us to navigate to to `/admin/delete/%d`, but we still are not able to actually delete an album.
 That's because there's no handler in our app to delete the album from database.
 For the moment both GET and POST requests will do the same, which is return HTML page asking whether to delete the album.
 

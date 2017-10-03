@@ -22,6 +22,6 @@ Otherwise, without the `warbler` in place, the genres would be fetched only at t
 
 Do we need also to wrap with `warbler` the rest of WebParts?
 
-- `browse` is parametrized with genre name - each request will result in a database query anyway, so the answer is negative.
+- `browse` is parametrized with genre name - each request will result in a database query anyway, so we don't need to do anything here.
 - `details` is parametrized with the id - same as above.
 - `home` is just fine - for the moment it's completely static and doesn't need to touch the database.

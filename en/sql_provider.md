@@ -18,6 +18,30 @@ nuget Npgsql 3.1.9
 
 Don't forget to both packages to `paket.references` as well as running `paket install`!
 
+One more thing before we go further: Because we're using the new .NET SDK to build the project, and Type Providers are not yet fully supported for .NET SDK based project, we'll have to apply a special workaround for SQLProvider to work. For more details reach out to this [resource](https://github.com/Microsoft/visualfsharp/issues/3303).
+
+What we need to do is basically add a special instruction for .NET SDK build to use standard .NET / Mono F# compiler, and then we're fine. Add following XML chunk under `Project` node in the `.fsproj`:
+
+```xml
+  <PropertyGroup>
+    <IsWindows Condition="'$(OS)' == 'Windows_NT'">true</IsWindows>
+    <IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX>
+    <IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux>
+  </PropertyGroup>  
+  <PropertyGroup Condition="'$(IsWindows)' == 'true'">
+    <FscToolPath>C:\Program Files (x86)\Microsoft SDKs\F#\4.1\Framework\v4.0</FscToolPath>
+    <FscToolExe>fsc.exe</FscToolExe>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsOSX)' == 'true'">
+    <FscToolPath>/Library/Frameworks/Mono.framework/Versions/Current/Commands</FscToolPath>
+    <FscToolExe>fsharpc</FscToolExe>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsLinux)' == 'true'">
+    <FscToolPath>/usr/bin</FscToolPath>
+    <FscToolExe>fsharpc</FscToolExe>
+  </PropertyGroup>
+```
+
 Having installed the SQLProvider, let's add `Db.fs` file to the beginning of our project - before any other `*.fs` file.
 
 In the newly created file, first open `FSharp.Data.Sql` module:

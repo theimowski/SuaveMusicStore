@@ -3,14 +3,14 @@
 It's time to replace plain text placeholders in containers with meaningful content.
 First, define `h2` in `View` module to output HTML header of level 2:
 
-==> View.fs:6-6
+==> View.fs:`let h2`
 
 and replace `text` with a new `h2` in each of the 4 containers.
 
-We'd like the "/store" route to output hyperlinks to all genres in our Music Store.
+We'd like the `/store` route to output hyperlinks to all genres in our Music Store.
 Let's add a helper function in `Path` module, that will be responsible for formatting HTTP urls with a key-value parameter:
 
-==> Path.fs:5-5
+==> Path.fs:`let withParam`
 
 The `withParam` function takes a tuple `(key,value)` as its first argument, `path` as the second and returns a properly formatted url.
 A tuple (or a pair) is a widely used structure in F#. It allows us to group two values into one in an easy manner. 
@@ -19,15 +19,15 @@ Follow [this link](http://fsharpforfunandprofit.com/posts/tuples/) to learn more
 
 Add also a string key for the url parameter "/store/browse" in `Path.Store` module:
 
-==> Path.fs:14-14
+==> Path.fs:`let browseKey`
 
 We'll use it in `App` module:
 
-==> App.fs:12-14
+==> App.fs:`let browse`
 
 Now, add the following for working with the unordered list (`ul`) and list item (`li`) elements in HTML:
 
-==> View.fs:7-8
+==> View.fs:`let ul`-`let li`
 
 The actual container for `store` can now look like the following:
 
@@ -41,5 +41,5 @@ Things worth commenting in the above snippet:
 
 To use `View.store` from `App` module, let's simply pass a hardcoded list for `genres` like following:
 
-==> App.fs:21-21
+==> App.fs:`path Path.Store.overview`
 

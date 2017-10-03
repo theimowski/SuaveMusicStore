@@ -3,11 +3,11 @@
 We have delete, we have create, so we're left with the update part only.
 This one will be fairly easy, as it's gonna be very similar to create (we can reuse the album form we declared in `Form` module).
 
-`editAlbum` in `View`:
+First add `editAlbum` in `View`:
 
 ==> View.fs:`let editAlbum`
 
-Path:
+Next, add corresponding path:
 
 ==> Path.fs:`module Admin`
 

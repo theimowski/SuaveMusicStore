@@ -1,6 +1,6 @@
 # Admin authorization
 
-There are a few more helper functions needed before we can set up proper authorization for "/admin" handlers.
+There are a few more helper functions needed before we can set up proper authorization for `/admin` handlers.
 Add following to `App` module:
 
 ==> App.fs:`open Suave.Cookie`
@@ -22,11 +22,11 @@ Remarks:
     - second pattern holds if user is logged on but with different role, thus we return 403 Forbidden status code
     - the last "otherwise" (`_`) pattern should never hold, because we're already inside `loggedOn`. We use it anyway, just as a safety net.
 
-That was quite long, but worth it. Finally we're able to guard the "/admin" actions:
+That was quite long, but worth it. Finally we're able to guard the `/admin` actions:
 
 ==> App.fs:`path Path.Admin.manage`-`pathScan Path.Admin.deleteAlbum`
 
-Go and have a look what happens when you try to navigate to "/admin/manage" route.
+Go and have a look what happens when you try to navigate to `/admin/manage` route.
 
 We still need to update the `partUser`, when a user is logged on (remember we hardcoded `None` for username).
 To do this, we can pass `partUser` as parameter to `View.index`:

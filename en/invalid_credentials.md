@@ -9,8 +9,6 @@ To achieve that, let's add `msg` parameter to `View.logon`:
 
 Now we can invoke it in two ways:
 
-==> App.fs:`GET >=> (View.logon`
-
-==> App.fs:`View.logon "Username`
+==> App.fs:`let logon`
 
 The first one being GET `logon` handler, and the other one being returned if provided credentials are incorrect.

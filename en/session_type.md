@@ -39,7 +39,7 @@ In order to confirm that a user is logged on, session state store must contain b
 
 The only usage of `session` for now is in the `logon` POST handler - let's adjust it to new version:
 
-==> App.fs:`| Some user ->`
+==> App.fs:`| Some user ->`-`>=> returnPathOrHome`
 
 Yes I know, I promised we'll pass something funky to the `session` function, but bear with with me - we will later.
 For the moment usage of `session` in `logon` doesn't require any custom action, but we still need to invoke it to "initalize" the user state.

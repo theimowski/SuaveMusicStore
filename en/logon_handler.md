@@ -11,7 +11,7 @@ The snippet makes use of `User` type alias:
 
 Now, in the `App` module add more `open` statements:
 
-==> App.fs:1-13
+==> App.fs:`module`-`OK`
 
 and add a couple of helper functions:
 

@@ -19,7 +19,7 @@ There are just 2 more things before we're good to go with creating album functio
 
 We need `createAlbum` for the `Db` module (the created album is piped to `ignore` function, because we don't need it afterwards):
 
-==> Db.fs:`let deleteAlbum`
+==> Db.fs:`let createAlbum`
 
 as well as POST handler inside the `createAlbum` WebPart:
 

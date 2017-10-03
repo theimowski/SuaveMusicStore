@@ -21,7 +21,9 @@ Remarks:
 We are going to need to fetch the list of all `AlbumDetail`s from the database. 
 For this reason, let's create following query in `Db` module:
 
-==> Db.fs:`let getAlbumDetails`
+==> Db.fs:`let getAlbumsDetails`
+
+We'll fetch all the albums, sorted by artist's name.
 
 Now we're ready to define an actual handler to display the list of albums.
 Let's add a new sub-module to `Path`:
@@ -40,4 +42,4 @@ and used in the main `choose` WebPart:
 
 Don't forget about the `warbler` for `manage` WebPart - we don't use any parameters for this WebPart, so we need to prevent it's eager evaluation.
 
-If you navigate to the "/admin/manage" url in the application now, you should be presented the grid with every album in the store.
+If you navigate to the `/admin/manage` url in the application now, you should be presented the grid with every album in the store.

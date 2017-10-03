@@ -1,6 +1,6 @@
 # Form module
 
-We can delete an album, so why don't we proceed to add album functionality now.
+We can delete an album, so why don't we proceed to add album functionality now?
 It will require a bit more effort, because we actually need some kind of a form with fields to create a new album.
 Fortunately, there's a helper module in Suave library exactly for this purpose.
 
