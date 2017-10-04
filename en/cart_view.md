@@ -1,7 +1,10 @@
 # Cart view
 
-"As a user I want to see that my cart is empty when my cart is empty so that I can make my cart not empty"
-With such a serious business requirement, we'd better distinguish case when user has anything in his cart from case when the cart is empty.
+> *"As a user I want to see that my cart is empty when my cart is empty so that I know that my cart is empty"*
+
+Excuse me for my ignorance, but I'm not a big fan of user stories :)
+
+Anyway with such a serious business requirement, we'd better distinguish case when user has anything in his cart from case when the cart is empty.
 To do that, add separate `emptyCart` in `View` module: 
 
 ==> View.fs:`let emptyCart`

@@ -3,7 +3,7 @@
 If user logs on, we have his user name - so we can "upgrade" all his carts from GUID to the actual user's name.
 Add necessary functions to the `Db` module:
 
-==> Db.fs:`let getCarts`
+==> Db.fs:`let getCarts cartId`
 
 ==> Db.fs:`let upgradeCarts`
 
