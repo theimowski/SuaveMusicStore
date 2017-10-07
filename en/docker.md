@@ -47,12 +47,14 @@ The snippets above copies all fields from the `defaultConfig` and overrides the 
 ## Server image
 
 Database Docker image is already in place, under `postgres` directory.
+
+For the Web image, let's create new Dockerfile in project's root directory.
 It will make use of the official fsharp image:
 
 ```bash
 FROM fsharp:4.0
 
-COPY ./build /app
+COPY ./bin/Debug/net461 /app
 
 EXPOSE 8083
 

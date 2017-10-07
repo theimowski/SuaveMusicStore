@@ -2,16 +2,13 @@
 
 Register feature will be based on a standard form, so let's add one to the `Form` module:
 
-==> Form.fs:`open System.Net.Mail`
-
 ==> Form.fs:`type Register`-`],[ passwordsMatch`
 
 In the above snippet:
 
-- we open the `System.Net.Mail` namespace to use the `MailAddress` type
 - the form consists of 4 fields:
     - `Username` of `string`
-    - `Email` of type `MailAddress` (ensures proper validation of the field)
+    - `Email` of type `string` (see note below)
     - `Password` of type `Password` (ensures proper HTML input type)
     - `ConfirmPassword` of the same type
 - `pattern` is a regular expression pattern for password
@@ -20,6 +17,8 @@ In the above snippet:
     - `Username` must be at most 30 characters long
     - `Password` must match the regular expression
     - `ConfirmPassword` must match the regular expression
+
+> Note: In initial version, the `Email` field used `System.Net.Mail.MailAddress` type, however I had hard times using the same type when building with .NET CLI for this version, that's why I falled back to a plain string for email field. Here's the corresponding [GitHub issue](https://github.com/fsprojects/Paket/issues/2829) to track.
 
 Server-side only validation, like `passwordMatch` are of type `('FormType -> bool) * string`.
 So this is just a tuple of a predicate function and a string error.
