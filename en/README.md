@@ -15,8 +15,8 @@ This allows you to follow along the process of creating the app, and get back on
 
 Also, each F# snippet comes with tool tips for defined symbols, as well as line numbers corresponding to the source code.
 
-You're more than welcome to create issues or pull requests for this tutorial, but please read the [contribution guidelines](https://github.com/theimowski/SuaveMusicStore/blob/v{{book.version}}/CONTRIBUTING.md) first.
+You're more than welcome to create issues or pull requests for this tutorial, but please read the [contribution guidelines](https://github.com/theimowski/SuaveMusicStore/blob/contents/CONTRIBUTING.md) first.
 
 Contents for this book are published on GitHub, and the current branches are:
-* source code of the app: [v{{book.version}}_src](https://github.com/theimowski/SuaveMusicStore/tree/v{{book.version}}_src),
-* contents of this book: [v{{book.version}}](https://github.com/theimowski/SuaveMusicStore/tree/v{{book.version}}).
+* source code of the app: [src_v{{book.version}}](https://github.com/theimowski/SuaveMusicStore/tree/src_v{{book.version}}),
+* contents of this book: [contents](https://github.com/theimowski/SuaveMusicStore/tree/contents).

@@ -39,4 +39,4 @@ and the `home` handler in `App` module:
 
 ==> App.fs:`let webPart`
 
-The "home-showcase.png" asset can be downloaded from [here](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/v{{book.version}}_src/home-showcase.png). Don't forget about the "Copy To Output Directory" property!
+The "home-showcase.png" asset can be downloaded from [here](https://raw.githubusercontent.com/theimowski/SuaveMusicStore/src_v{{book.version}}/home-showcase.png). Don't forget about the "Copy To Output Directory" property!
