@@ -54,4 +54,5 @@
 * [Improvements](improvements.md)
    * [View amends](view_amends.md)
    * [Docker](docker.md)
+   * [Contributions](contributions.md)
    * [Recap](recap.md)
