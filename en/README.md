@@ -20,3 +20,7 @@ You're more than welcome to create issues or pull requests for this tutorial, bu
 Contents for this book are published on GitHub, and the current branches are:
 * source code of the app: [src_v{{book.version}}](https://github.com/theimowski/SuaveMusicStore/tree/src_v{{book.version}}),
 * contents of this book: [contents](https://github.com/theimowski/SuaveMusicStore/tree/contents).
+
+## Contributing 
+
+Please read the [contribution guidelinges](https://github.com/theimowski/SuaveMusicStore/tree/contents/CONTRIBUTING.md)
