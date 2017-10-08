@@ -49,7 +49,7 @@ let version =
     | _ -> None)
 let srcBranch = sprintf "src_v%s" version
 let contentsBranch = "contents"
-let gitBookPubBranch = contentsBranch
+let gitBookPubBranch = "pub"
 
 let write (path, lines: list<String>) =
   if not (File.Exists path && File.ReadAllLines path |> Array.toList = lines) then
@@ -595,7 +595,9 @@ Target "All" DoNothing
   ==> "Preview"
   ==> "All"
 
-"Generate"
+"Idle"
+  // use cached version by default if output is already generated
+  =?> ("Generate", hasBuildParam "gen") 
   ==> "Publish"
 
 RunTargetOrDefault "All"
