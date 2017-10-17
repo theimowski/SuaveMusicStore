@@ -15,7 +15,7 @@ To fix this, let's first add the delete functionality:
 
 A couple of snippets to handle `deleteAlbum` are still needed, starting with `Db`:
 
-==> Db.fs:`let getAlbum`
+==> Db.fs:`let getAlbum id`
 
 for getting `Album option` (not `AlbumDetails`). 
 New route in `Path`:

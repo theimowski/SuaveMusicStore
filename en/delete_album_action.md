@@ -6,7 +6,7 @@ For the moment both GET and POST requests will do the same, which is return HTML
 
 In order to implement the deletion, add `deleteAlbum` to `Db` module:
 
-==> Db.fs:`let getAlbum `
+==> Db.fs:`let deleteAlbum`
 
 The snippet takes an `Album` as a parameter - instance of this type comes from database, and we can invoke `Delete()` member on it - SQLProvider keeps track of such changes, and upon `ctx.SubmitUpdates()` executes necessary SQL commands. This is somewhat similar to the "Active Record" concept.
 
