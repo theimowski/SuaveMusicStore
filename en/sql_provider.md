@@ -16,7 +16,7 @@ nuget Npgsql 3.1.9
 
 > Note: Once again, we pin versions so that this tutorial doesn't get outdated with newer versions of packages.
 
-Don't forget to both packages to `paket.references` as well as running `paket install`!
+Don't forget to add packages to `paket.references` and running `paket install`!
 
 One more thing before we go further: Because we're using the new .NET SDK to build the project, and Type Providers are not yet fully supported for .NET SDK based project, we'll have to apply a special workaround for SQLProvider to work. For more details reach out to this [resource](https://github.com/Microsoft/visualfsharp/issues/3303).
 
